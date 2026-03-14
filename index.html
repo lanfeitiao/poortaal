@@ -592,6 +592,17 @@ main {
 
 <script>
 // --- State ---
+// Auto-setup from URL fragment: poortaal/#setup=sk-...
+(function() {
+  const hash = window.location.hash;
+  if (hash.startsWith('#setup=')) {
+    const key = decodeURIComponent(hash.slice(7));
+    if (key.startsWith('sk-')) {
+      localStorage.setItem('poortaal_apikey', key);
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  }
+})();
 let apiKey = localStorage.getItem('poortaal_apikey') || '';
 let history = JSON.parse(localStorage.getItem('poortaal_history') || '[]');
 let currentWord = null;
