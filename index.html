@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poortaal — Dutch Word Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blue-50: #EFF6FF;
+  --blue-100: #DBEAFE;
+  --blue-200: #BFDBFE;
+  --blue-300: #93C5FD;
+  --blue-400: #60A5FA;
+  --blue-500: #3B82F6;
+  --blue-600: #2563EB;
+  --blue-700: #1D4ED8;
+  --blue-800: #1E40AF;
+  --blue-900: #1E3A8A;
+  --gray-50: #F9FAFB;
+  --gray-100: #F3F4F6;
+  --gray-200: #E5E7EB;
+  --gray-300: #D1D5DB;
+  --gray-400: #9CA3AF;
+  --gray-500: #6B7280;
+  --gray-600: #4B5563;
+  --gray-700: #374151;
+  --gray-800: #1F2937;
+  --gray-900: #111827;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--blue-50);
+  color: var(--gray-800);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* Header */
+header {
+  background: white;
+  border-bottom: 1px solid var(--blue-100);
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--blue-600);
+  letter-spacing: -0.02em;
+}
+
+.logo span { color: var(--blue-400); }
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.header-btn {
+  background: none;
+  border: 1px solid var(--blue-200);
+  color: var(--blue-600);
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: inherit;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.header-btn:hover { background: var(--blue-50); border-color: var(--blue-300); }
+.header-btn.active { background: var(--blue-600); color: white; border-color: var(--blue-600); }
+
+/* Main layout */
+main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+/* Search area */
+.search-area {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.search-area h2 {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--gray-500);
+  margin-bottom: 1rem;
+}
+
+.search-box {
+  display: flex;
+  gap: 0.5rem;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.search-box input {
+  flex: 1;
+  padding: 0.85rem 1.2rem;
+  border: 2px solid var(--blue-200);
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-box input:focus { border-color: var(--blue-500); }
+
+.search-box button {
+  padding: 0.85rem 1.5rem;
+  background: var(--blue-600);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.search-box button:hover { background: var(--blue-700); }
+.search-box button:disabled { background: var(--blue-300); cursor: not-allowed; }
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--gray-400);
+}
+
+.empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
+.empty-state p { margin-bottom: 0.5rem; }
+
+.empty-state .suggestion {
+  color: var(--blue-500);
+  cursor: pointer;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.empty-state .suggestion:hover { color: var(--blue-700); }
+
+/* Loading spinner */
+.spinner-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3rem;
+  gap: 1rem;
+  color: var(--gray-500);
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--blue-100);
+  border-top-color: var(--blue-500);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Cards */
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  border: 1px solid var(--blue-100);
+  animation: fadeUp 0.35s ease-out;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--blue-500);
+  margin-bottom: 0.75rem;
+}
+
+.word-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.word-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--blue-800);
+}
+
+.word-type {
+  font-size: 0.85rem;
+  color: var(--blue-500);
+  background: var(--blue-50);
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.meaning { margin: 0.5rem 0; }
+.meaning-nl { font-size: 1.1rem; color: var(--gray-700); }
+.meaning-en { font-size: 0.95rem; color: var(--gray-400); font-style: italic; }
+
+.fun-fact {
+  background: var(--blue-50);
+  border-left: 3px solid var(--blue-400);
+  padding: 0.75rem 1rem;
+  margin-top: 0.75rem;
+  border-radius: 0 8px 8px 0;
+  font-size: 0.9rem;
+  color: var(--gray-600);
+}
+
+/* Examples */
+.example-item {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.example-item:last-child { border-bottom: none; }
+.example-nl { font-weight: 500; color: var(--gray-800); margin-bottom: 0.2rem; }
+.example-en { font-size: 0.9rem; color: var(--gray-400); }
+
+/* Tips */
+.tips-text {
+  color: var(--gray-600);
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+/* Practice button */
+.practice-btn {
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(135deg, var(--blue-600), var(--blue-700));
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.practice-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37,99,235,0.35);
+}
+
+/* Chat / Practice mode */
+.chat-container { display: none; }
+.chat-container.active { display: block; }
+
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.chat-header h3 { color: var(--blue-700); }
+
+.chat-close {
+  background: none;
+  border: 1px solid var(--blue-200);
+  color: var(--blue-600);
+  padding: 0.3rem 0.7rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: inherit;
+}
+
+.chat-messages {
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.chat-msg {
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  max-width: 85%;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  animation: fadeUp 0.25s ease-out;
+}
+
+.chat-msg.tutor {
+  background: var(--blue-100);
+  color: var(--gray-800);
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+
+.chat-msg.user {
+  background: var(--blue-600);
+  color: white;
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}
+
+.chat-msg.system {
+  background: var(--gray-100);
+  color: var(--gray-500);
+  align-self: center;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.chat-input-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chat-input-row input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--blue-200);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  outline: none;
+}
+
+.chat-input-row input:focus { border-color: var(--blue-500); }
+
+.chat-input-row button {
+  padding: 0.75rem 1.2rem;
+  background: var(--blue-600);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chat-input-row button:disabled { background: var(--blue-300); cursor: not-allowed; }
+
+/* History sidebar */
+.history-panel {
+  display: none;
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: 300px;
+  max-width: 85vw;
+  background: white;
+  box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+  z-index: 200;
+  padding: 1.5rem;
+  overflow-y: auto;
+  animation: slideIn 0.25s ease-out;
+}
+
+.history-panel.open { display: block; }
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.history-panel h3 {
+  font-size: 1.1rem;
+  color: var(--blue-700);
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history-panel .close-btn {
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+  color: var(--gray-400);
+}
+
+.history-list { list-style: none; }
+
+.history-list li {
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--gray-700);
+  transition: background 0.15s;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.history-list li:hover { background: var(--blue-50); color: var(--blue-600); }
+
+.history-empty {
+  color: var(--gray-400);
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 150;
+}
+
+.overlay.open { display: block; }
+
+/* Modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 300;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 440px;
+  width: 100%;
+  animation: fadeUp 0.3s ease-out;
+}
+
+.modal h2 {
+  font-size: 1.3rem;
+  color: var(--blue-700);
+  margin-bottom: 0.5rem;
+}
+
+.modal p {
+  color: var(--gray-500);
+  font-size: 0.9rem;
+  margin-bottom: 1.25rem;
+  line-height: 1.5;
+}
+
+.modal input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--blue-200);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  outline: none;
+  margin-bottom: 1rem;
+}
+
+.modal input:focus { border-color: var(--blue-500); }
+
+.modal-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.modal-actions button {
+  padding: 0.6rem 1.2rem;
+  border-radius: 10px;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-primary { background: var(--blue-600); color: white; }
+.btn-primary:hover { background: var(--blue-700); }
+.btn-secondary { background: var(--gray-100); color: var(--gray-600); }
+.btn-secondary:hover { background: var(--gray-200); }
+
+/* Error toast */
+.toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #DC2626;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  z-index: 400;
+  animation: fadeUp 0.3s ease-out;
+  max-width: 90vw;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  main { padding: 1.5rem 1rem 3rem; }
+  .word-header h1 { font-size: 1.6rem; }
+  .search-box { flex-direction: column; }
+  .search-box button { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Poort<span>aal</span></div>
+  <div class="header-actions">
+    <button class="header-btn" onclick="toggleHistory()">Geschiedenis</button>
+    <button class="header-btn" onclick="openApiModal()">API Key</button>
+  </div>
+</header>
+
+<main>
+  <div class="search-area">
+    <h2>Typ een Nederlands woord om te ontdekken</h2>
+    <div class="search-box">
+      <input type="text" id="wordInput" placeholder="bijv. gezellig" autocomplete="off" autofocus>
+      <button id="searchBtn" onclick="lookupWord()">Ontdek</button>
+    </div>
+  </div>
+
+  <div id="content">
+    <div class="empty-state" id="emptyState">
+      <div class="icon">🚪</div>
+      <p>Je gateway naar de Nederlandse taal</p>
+      <p>Probeer: <span class="suggestion" onclick="trySuggestion('gezellig')">gezellig</span>,
+        <span class="suggestion" onclick="trySuggestion('lekker')">lekker</span>, of
+        <span class="suggestion" onclick="trySuggestion('uitbuiken')">uitbuiken</span></p>
+    </div>
+  </div>
+</main>
+
+<!-- History panel -->
+<div class="overlay" id="overlay" onclick="toggleHistory()"></div>
+<div class="history-panel" id="historyPanel">
+  <h3>Geschiedenis <button class="close-btn" onclick="toggleHistory()">&times;</button></h3>
+  <ul class="history-list" id="historyList"></ul>
+</div>
+
+<!-- API key modal -->
+<div class="modal-overlay" id="apiModal">
+  <div class="modal">
+    <h2>OpenAI API Key</h2>
+    <p>Poortaal gebruikt de OpenAI API om woordinformatie te genereren. Je key wordt alleen lokaal in je browser opgeslagen.</p>
+    <input type="password" id="apiKeyInput" placeholder="sk-...">
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeApiModal()">Annuleren</button>
+      <button class="btn-primary" onclick="saveApiKey()">Opslaan</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// --- State ---
+let apiKey = localStorage.getItem('poortaal_apikey') || '';
+let history = JSON.parse(localStorage.getItem('poortaal_history') || '[]');
+let currentWord = null;
+let currentWordData = null;
+let practiceMessages = [];
+let practiceLoading = false;
+
+// --- Init ---
+document.addEventListener('DOMContentLoaded', () => {
+  if (!apiKey) openApiModal();
+  renderHistory();
+  document.getElementById('wordInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') lookupWord();
+  });
+});
+
+// --- API key ---
+function openApiModal() {
+  document.getElementById('apiKeyInput').value = apiKey;
+  document.getElementById('apiModal').classList.add('open');
+}
+
+function closeApiModal() {
+  document.getElementById('apiModal').classList.remove('open');
+}
+
+function saveApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key) return;
+  apiKey = key;
+  localStorage.setItem('poortaal_apikey', apiKey);
+  closeApiModal();
+}
+
+// --- History ---
+function toggleHistory() {
+  const panel = document.getElementById('historyPanel');
+  const overlay = document.getElementById('overlay');
+  const isOpen = panel.classList.contains('open');
+  panel.classList.toggle('open');
+  overlay.classList.toggle('open');
+}
+
+function addToHistory(word) {
+  const w = word.toLowerCase().trim();
+  history = history.filter(h => h !== w);
+  history.unshift(w);
+  if (history.length > 50) history = history.slice(0, 50);
+  localStorage.setItem('poortaal_history', JSON.stringify(history));
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  if (history.length === 0) {
+    list.innerHTML = '<div class="history-empty">Nog geen woorden opgezocht</div>';
+    return;
+  }
+  list.innerHTML = history.map(w =>
+    `<li onclick="trySuggestion('${w.replace(/'/g, "\\'")}')">${w}</li>`
+  ).join('');
+}
+
+// --- Toast ---
+function showToast(msg) {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+// --- OpenAI call ---
+async function callOpenAI(messages, temperature = 0.7) {
+  if (!apiKey) { openApiModal(); throw new Error('API key required'); }
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+    body: JSON.stringify({ model: 'gpt-4o-mini', messages, temperature })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    if (res.status === 401) { showToast('Ongeldige API key. Controleer je instellingen.'); openApiModal(); }
+    else showToast(err.error?.message || `API fout (${res.status})`);
+    throw new Error('API error');
+  }
+  const data = await res.json();
+  return data.choices[0].message.content;
+}
+
+// --- Word lookup ---
+function trySuggestion(word) {
+  document.getElementById('wordInput').value = word;
+  // Close history if open
+  const panel = document.getElementById('historyPanel');
+  if (panel.classList.contains('open')) toggleHistory();
+  lookupWord();
+}
+
+async function lookupWord() {
+  const input = document.getElementById('wordInput');
+  const word = input.value.trim();
+  if (!word) return;
+  if (!apiKey) { openApiModal(); return; }
+
+  const btn = document.getElementById('searchBtn');
+  btn.disabled = true;
+  const content = document.getElementById('content');
+  content.innerHTML = `<div class="spinner-wrap"><div class="spinner"></div><span>Even denken over "${word}"...</span></div>`;
+
+  try {
+    const systemPrompt = `You are a friendly, knowledgeable Dutch language tutor. The user will give you a Dutch word. Respond with ONLY valid JSON (no markdown, no code fences) with these fields:
+- "word": the word
+- "type": part of speech in Dutch (e.g. "bijvoeglijk naamwoord", "zelfstandig naamwoord", "werkwoord")
+- "meaning_nl": meaning explained in simple Dutch (1-2 sentences)
+- "meaning_en": English translation/meaning
+- "examples": array of 2-3 objects with "nl" (Dutch sentence using the word) and "en" (English translation)
+- "tips": practical usage tips in English (when to use, common mistakes, register)
+- "fun_fact": an interesting etymology or cultural note (in English), or null if nothing notable`;
+
+    const raw = await callOpenAI([
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: word }
+    ]);
+
+    const data = JSON.parse(raw);
+    currentWord = word;
+    currentWordData = data;
+    addToHistory(word);
+    renderWordCard(data);
+  } catch (e) {
+    if (e.message !== 'API error') {
+      content.innerHTML = `<div class="empty-state"><div class="icon">😅</div><p>Kon het woord niet verwerken. Probeer het opnieuw.</p></div>`;
+    } else {
+      content.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Er ging iets mis. Controleer je API key en probeer opnieuw.</p></div>`;
+    }
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function renderWordCard(data) {
+  const content = document.getElementById('content');
+
+  const examplesHtml = (data.examples || []).map(ex => `
+    <div class="example-item">
+      <div class="example-nl">"${ex.nl}"</div>
+      <div class="example-en">${ex.en}</div>
+    </div>
+  `).join('');
+
+  const funFactHtml = data.fun_fact
+    ? `<div class="fun-fact">💡 ${data.fun_fact}</div>` : '';
+
+  content.innerHTML = `
+    <div class="card" id="wordCard">
+      <div class="card-label">Woord</div>
+      <div class="word-header">
+        <h1>${data.word}</h1>
+        <span class="word-type">${data.type}</span>
+      </div>
+      <div class="meaning">
+        <div class="meaning-nl">${data.meaning_nl}</div>
+        <div class="meaning-en">${data.meaning_en}</div>
+      </div>
+      ${funFactHtml}
+    </div>
+
+    <div class="card">
+      <div class="card-label">Voorbeelden</div>
+      ${examplesHtml}
+    </div>
+
+    <div class="card">
+      <div class="card-label">Tips</div>
+      <div class="tips-text">${data.tips}</div>
+    </div>
+
+    <button class="practice-btn" onclick="startPractice()">🎭 Oefenen met "${data.word}"</button>
+
+    <div class="chat-container" id="chatContainer">
+      <div class="card">
+        <div class="chat-header">
+          <h3>🗣️ Oefen: ${data.word}</h3>
+          <button class="chat-close" onclick="closePractice()">Sluiten</button>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input-row">
+          <input type="text" id="chatInput" placeholder="Typ je antwoord..." onkeydown="if(event.key==='Enter')sendChat()">
+          <button id="chatSendBtn" onclick="sendChat()">Stuur</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// --- Practice mode ---
+async function startPractice() {
+  if (!currentWordData) return;
+  const container = document.getElementById('chatContainer');
+  container.classList.add('active');
+  container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  const msgs = document.getElementById('chatMessages');
+  msgs.innerHTML = `<div class="chat-msg system">Scenario wordt voorbereid...</div>`;
+
+  practiceMessages = [
+    {
+      role: 'system',
+      content: `You are a friendly Dutch language tutor running a role-play practice session. The student is learning the word "${currentWordData.word}" (${currentWordData.meaning_en}).
+
+Your job:
+1. First message: Set up a short, fun real-life scenario in Dutch (with English hint in parentheses) where the student must use "${currentWordData.word}" naturally. Keep it conversational and simple.
+2. In subsequent messages: Stay in character for the scenario. Respond naturally in Dutch.
+3. After the student uses the word: Give brief, encouraging feedback on their usage (correct/incorrect, natural/unnatural). Then either continue the conversation or wrap up.
+4. Keep messages short (2-3 sentences max).
+5. Mix Dutch and English — primarily Dutch with English support in parentheses when needed.
+6. Be warm, encouraging, and fun!`
+    }
+  ];
+
+  try {
+    const response = await callOpenAI(practiceMessages);
+    practiceMessages.push({ role: 'assistant', content: response });
+    msgs.innerHTML = `<div class="chat-msg tutor">${formatChat(response)}</div>`;
+    document.getElementById('chatInput').focus();
+  } catch {
+    msgs.innerHTML = `<div class="chat-msg system">Kon het scenario niet starten. Probeer opnieuw.</div>`;
+  }
+}
+
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text || practiceLoading) return;
+
+  const msgs = document.getElementById('chatMessages');
+  practiceMessages.push({ role: 'user', content: text });
+  msgs.innerHTML += `<div class="chat-msg user">${escapeHtml(text)}</div>`;
+  input.value = '';
+  msgs.scrollTop = msgs.scrollHeight;
+
+  practiceLoading = true;
+  document.getElementById('chatSendBtn').disabled = true;
+  msgs.innerHTML += `<div class="chat-msg system" id="chatLoading">💭 Even denken...</div>`;
+
+  try {
+    const response = await callOpenAI(practiceMessages);
+    practiceMessages.push({ role: 'assistant', content: response });
+    const loader = document.getElementById('chatLoading');
+    if (loader) loader.remove();
+    msgs.innerHTML += `<div class="chat-msg tutor">${formatChat(response)}</div>`;
+  } catch {
+    const loader = document.getElementById('chatLoading');
+    if (loader) loader.remove();
+    msgs.innerHTML += `<div class="chat-msg system">Fout bij het versturen. Probeer opnieuw.</div>`;
+  } finally {
+    practiceLoading = false;
+    document.getElementById('chatSendBtn').disabled = false;
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+}
+
+function closePractice() {
+  document.getElementById('chatContainer').classList.remove('active');
+  practiceMessages = [];
+}
+
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function formatChat(text) {
+  return escapeHtml(text).replace(/\n/g, '<br>');
+}
+</script>
+
+</body>
+</html>
