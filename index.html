@@ -604,7 +604,7 @@ main {
   }
 })();
 let apiKey = localStorage.getItem('poortaal_apikey') || '';
-let history = JSON.parse(localStorage.getItem('poortaal_history') || '[]');
+let searchHistory = JSON.parse(localStorage.getItem('poortaal_history') || '[]');
 let currentWord = null;
 let currentWordData = null;
 let practiceMessages = [];
@@ -648,20 +648,20 @@ function toggleHistory() {
 
 function addToHistory(word) {
   const w = word.toLowerCase().trim();
-  history = history.filter(h => h !== w);
-  history.unshift(w);
-  if (history.length > 50) history = history.slice(0, 50);
-  localStorage.setItem('poortaal_history', JSON.stringify(history));
+  searchHistory = searchHistory.filter(h => h !== w);
+  searchHistory.unshift(w);
+  if (searchHistory.length > 50) searchHistory = searchHistory.slice(0, 50);
+  localStorage.setItem('poortaal_history', JSON.stringify(searchHistory));
   renderHistory();
 }
 
 function renderHistory() {
   const list = document.getElementById('historyList');
-  if (history.length === 0) {
+  if (searchHistory.length === 0) {
     list.innerHTML = '<div class="history-empty">Nog geen woorden opgezocht</div>';
     return;
   }
-  list.innerHTML = history.map(w => {
+  list.innerHTML = searchHistory.map(w => {
     const safe = escapeHtml(w);
     return `<li onclick="trySuggestion('${safe.replace(/'/g, "&#39;")}')">${safe}</li>`;
   }).join('');
@@ -731,7 +731,11 @@ async function lookupWord() {
       { role: 'user', content: word }
     ]);
 
-    const data = JSON.parse(raw);
+    let cleaned = raw.trim();
+    if (cleaned.startsWith('```')) {
+      cleaned = cleaned.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+    }
+    const data = JSON.parse(cleaned);
     currentWord = word;
     currentWordData = data;
     addToHistory(word);
