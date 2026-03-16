@@ -661,9 +661,10 @@ function renderHistory() {
     list.innerHTML = '<div class="history-empty">Nog geen woorden opgezocht</div>';
     return;
   }
-  list.innerHTML = history.map(w =>
-    `<li onclick="trySuggestion('${w.replace(/'/g, "\\'")}')">${w}</li>`
-  ).join('');
+  list.innerHTML = history.map(w => {
+    const safe = escapeHtml(w);
+    return `<li onclick="trySuggestion('${safe.replace(/'/g, "&#39;")}')">${safe}</li>`;
+  }).join('');
 }
 
 // --- Toast ---
