@@ -423,9 +423,154 @@ main {
   color: var(--gray-700);
   transition: background 0.15s;
   border-bottom: 1px solid var(--gray-100);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .history-list li:hover { background: var(--blue-50); color: var(--blue-600); }
+
+.history-word { flex: 1; }
+
+.decay-bar {
+  width: 40px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--gray-100);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.decay-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s, background 0.3s;
+}
+
+.decay-fresh .decay-bar-fill { background: #22C55E; }
+.decay-fading .decay-bar-fill { background: #EAB308; }
+.decay-stale .decay-bar-fill { background: #EF4444; }
+
+.decay-stale-label {
+  font-size: 0.7rem;
+  color: #EF4444;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* Micro-review modal */
+.micro-review-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 350;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.micro-review-overlay.open { display: flex; }
+
+.micro-review {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  animation: fadeUp 0.3s ease-out;
+  position: relative;
+}
+
+.micro-review-timer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--blue-400), var(--blue-600));
+  border-radius: 20px 0 0 0;
+  transition: width 0.1s linear;
+}
+
+.micro-review h2 {
+  font-size: 1.2rem;
+  color: var(--blue-700);
+  margin-bottom: 0.25rem;
+}
+
+.micro-review .review-timer-text {
+  font-size: 0.8rem;
+  color: var(--gray-400);
+  margin-bottom: 1.5rem;
+}
+
+.micro-review .review-word {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--blue-800);
+  margin-bottom: 0.25rem;
+}
+
+.micro-review .review-type {
+  font-size: 0.85rem;
+  color: var(--blue-500);
+  margin-bottom: 1.5rem;
+}
+
+.micro-review .review-prompt {
+  color: var(--gray-500);
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+
+.micro-review .review-answer {
+  background: var(--blue-50);
+  border: 2px solid var(--blue-200);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  text-align: left;
+  display: none;
+}
+
+.micro-review .review-answer.revealed { display: block; animation: fadeUp 0.25s ease-out; }
+
+.micro-review .review-answer .answer-nl {
+  font-size: 1rem;
+  color: var(--gray-700);
+  margin-bottom: 0.25rem;
+}
+
+.micro-review .review-answer .answer-en {
+  font-size: 0.9rem;
+  color: var(--gray-400);
+  font-style: italic;
+}
+
+.micro-review .review-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.micro-review .review-actions button {
+  padding: 0.65rem 1.3rem;
+  border-radius: 10px;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.1s;
+}
+
+.micro-review .review-actions button:hover { transform: translateY(-1px); }
+
+.review-btn-reveal { background: var(--blue-600); color: white; }
+.review-btn-know { background: #22C55E; color: white; }
+.review-btn-again { background: #EAB308; color: white; }
+.review-btn-close { background: var(--gray-200); color: var(--gray-600); }
 
 .history-empty {
   color: var(--gray-400);
@@ -577,6 +722,25 @@ main {
   <ul class="history-list" id="historyList"></ul>
 </div>
 
+<!-- Micro-review modal -->
+<div class="micro-review-overlay" id="microReviewOverlay">
+  <div class="micro-review">
+    <div class="micro-review-timer" id="reviewTimerBar"></div>
+    <h2>Snelle herhaling</h2>
+    <div class="review-timer-text" id="reviewTimerText">30s</div>
+    <div class="review-word" id="reviewWord"></div>
+    <div class="review-type" id="reviewType"></div>
+    <div class="review-prompt">Wat betekent dit woord?</div>
+    <div class="review-answer" id="reviewAnswer">
+      <div class="answer-nl" id="reviewNl"></div>
+      <div class="answer-en" id="reviewEn"></div>
+    </div>
+    <div class="review-actions" id="reviewActions">
+      <button class="review-btn-reveal" onclick="revealAnswer()">Onthullen</button>
+    </div>
+  </div>
+</div>
+
 <!-- API key modal -->
 <div class="modal-overlay" id="apiModal">
   <div class="modal">
@@ -605,10 +769,17 @@ main {
 })();
 let apiKey = localStorage.getItem('poortaal_apikey') || '';
 let searchHistory = JSON.parse(localStorage.getItem('poortaal_history') || '[]');
+// Migrate old format (string[]) to new format ({word, timestamp, wordData?}[])
+if (searchHistory.length > 0 && typeof searchHistory[0] === 'string') {
+  searchHistory = searchHistory.map(w => ({ word: w, timestamp: Date.now() }));
+  localStorage.setItem('poortaal_history', JSON.stringify(searchHistory));
+}
 let currentWord = null;
 let currentWordData = null;
 let practiceMessages = [];
 let practiceLoading = false;
+let microReviewTimer = null;
+let microReviewInterval = null;
 
 // --- Init ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -646,13 +817,23 @@ function toggleHistory() {
   overlay.classList.toggle('open');
 }
 
-function addToHistory(word) {
+function addToHistory(word, wordData) {
   const w = word.toLowerCase().trim();
-  searchHistory = searchHistory.filter(h => h !== w);
-  searchHistory.unshift(w);
+  searchHistory = searchHistory.filter(h => h.word !== w);
+  const entry = { word: w, timestamp: Date.now() };
+  if (wordData) entry.wordData = wordData;
+  searchHistory.unshift(entry);
   if (searchHistory.length > 50) searchHistory = searchHistory.slice(0, 50);
   localStorage.setItem('poortaal_history', JSON.stringify(searchHistory));
   renderHistory();
+}
+
+function getDecayInfo(timestamp) {
+  const age = Date.now() - timestamp;
+  const hours = age / (1000 * 60 * 60);
+  if (hours < 24) return { level: 'fresh', pct: Math.max(10, 100 - (hours / 24) * 100) };
+  if (hours < 72) return { level: 'fading', pct: Math.max(10, 100 - ((hours - 24) / 48) * 100) };
+  return { level: 'stale', pct: Math.max(10, 100 - Math.min(90, ((hours - 72) / 168) * 90)) };
 }
 
 function renderHistory() {
@@ -661,9 +842,19 @@ function renderHistory() {
     list.innerHTML = '<div class="history-empty">Nog geen woorden opgezocht</div>';
     return;
   }
-  list.innerHTML = searchHistory.map(w => {
-    const safe = escapeHtml(w);
-    return `<li onclick="trySuggestion('${safe.replace(/'/g, "&#39;")}')">${safe}</li>`;
+  list.innerHTML = searchHistory.map(entry => {
+    const safe = escapeHtml(entry.word);
+    const decay = getDecayInfo(entry.timestamp);
+    const decayClass = decay.level === 'fresh' ? 'decay-fresh' : decay.level === 'fading' ? 'decay-fading' : 'decay-stale';
+    const isStale = decay.level === 'stale';
+    const onclick = isStale && entry.wordData
+      ? `startMicroReview('${safe.replace(/'/g, "&#39;")}')`
+      : `trySuggestion('${safe.replace(/'/g, "&#39;")}')`;
+    return `<li onclick="${onclick}">
+      <span class="history-word">${safe}</span>
+      ${isStale ? '<span class="decay-stale-label">herhaal</span>' : ''}
+      <div class="decay-bar ${decayClass}"><div class="decay-bar-fill" style="width:${decay.pct}%"></div></div>
+    </li>`;
   }).join('');
 }
 
@@ -738,7 +929,7 @@ async function lookupWord() {
     const data = JSON.parse(cleaned);
     currentWord = word;
     currentWordData = data;
-    addToHistory(word);
+    addToHistory(word, data);
     renderWordCard(data);
   } catch (e) {
     if (e.message !== 'API error') {
@@ -886,6 +1077,76 @@ function escapeHtml(s) {
 
 function formatChat(text) {
   return escapeHtml(text).replace(/\n/g, '<br>');
+}
+
+// --- Micro-review ---
+function startMicroReview(word) {
+  const entry = searchHistory.find(h => h.word === word);
+  if (!entry || !entry.wordData) { trySuggestion(word); return; }
+
+  // Close history panel if open
+  const panel = document.getElementById('historyPanel');
+  if (panel.classList.contains('open')) toggleHistory();
+
+  const data = entry.wordData;
+  document.getElementById('reviewWord').textContent = data.word;
+  document.getElementById('reviewType').textContent = data.type || '';
+  document.getElementById('reviewNl').textContent = data.meaning_nl || '';
+  document.getElementById('reviewEn').textContent = data.meaning_en || '';
+  document.getElementById('reviewAnswer').classList.remove('revealed');
+  document.getElementById('reviewActions').innerHTML =
+    '<button class="review-btn-reveal" onclick="revealAnswer()">Onthullen</button>';
+  document.getElementById('microReviewOverlay').classList.add('open');
+
+  // Start 30s timer
+  let remaining = 30;
+  const bar = document.getElementById('reviewTimerBar');
+  const text = document.getElementById('reviewTimerText');
+  bar.style.width = '100%';
+  text.textContent = '30s';
+
+  if (microReviewInterval) clearInterval(microReviewInterval);
+  microReviewInterval = setInterval(() => {
+    remaining -= 0.1;
+    if (remaining <= 0) {
+      remaining = 0;
+      clearInterval(microReviewInterval);
+      revealAnswer();
+    }
+    bar.style.width = ((remaining / 30) * 100) + '%';
+    text.textContent = Math.ceil(remaining) + 's';
+  }, 100);
+}
+
+function revealAnswer() {
+  if (microReviewInterval) { clearInterval(microReviewInterval); microReviewInterval = null; }
+  document.getElementById('reviewAnswer').classList.add('revealed');
+  document.getElementById('reviewActions').innerHTML = `
+    <button class="review-btn-know" onclick="finishReview(true)">Wist ik!</button>
+    <button class="review-btn-again" onclick="finishReview(false)">Opnieuw</button>
+    <button class="review-btn-close" onclick="closeMicroReview()">Sluiten</button>
+  `;
+}
+
+function finishReview(knew) {
+  const word = document.getElementById('reviewWord').textContent.toLowerCase();
+  const idx = searchHistory.findIndex(h => h.word === word);
+  if (idx !== -1) {
+    // Refresh the timestamp so the decay bar resets
+    searchHistory[idx].timestamp = Date.now();
+    localStorage.setItem('poortaal_history', JSON.stringify(searchHistory));
+  }
+  closeMicroReview();
+  if (!knew) {
+    // If they didn't know, open the full word card
+    trySuggestion(word);
+  }
+  renderHistory();
+}
+
+function closeMicroReview() {
+  if (microReviewInterval) { clearInterval(microReviewInterval); microReviewInterval = null; }
+  document.getElementById('microReviewOverlay').classList.remove('open');
 }
 </script>
 
