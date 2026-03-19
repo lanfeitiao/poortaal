@@ -1093,10 +1093,10 @@ function getPlantStage(word) {
   if (!stats) return { emoji: '🌱', label: 'Zaaisel', key: 'seed' };
   const days = (Date.now() - stats.lastSeen) / (1000 * 60 * 60 * 24);
   const total = stats.lookups + stats.practices;
-  if (days > 7) return { emoji: '🥀', label: 'Verwelkt', key: 'wilting' };
-  if (total >= 4) return { emoji: '🌳', label: 'Sterk', key: 'strong' };
-  if (total >= 2) return { emoji: '🪴', label: 'Groeiend', key: 'growing' };
-  if (total >= 1) return { emoji: '🌿', label: 'Kiempje', key: 'sprout' };
+  if (days > 7 && total < 6) return { emoji: '🥀', label: 'Verwelkt', key: 'wilting' };
+  if (total >= 6) return { emoji: '🌳', label: 'Sterk', key: 'strong' };
+  if (total >= 3) return { emoji: '🪴', label: 'Groeiend', key: 'growing' };
+  if (total >= 2) return { emoji: '🌿', label: 'Kiempje', key: 'sprout' };
   return { emoji: '🌱', label: 'Zaaisel', key: 'seed' };
 }
 
