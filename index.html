@@ -1068,12 +1068,35 @@ function getWordStats() {
 function updateWordStats(word, type) {
   const stats = getWordStats();
   const w = word.toLowerCase().trim();
-  if (!stats[w]) stats[w] = { lookups: 0, practices: 0, lastSeen: Date.now() };
+  if (!stats[w]) stats[w] = { lookups: 0, practices: 0, lastSeen: Date.now(), reviews: [], level: 0 };
+  // Migrate old entries
+  if (!stats[w].reviews) stats[w].reviews = [];
+  if (stats[w].level === undefined) stats[w].level = 0;
   if (type === 'lookup') stats[w].lookups++;
   if (type === 'practice') stats[w].practices++;
+  if (type === 'review' || type === 'practice') {
+    stats[w].reviews.push(Date.now());
+    // Spaced repetition: level up if reviewed on time
+    const interval = getNextInterval(stats[w].level);
+    const daysSinceLast = stats[w].reviews.length >= 2
+      ? (Date.now() - stats[w].reviews[stats[w].reviews.length - 2]) / 86400000
+      : 0;
+    stats[w].level = Math.min(stats[w].level + 1, 4);
+  }
   stats[w].lastSeen = Date.now();
   localStorage.setItem('poortaal_word_stats', JSON.stringify(stats));
   return stats[w];
+}
+
+// Ebbinghaus spaced repetition intervals (in days)
+// Level 0: review after 1 day
+// Level 1: review after 3 days
+// Level 2: review after 7 days
+// Level 3: review after 14 days
+// Level 4: review after 30 days (mastered)
+function getNextInterval(level) {
+  const intervals = [1, 3, 7, 14, 30];
+  return intervals[Math.min(level, intervals.length - 1)];
 }
 
 function addToHistory(word, wordData) {
@@ -1090,14 +1113,27 @@ function addToHistory(word, wordData) {
 
 function getPlantStage(word) {
   const stats = getWordStats()[word.toLowerCase().trim()];
-  if (!stats) return { emoji: '🌱', label: 'Zaaisel', key: 'seed' };
-  const days = (Date.now() - stats.lastSeen) / (1000 * 60 * 60 * 24);
-  const total = stats.lookups + stats.practices;
-  if (days > 7 && total < 6) return { emoji: '🥀', label: 'Verwelkt', key: 'wilting' };
-  if (total >= 6) return { emoji: '🌳', label: 'Sterk', key: 'strong' };
-  if (total >= 3) return { emoji: '🪴', label: 'Groeiend', key: 'growing' };
-  if (total >= 2) return { emoji: '🌿', label: 'Kiempje', key: 'sprout' };
-  return { emoji: '🌱', label: 'Zaaisel', key: 'seed' };
+  if (!stats) return { emoji: '🌱', label: 'Zaaisel', key: 'seed', hint: '' };
+  
+  const level = stats.level || 0;
+  const daysSinceLast = (Date.now() - stats.lastSeen) / 86400000;
+  const nextInterval = getNextInterval(level);
+  const overdue = daysSinceLast > nextInterval;
+  const daysLeft = Math.max(0, Math.ceil(nextInterval - daysSinceLast));
+  
+  // If overdue: wilting (needs review!)
+  if (overdue && level < 4) {
+    const overdueDays = Math.floor(daysSinceLast - nextInterval);
+    return { emoji: '🥀', label: 'Verwelkt', key: 'wilting', hint: `${overdueDays}d te laat` };
+  }
+  
+  // Based on spaced repetition level
+  if (level >= 4) return { emoji: '🌳', label: 'Sterk', key: 'strong', hint: 'Goed gedaan!' };
+  if (level >= 3) return { emoji: '🪴', label: 'Groeiend', key: 'growing', hint: `${daysLeft}d tot herhaling` };
+  if (level >= 1) return { emoji: '🌿', label: 'Kiempje', key: 'sprout', hint: `${daysLeft}d tot herhaling` };
+  
+  // Level 0: just looked up
+  return { emoji: '🌱', label: 'Zaaisel', key: 'seed', hint: daysLeft > 0 ? `${daysLeft}d tot herhaling` : 'Herhaal vandaag!' };
 }
 
 function renderHistory() {
@@ -1119,7 +1155,7 @@ function renderHistory() {
       : `trySuggestion('${safe.replace(/'/g, "&#39;")}')`;
     return `<li onclick="${onclick}">
       <span class="history-word">${safe}</span>
-      <span class="plant-stage"><span class="plant-emoji">${plant.emoji}</span><span class="plant-label">${plant.label}</span></span>
+      <span class="plant-stage" title="${plant.hint || ''}"><span class="plant-emoji">${plant.emoji}</span><span class="plant-label">${plant.hint || plant.label}</span></span>
     </li>`;
   });
   list.innerHTML = rows.join('');
