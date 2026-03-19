@@ -1004,9 +1004,9 @@ document.addEventListener('DOMContentLoaded', () => {
   handleRoute();
 });
 
-// --- TTS (Google Translate) ---
+// --- TTS (Cloudflare Worker proxy) ---
 function playPronunciation(text) {
-  const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=nl&client=tw-ob&q=${encodeURIComponent(text)}`;
+  const url = `https://poortaal-api.weilin1990.workers.dev/tts?q=${encodeURIComponent(text)}&tl=nl`;
   const audio = new Audio(url);
   audio.play();
 }
@@ -1017,7 +1017,7 @@ function playTTS(word) {
   btn.classList.add('loading');
   btn.innerHTML = '<div class="tts-spinner"></div>';
 
-  const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=nl&client=tw-ob&q=${encodeURIComponent(word)}`;
+  const url = `https://poortaal-api.weilin1990.workers.dev/tts?q=${encodeURIComponent(word)}&tl=nl`;
   const audio = new Audio(url);
   audio.oncanplaythrough = () => {
     btn.classList.remove('loading');
@@ -1040,7 +1040,7 @@ function playExTTS(btn, text) {
   btn.classList.add('loading');
   btn.innerHTML = '<span class="tts-spinner"></span>';
 
-  const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=nl&client=tw-ob&q=${encodeURIComponent(text)}`;
+  const url = `https://poortaal-api.weilin1990.workers.dev/tts?q=${encodeURIComponent(text)}&tl=nl`;
   const audio = new Audio(url);
   audio.oncanplaythrough = () => {
     btn.classList.remove('loading');
