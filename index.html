@@ -501,30 +501,31 @@ main {
 
 .history-word { flex: 1; }
 
-.decay-bar {
-  width: 40px;
-  height: 6px;
-  border-radius: 3px;
-  background: var(--gray-100);
-  overflow: hidden;
+.plant-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   flex-shrink: 0;
+  min-width: 3rem;
 }
 
-.decay-bar-fill {
-  height: 100%;
-  border-radius: 3px;
-  transition: width 0.3s, background 0.3s;
+.plant-stage .plant-emoji {
+  font-size: 1.2rem;
+  line-height: 1;
 }
 
-.decay-fresh .decay-bar-fill { background: #22C55E; }
-.decay-fading .decay-bar-fill { background: #EAB308; }
-.decay-stale .decay-bar-fill { background: #EF4444; }
+.plant-stage .plant-label {
+  font-size: 0.6rem;
+  color: var(--gray-400);
+  margin-top: 1px;
+}
 
-.decay-stale-label {
-  font-size: 0.7rem;
-  color: #EF4444;
-  font-weight: 600;
-  flex-shrink: 0;
+.history-summary {
+  font-size: 0.75rem;
+  color: var(--gray-500);
+  padding: 0.4rem 0 0.6rem;
+  border-bottom: 1px solid var(--gray-100);
+  margin-bottom: 0.5rem;
 }
 
 /* Micro-review modal */
@@ -931,6 +932,7 @@ main {
 <div class="overlay" id="overlay" onclick="toggleHistory()"></div>
 <div class="history-panel" id="historyPanel">
   <h3>Geschiedenis <button class="close-btn" onclick="toggleHistory()">&times;</button></h3>
+  <div class="history-summary" id="historySummary"></div>
   <ul class="history-list" id="historyList"></ul>
 </div>
 
@@ -1059,6 +1061,21 @@ function toggleHistory() {
   overlay.classList.toggle('open');
 }
 
+function getWordStats() {
+  try { return JSON.parse(localStorage.getItem('poortaal_word_stats') || '{}'); } catch { return {}; }
+}
+
+function updateWordStats(word, type) {
+  const stats = getWordStats();
+  const w = word.toLowerCase().trim();
+  if (!stats[w]) stats[w] = { lookups: 0, practices: 0, lastSeen: Date.now() };
+  if (type === 'lookup') stats[w].lookups++;
+  if (type === 'practice') stats[w].practices++;
+  stats[w].lastSeen = Date.now();
+  localStorage.setItem('poortaal_word_stats', JSON.stringify(stats));
+  return stats[w];
+}
+
 function addToHistory(word, wordData) {
   const w = word.toLowerCase().trim();
   searchHistory = searchHistory.filter(h => h.word !== w);
@@ -1067,37 +1084,52 @@ function addToHistory(word, wordData) {
   searchHistory.unshift(entry);
   if (searchHistory.length > 50) searchHistory = searchHistory.slice(0, 50);
   localStorage.setItem('poortaal_history', JSON.stringify(searchHistory));
+  updateWordStats(w, 'lookup');
   renderHistory();
 }
 
-function getDecayInfo(timestamp) {
-  const age = Date.now() - timestamp;
-  const hours = age / (1000 * 60 * 60);
-  if (hours < 24) return { level: 'fresh', pct: Math.max(10, 100 - (hours / 24) * 100) };
-  if (hours < 72) return { level: 'fading', pct: Math.max(10, 100 - ((hours - 24) / 48) * 100) };
-  return { level: 'stale', pct: Math.max(10, 100 - Math.min(90, ((hours - 72) / 168) * 90)) };
+function getPlantStage(word) {
+  const stats = getWordStats()[word.toLowerCase().trim()];
+  if (!stats) return { emoji: '🌱', label: 'Zaaisel', key: 'seed' };
+  const days = (Date.now() - stats.lastSeen) / (1000 * 60 * 60 * 24);
+  const total = stats.lookups + stats.practices;
+  if (days > 7) return { emoji: '🥀', label: 'Verwelkt', key: 'wilting' };
+  if (total >= 4) return { emoji: '🌳', label: 'Sterk', key: 'strong' };
+  if (total >= 2) return { emoji: '🪴', label: 'Groeiend', key: 'growing' };
+  if (total >= 1) return { emoji: '🌿', label: 'Kiempje', key: 'sprout' };
+  return { emoji: '🌱', label: 'Zaaisel', key: 'seed' };
 }
 
 function renderHistory() {
   const list = document.getElementById('historyList');
+  const summaryEl = document.getElementById('historySummary');
   if (searchHistory.length === 0) {
     list.innerHTML = '<div class="history-empty">Nog geen woorden opgezocht</div>';
+    summaryEl.innerHTML = '';
     return;
   }
-  list.innerHTML = searchHistory.map(entry => {
+  const counts = { strong: 0, growing: 0, sprout: 0, seed: 0, wilting: 0 };
+  const rows = searchHistory.map(entry => {
     const safe = escapeHtml(entry.word);
-    const decay = getDecayInfo(entry.timestamp);
-    const decayClass = decay.level === 'fresh' ? 'decay-fresh' : decay.level === 'fading' ? 'decay-fading' : 'decay-stale';
-    const isStale = decay.level === 'stale';
-    const onclick = isStale && entry.wordData
+    const plant = getPlantStage(entry.word);
+    counts[plant.key]++;
+    const isWilting = plant.key === 'wilting';
+    const onclick = isWilting && entry.wordData
       ? `startMicroReview('${safe.replace(/'/g, "&#39;")}')`
       : `trySuggestion('${safe.replace(/'/g, "&#39;")}')`;
     return `<li onclick="${onclick}">
       <span class="history-word">${safe}</span>
-      ${isStale ? '<span class="decay-stale-label">herhaal</span>' : ''}
-      <div class="decay-bar ${decayClass}"><div class="decay-bar-fill" style="width:${decay.pct}%"></div></div>
+      <span class="plant-stage"><span class="plant-emoji">${plant.emoji}</span><span class="plant-label">${plant.label}</span></span>
     </li>`;
-  }).join('');
+  });
+  list.innerHTML = rows.join('');
+  const parts = [];
+  if (counts.strong) parts.push(`🌳 ${counts.strong} sterk`);
+  if (counts.growing) parts.push(`🪴 ${counts.growing} groeiend`);
+  if (counts.sprout) parts.push(`🌿 ${counts.sprout} kiempjes`);
+  if (counts.seed) parts.push(`🌱 ${counts.seed} zaaisel`);
+  if (counts.wilting) parts.push(`🥀 ${counts.wilting} verwelkt`);
+  summaryEl.innerHTML = parts.join(' · ');
 }
 
 // --- Toast ---
@@ -1422,13 +1454,12 @@ function finishReview(knew) {
   const word = document.getElementById('reviewWord').textContent.toLowerCase();
   const idx = searchHistory.findIndex(h => h.word === word);
   if (idx !== -1) {
-    // Refresh the timestamp so the decay bar resets
     searchHistory[idx].timestamp = Date.now();
     localStorage.setItem('poortaal_history', JSON.stringify(searchHistory));
   }
+  updateWordStats(word, 'practice');
   closeMicroReview();
   if (!knew) {
-    // If they didn't know, open the full word card
     trySuggestion(word);
   }
   renderHistory();
