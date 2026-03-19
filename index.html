@@ -290,7 +290,36 @@ main {
 }
 
 .example-item:last-child { border-bottom: none; }
-.example-nl { font-weight: 500; color: var(--gray-800); margin-bottom: 0.2rem; }
+.example-nl {
+  font-weight: 500;
+  color: var(--gray-800);
+  margin-bottom: 0.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.example-nl .ex-tts-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.example-nl .ex-tts-btn:hover { opacity: 1; }
+.example-nl .ex-tts-btn.loading { opacity: 0.3; pointer-events: none; }
+.example-nl .ex-tts-btn .tts-spinner {
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid var(--gray-200);
+  border-top-color: var(--blue-500);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
 .example-en { font-size: 0.9rem; color: var(--gray-400); }
 
 /* Tips */
@@ -1009,6 +1038,26 @@ async function playTTS(word) {
   }
 }
 
+async function playExTTS(btn, text) {
+  if (btn.classList.contains('loading')) return;
+  btn.classList.add('loading');
+  btn.innerHTML = '<span class="tts-spinner"></span>';
+  try {
+    const res = await fetch(`${API_BASE}/tts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, voice_id: '21m00Tcm4TlvDq8ikWAM' })
+    });
+    if (!res.ok) { showToast('Er ging iets mis'); return; }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    audio.addEventListener('ended', () => URL.revokeObjectURL(url));
+    audio.play();
+  } catch { showToast('Er ging iets mis'); }
+  finally { btn.classList.remove('loading'); btn.innerHTML = '🔊'; }
+}
+
 // --- History ---
 function toggleHistory() {
   const panel = document.getElementById('historyPanel');
@@ -1141,12 +1190,14 @@ async function lookupWord() {
 function renderWordCard(data) {
   const content = document.getElementById('content');
 
-  const examplesHtml = (data.examples || []).map(ex => `
+  const examplesHtml = (data.examples || []).map(ex => {
+    const safeNl = ex.nl.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    return `
     <div class="example-item">
-      <div class="example-nl">"${ex.nl}"</div>
+      <div class="example-nl">"${ex.nl}" <button class="ex-tts-btn" onclick="playExTTS(this, '${safeNl}')" title="Uitspraak">🔊</button></div>
       <div class="example-en">${ex.en}</div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 
   const funFactHtml = data.fun_fact
     ? `<div class="fun-fact">💡 ${data.fun_fact}</div>` : '';
