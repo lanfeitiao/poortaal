@@ -1135,10 +1135,37 @@ function trySuggestion(word) {
   lookupWord();
 }
 
+// --- Word cache (localStorage) ---
+function getWordCache() {
+  try { return JSON.parse(localStorage.getItem('poortaal_word_cache') || '{}'); } catch { return {}; }
+}
+function setWordCache(word, data) {
+  const cache = getWordCache();
+  cache[word.toLowerCase().trim()] = data;
+  // Keep cache under ~200 entries
+  const keys = Object.keys(cache);
+  if (keys.length > 200) { delete cache[keys[0]]; }
+  localStorage.setItem('poortaal_word_cache', JSON.stringify(cache));
+}
+function getCachedWord(word) {
+  return getWordCache()[word.toLowerCase().trim()] || null;
+}
+
 async function lookupWord() {
   const input = document.getElementById('wordInput');
   const word = input.value.trim();
   if (!word) return;
+
+  // Check cache first
+  const cached = getCachedWord(word);
+  if (cached) {
+    currentWord = word;
+    currentWordData = cached;
+    addToHistory(word, cached);
+    renderWordCard(cached);
+    return;
+  }
+
   const btn = document.getElementById('searchBtn');
   btn.disabled = true;
   const content = document.getElementById('content');
@@ -1166,6 +1193,7 @@ async function lookupWord() {
     const data = JSON.parse(cleaned);
     currentWord = word;
     currentWordData = data;
+    setWordCache(word, data);
     addToHistory(word, data);
     renderWordCard(data);
   } catch (e) {
