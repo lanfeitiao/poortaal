@@ -488,19 +488,43 @@ main {
 .history-list { list-style: none; }
 
 .history-list li {
-  padding: 0.6rem 0.75rem;
+  position: relative;
+  overflow: hidden;
   border-radius: 8px;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.history-list li .swipe-content {
+  position: relative;
+  z-index: 1;
+  padding: 0.6rem 0.75rem;
   cursor: pointer;
   font-weight: 500;
   color: var(--gray-700);
-  transition: background 0.15s;
-  border-bottom: 1px solid var(--gray-100);
+  background: white;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  transition: transform 0.2s ease;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
-.history-list li:hover { background: var(--blue-50); color: var(--blue-600); }
+.history-list li .swipe-content:hover { background: var(--blue-50); color: var(--blue-600); }
+
+.history-list li .swipe-delete {
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 80px;
+  background: #EF4444;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
 
 .history-word { flex: 1; }
 
@@ -1156,12 +1180,16 @@ function renderHistory() {
     const onclick = isWilting && entry.wordData
       ? `startMicroReview('${safe.replace(/'/g, "&#39;")}')`
       : `trySuggestion('${safe.replace(/'/g, "&#39;")}')`;
-    return `<li onclick="${onclick}">
-      <span class="history-word">${safe}</span>
-      <span class="plant-stage" title="${plant.hint || ''}"><span class="plant-emoji">${plant.emoji}</span><span class="plant-label">${plant.hint || plant.label}</span></span>
+    return `<li>
+      <div class="swipe-delete" onclick="deleteHistoryItem('${safe.replace(/'/g, "&#39;")}')">Verwijder</div>
+      <div class="swipe-content" data-word="${safe.replace(/"/g, '&quot;')}" onclick="${onclick}">
+        <span class="history-word">${safe}</span>
+        <span class="plant-stage" title="${plant.hint || ''}"><span class="plant-emoji">${plant.emoji}</span><span class="plant-label">${plant.hint || plant.label}</span></span>
+      </div>
     </li>`;
   });
   list.innerHTML = rows.join('');
+  initSwipeHandlers(list);
   const parts = [];
   if (counts.strong) parts.push(`🌳 ${counts.strong} sterk`);
   if (counts.growing) parts.push(`🪴 ${counts.growing} groeiend`);
@@ -1169,6 +1197,57 @@ function renderHistory() {
   if (counts.seed) parts.push(`🌱 ${counts.seed} zaaisel`);
   if (counts.wilting) parts.push(`🥀 ${counts.wilting} verwelkt`);
   summaryEl.innerHTML = parts.join(' · ');
+}
+
+function deleteHistoryItem(word) {
+  searchHistory = searchHistory.filter(h => h.word !== word);
+  localStorage.setItem('poortaal_history', JSON.stringify(searchHistory));
+  const cache = getWordCache();
+  delete cache[word.toLowerCase().trim()];
+  localStorage.setItem('poortaal_word_cache', JSON.stringify(cache));
+  const stats = getWordStats();
+  delete stats[word.toLowerCase().trim()];
+  localStorage.setItem('poortaal_word_stats', JSON.stringify(stats));
+  renderHistory();
+}
+
+function initSwipeHandlers(list) {
+  const items = list.querySelectorAll('.swipe-content');
+  items.forEach(el => {
+    let startX = 0, currentX = 0, swiping = false;
+    el.addEventListener('touchstart', e => {
+      startX = e.touches[0].clientX;
+      currentX = 0;
+      swiping = false;
+      el.style.transition = 'none';
+    }, { passive: true });
+    el.addEventListener('touchmove', e => {
+      const dx = e.touches[0].clientX - startX;
+      if (dx < -10) swiping = true;
+      if (swiping) {
+        currentX = Math.min(0, Math.max(dx, -120));
+        el.style.transform = `translateX(${currentX}px)`;
+      }
+    }, { passive: true });
+    el.addEventListener('touchend', () => {
+      el.style.transition = 'transform 0.2s ease';
+      if (currentX < -100) {
+        // Full swipe — delete
+        const word = el.dataset.word;
+        el.style.transform = 'translateX(-100%)';
+        setTimeout(() => deleteHistoryItem(word), 200);
+      } else if (currentX < -40) {
+        // Partial swipe — reveal button
+        el.style.transform = 'translateX(-80px)';
+      } else {
+        el.style.transform = 'translateX(0)';
+      }
+    });
+    // Prevent click from firing after a swipe
+    el.addEventListener('click', e => {
+      if (swiping) { e.stopPropagation(); e.preventDefault(); }
+    }, true);
+  });
 }
 
 // --- Toast ---
