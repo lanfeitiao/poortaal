@@ -1004,58 +1004,58 @@ document.addEventListener('DOMContentLoaded', () => {
   handleRoute();
 });
 
-// --- TTS ---
-async function playTTS(word) {
+// --- TTS (Google Translate) ---
+function playPronunciation(text) {
+  const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=nl&client=tw-ob&q=${encodeURIComponent(text)}`;
+  const audio = new Audio(url);
+  audio.play();
+}
+
+function playTTS(word) {
   const btn = document.getElementById('ttsBtn');
   if (!btn || btn.classList.contains('loading')) return;
   btn.classList.add('loading');
   btn.innerHTML = '<div class="tts-spinner"></div>';
 
-  try {
-    const res = await fetch(`${API_BASE}/tts`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: word, voice_id: '21m00Tcm4TlvDq8ikWAM' })
-    });
-
-    if (!res.ok) {
-      showToast('Er ging iets mis');
-      return;
-    }
-
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const audio = new Audio(url);
-    audio.addEventListener('ended', () => URL.revokeObjectURL(url));
-    audio.play();
-  } catch (e) {
+  const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=nl&client=tw-ob&q=${encodeURIComponent(word)}`;
+  const audio = new Audio(url);
+  audio.oncanplaythrough = () => {
+    btn.classList.remove('loading');
+    btn.innerHTML = '🔊';
+  };
+  audio.onerror = () => {
+    btn.classList.remove('loading');
+    btn.innerHTML = '🔊';
     showToast('Er ging iets mis');
-  } finally {
-    if (btn) {
-      btn.classList.remove('loading');
-      btn.innerHTML = '🔊';
-    }
-  }
+  };
+  audio.play().catch(() => {
+    btn.classList.remove('loading');
+    btn.innerHTML = '🔊';
+    showToast('Er ging iets mis');
+  });
 }
 
-async function playExTTS(btn, text) {
+function playExTTS(btn, text) {
   if (btn.classList.contains('loading')) return;
   btn.classList.add('loading');
   btn.innerHTML = '<span class="tts-spinner"></span>';
-  try {
-    const res = await fetch(`${API_BASE}/tts`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, voice_id: '21m00Tcm4TlvDq8ikWAM' })
-    });
-    if (!res.ok) { showToast('Er ging iets mis'); return; }
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const audio = new Audio(url);
-    audio.addEventListener('ended', () => URL.revokeObjectURL(url));
-    audio.play();
-  } catch { showToast('Er ging iets mis'); }
-  finally { btn.classList.remove('loading'); btn.innerHTML = '🔊'; }
+
+  const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=nl&client=tw-ob&q=${encodeURIComponent(text)}`;
+  const audio = new Audio(url);
+  audio.oncanplaythrough = () => {
+    btn.classList.remove('loading');
+    btn.innerHTML = '🔊';
+  };
+  audio.onerror = () => {
+    btn.classList.remove('loading');
+    btn.innerHTML = '🔊';
+    showToast('Er ging iets mis');
+  };
+  audio.play().catch(() => {
+    btn.classList.remove('loading');
+    btn.innerHTML = '🔊';
+    showToast('Er ging iets mis');
+  });
 }
 
 // --- History ---
