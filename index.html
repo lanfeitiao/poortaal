@@ -236,6 +236,39 @@ main {
   font-weight: 500;
 }
 
+.tts-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--gray-300);
+  background: none;
+  cursor: pointer;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  padding: 0;
+  line-height: 1;
+}
+
+.tts-btn:hover { background: var(--blue-50); border-color: var(--blue-400); }
+
+.tts-btn.loading {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.tts-btn .tts-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--gray-200);
+  border-top-color: var(--blue-500);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
 .meaning { margin: 0.5rem 0; }
 .meaning-nl { font-size: 1.1rem; color: var(--gray-700); }
 .meaning-en { font-size: 0.95rem; color: var(--gray-400); font-style: italic; }
@@ -800,6 +833,7 @@ main {
   <div class="header-actions">
     <button class="header-btn" onclick="toggleHistory()">Geschiedenis</button>
     <button class="header-btn" onclick="openApiModal()">API Key</button>
+    <button class="header-btn" onclick="openElModal()">EL Key</button>
   </div>
 </header>
 
@@ -905,6 +939,19 @@ main {
   </div>
 </div>
 
+<!-- ElevenLabs API key modal -->
+<div class="modal-overlay" id="elModal">
+  <div class="modal">
+    <h2>ElevenLabs API Key</h2>
+    <p>Voeg een ElevenLabs API key toe om de uitspraak van woorden te beluisteren. Je key wordt alleen lokaal opgeslagen.</p>
+    <input type="password" id="elKeyInput" placeholder="xi-...">
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeElModal()">Annuleren</button>
+      <button class="btn-primary" onclick="saveElKey()">Opslaan</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // --- State ---
 // Auto-setup from URL fragment: poortaal/#setup=sk-...
@@ -919,6 +966,7 @@ main {
   }
 })();
 let apiKey = localStorage.getItem('poortaal_apikey') || '';
+let elKey = localStorage.getItem('poortaal_elevenlabs_key') || '';
 let searchHistory = JSON.parse(localStorage.getItem('poortaal_history') || '[]');
 // Migrate old format (string[]) to new format ({word, timestamp, wordData?}[])
 if (searchHistory.length > 0 && typeof searchHistory[0] === 'string') {
@@ -987,6 +1035,82 @@ function saveApiKey() {
   apiKey = key;
   localStorage.setItem('poortaal_apikey', apiKey);
   closeApiModal();
+}
+
+// --- ElevenLabs key ---
+function openElModal() {
+  document.getElementById('elKeyInput').value = elKey;
+  document.getElementById('elModal').classList.add('open');
+}
+
+function closeElModal() {
+  document.getElementById('elModal').classList.remove('open');
+}
+
+function saveElKey() {
+  const key = document.getElementById('elKeyInput').value.trim();
+  if (!key) return;
+  elKey = key;
+  localStorage.setItem('poortaal_elevenlabs_key', elKey);
+  closeElModal();
+}
+
+// --- TTS ---
+async function playTTS(word) {
+  if (!elKey) {
+    showToast('Stel eerst een ElevenLabs API key in.');
+    openElModal();
+    return;
+  }
+
+  const btn = document.getElementById('ttsBtn');
+  if (!btn || btn.classList.contains('loading')) return;
+  btn.classList.add('loading');
+  btn.innerHTML = '<div class="tts-spinner"></div>';
+
+  try {
+    const voiceId = '21m00Tcm4TlvDq8ikWAM';
+    const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'xi-api-key': elKey
+      },
+      body: JSON.stringify({
+        text: word,
+        model_id: 'eleven_multilingual_v2',
+        voice_settings: {
+          stability: 0.5,
+          similarity_boost: 0.75,
+          language_code: 'nl'
+        }
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      if (res.status === 401) {
+        showToast('Ongeldige ElevenLabs API key.');
+        openElModal();
+      } else {
+        showToast(err.detail?.message || `ElevenLabs fout (${res.status})`);
+      }
+      return;
+    }
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    audio.addEventListener('ended', () => URL.revokeObjectURL(url));
+    audio.play();
+  } catch (e) {
+    showToast('Kon uitspraak niet afspelen.');
+  } finally {
+    if (btn) {
+      btn.classList.remove('loading');
+      btn.innerHTML = '🔊';
+    }
+  }
 }
 
 // --- History ---
@@ -1142,6 +1266,7 @@ function renderWordCard(data) {
       <div class="word-header">
         <h1>${data.word}</h1>
         <span class="word-type">${data.type}</span>
+        <button class="tts-btn" id="ttsBtn" onclick="playTTS('${data.word.replace(/'/g, "\\'")}')" title="Uitspraak beluisteren">🔊</button>
       </div>
       <div class="meaning">
         <div class="meaning-nl">${data.meaning_nl}</div>
