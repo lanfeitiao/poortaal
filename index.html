@@ -1004,58 +1004,50 @@ document.addEventListener('DOMContentLoaded', () => {
   handleRoute();
 });
 
-// --- TTS (Cloudflare Worker proxy) ---
-function playPronunciation(text) {
+// --- TTS (Cloudflare Worker proxy → Google Translate) ---
+// iOS Safari requires fetch+blob approach for cross-origin audio
+async function _playTTSBlob(text) {
   const url = `https://poortaal-api.weilin1990.workers.dev/tts?q=${encodeURIComponent(text)}&tl=nl`;
-  const audio = new Audio(url);
-  audio.play();
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('TTS fetch failed');
+  const blob = await res.blob();
+  const blobUrl = URL.createObjectURL(blob);
+  const audio = new Audio(blobUrl);
+  audio.onended = () => URL.revokeObjectURL(blobUrl);
+  await audio.play();
 }
 
-function playTTS(word) {
+function playPronunciation(text) {
+  _playTTSBlob(text).catch(() => showToast('Er ging iets mis'));
+}
+
+async function playTTS(word) {
   const btn = document.getElementById('ttsBtn');
   if (!btn || btn.classList.contains('loading')) return;
   btn.classList.add('loading');
   btn.innerHTML = '<div class="tts-spinner"></div>';
-
-  const url = `https://poortaal-api.weilin1990.workers.dev/tts?q=${encodeURIComponent(word)}&tl=nl`;
-  const audio = new Audio(url);
-  audio.oncanplaythrough = () => {
-    btn.classList.remove('loading');
-    btn.innerHTML = '🔊';
-  };
-  audio.onerror = () => {
-    btn.classList.remove('loading');
-    btn.innerHTML = '🔊';
+  try {
+    await _playTTSBlob(word);
+  } catch {
     showToast('Er ging iets mis');
-  };
-  audio.play().catch(() => {
+  } finally {
     btn.classList.remove('loading');
     btn.innerHTML = '🔊';
-    showToast('Er ging iets mis');
-  });
+  }
 }
 
-function playExTTS(btn, text) {
+async function playExTTS(btn, text) {
   if (btn.classList.contains('loading')) return;
   btn.classList.add('loading');
   btn.innerHTML = '<span class="tts-spinner"></span>';
-
-  const url = `https://poortaal-api.weilin1990.workers.dev/tts?q=${encodeURIComponent(text)}&tl=nl`;
-  const audio = new Audio(url);
-  audio.oncanplaythrough = () => {
-    btn.classList.remove('loading');
-    btn.innerHTML = '🔊';
-  };
-  audio.onerror = () => {
-    btn.classList.remove('loading');
-    btn.innerHTML = '🔊';
+  try {
+    await _playTTSBlob(text);
+  } catch {
     showToast('Er ging iets mis');
-  };
-  audio.play().catch(() => {
+  } finally {
     btn.classList.remove('loading');
     btn.innerHTML = '🔊';
-    showToast('Er ging iets mis');
-  });
+  }
 }
 
 // --- History ---
