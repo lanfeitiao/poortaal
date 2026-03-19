@@ -95,7 +95,7 @@ header {
 main {
   max-width: 720px;
   margin: 0 auto;
-  padding: 2rem 1.5rem 4rem;
+  padding: 2rem 1.5rem 5rem;
 }
 
 /* Search area */
@@ -669,7 +669,7 @@ main {
 /* Error toast */
 .toast {
   position: fixed;
-  bottom: 1.5rem;
+  bottom: 5rem;
   left: 50%;
   transform: translateX(-50%);
   background: #DC2626;
@@ -683,9 +683,110 @@ main {
   max-width: 90vw;
 }
 
+/* Bottom nav */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid var(--blue-100);
+  display: flex;
+  z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.bottom-nav a {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.6rem 0;
+  text-decoration: none;
+  color: var(--gray-400);
+  font-size: 0.7rem;
+  font-weight: 600;
+  font-family: inherit;
+  transition: color 0.2s;
+}
+
+.bottom-nav a.active { color: var(--blue-600); }
+.bottom-nav a:hover { color: var(--blue-500); }
+.bottom-nav a .nav-icon { font-size: 1.3rem; }
+
+/* Views */
+.view { display: none; }
+.view.active { display: block; }
+
+/* Practice view */
+.practice-word-picker {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.practice-word-picker h2 {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--gray-500);
+  margin-bottom: 1rem;
+}
+
+.practice-history-list {
+  list-style: none;
+  margin-top: 1rem;
+}
+
+.practice-history-list li {
+  padding: 0.75rem 1rem;
+  background: white;
+  border: 1px solid var(--blue-100);
+  border-radius: 12px;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--gray-700);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.practice-history-list li:hover {
+  border-color: var(--blue-300);
+  background: var(--blue-50);
+  color: var(--blue-600);
+}
+
+.practice-history-list li .word-label { flex: 1; }
+.practice-history-list li .word-type-hint {
+  font-size: 0.8rem;
+  color: var(--gray-400);
+  font-weight: 400;
+}
+
+.practice-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: 1px solid var(--blue-200);
+  color: var(--blue-600);
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: inherit;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  transition: all 0.2s;
+}
+
+.practice-back-btn:hover { background: var(--blue-50); border-color: var(--blue-300); }
+
 /* Responsive */
 @media (max-width: 480px) {
-  main { padding: 1.5rem 1rem 3rem; }
+  main { padding: 1.5rem 1rem 5rem; }
   .word-header h1 { font-size: 1.6rem; }
   .search-box { flex-direction: column; }
   .search-box button { width: 100%; }
@@ -703,24 +804,67 @@ main {
 </header>
 
 <main>
-  <div class="search-area">
-    <h2>Typ een Nederlands woord om te ontdekken</h2>
-    <div class="search-box">
-      <input type="text" id="wordInput" placeholder="bijv. gezellig" autocomplete="off" autofocus>
-      <button id="searchBtn" onclick="lookupWord()">Ontdek</button>
+  <!-- HOME VIEW -->
+  <div id="view-home" class="view active">
+    <div class="search-area">
+      <h2>Typ een Nederlands woord om te ontdekken</h2>
+      <div class="search-box">
+        <input type="text" id="wordInput" placeholder="bijv. gezellig" autocomplete="off" autofocus>
+        <button id="searchBtn" onclick="lookupWord()">Ontdek</button>
+      </div>
+    </div>
+
+    <div id="content">
+      <div class="empty-state" id="emptyState">
+        <div class="icon">🚪</div>
+        <p>Je gateway naar de Nederlandse taal</p>
+        <p>Probeer: <span class="suggestion" onclick="trySuggestion('gezellig')">gezellig</span>,
+          <span class="suggestion" onclick="trySuggestion('lekker')">lekker</span>, of
+          <span class="suggestion" onclick="trySuggestion('uitbuiken')">uitbuiken</span></p>
+      </div>
     </div>
   </div>
 
-  <div id="content">
-    <div class="empty-state" id="emptyState">
-      <div class="icon">🚪</div>
-      <p>Je gateway naar de Nederlandse taal</p>
-      <p>Probeer: <span class="suggestion" onclick="trySuggestion('gezellig')">gezellig</span>,
-        <span class="suggestion" onclick="trySuggestion('lekker')">lekker</span>, of
-        <span class="suggestion" onclick="trySuggestion('uitbuiken')">uitbuiken</span></p>
+  <!-- PRACTICE VIEW -->
+  <div id="view-practice" class="view">
+    <div id="practicePickerSection">
+      <div class="practice-word-picker">
+        <h2>Kies een woord om te oefenen</h2>
+        <div class="search-box">
+          <input type="text" id="practiceWordInput" placeholder="Typ een woord..." autocomplete="off">
+          <button onclick="startPracticeWithInput()">Oefenen</button>
+        </div>
+      </div>
+      <ul class="practice-history-list" id="practiceHistoryList"></ul>
+    </div>
+
+    <div id="practiceChatSection" style="display:none;">
+      <button class="practice-back-btn" onclick="showPracticePicker()">← Terug naar woordkeuze</button>
+      <div class="card">
+        <div class="chat-header">
+          <h3>🗣️ Oefen: <span id="practiceChatWord"></span></h3>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input-row">
+          <input type="text" id="chatInput" placeholder="Typ je antwoord..." onkeydown="if(event.key==='Enter')sendChat()">
+          <button id="chatSendBtn" onclick="sendChat()">Stuur</button>
+        </div>
+      </div>
     </div>
   </div>
 </main>
+
+<!-- Bottom navigation -->
+<nav class="bottom-nav">
+  <a href="#home" id="nav-home" class="active">
+    <span class="nav-icon">🔍</span>
+    Zoeken
+  </a>
+  <a href="#practice" id="nav-practice">
+    <span class="nav-icon">🗣️</span>
+    Oefenen
+  </a>
+</nav>
 
 <!-- History panel -->
 <div class="overlay" id="overlay" onclick="toggleHistory()"></div>
@@ -788,6 +932,29 @@ let practiceLoading = false;
 let microReviewTimer = null;
 let microReviewInterval = null;
 
+// --- Routing ---
+function navigateTo(hash) {
+  window.location.hash = hash;
+}
+
+function handleRoute() {
+  const hash = window.location.hash || '#home';
+  const route = hash.split('?')[0];
+  const isHome = route === '#home' || route === '' || route === '#';
+  const isPractice = route === '#practice';
+
+  document.getElementById('view-home').classList.toggle('active', isHome);
+  document.getElementById('view-practice').classList.toggle('active', isPractice);
+  document.getElementById('nav-home').classList.toggle('active', isHome);
+  document.getElementById('nav-practice').classList.toggle('active', isPractice);
+
+  if (isPractice) {
+    renderPracticeHistoryList();
+  }
+}
+
+window.addEventListener('hashchange', handleRoute);
+
 // --- Init ---
 document.addEventListener('DOMContentLoaded', () => {
   if (!apiKey) openApiModal();
@@ -795,6 +962,13 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('wordInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') lookupWord();
   });
+  document.getElementById('practiceWordInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') startPracticeWithInput();
+  });
+  // Handle initial route (skip #setup= which is handled above)
+  if (!window.location.hash.startsWith('#setup=')) {
+    handleRoute();
+  }
 });
 
 // --- API key ---
@@ -986,41 +1160,68 @@ function renderWordCard(data) {
       <div class="tips-text">${data.tips}</div>
     </div>
 
-    <button class="practice-btn" onclick="startPractice()">🎭 Oefenen met "${data.word}"</button>
-
-    <div class="chat-container" id="chatContainer">
-      <div class="card">
-        <div class="chat-header">
-          <h3>🗣️ Oefen: ${data.word}</h3>
-          <button class="chat-close" onclick="closePractice()">Sluiten</button>
-        </div>
-        <div class="chat-messages" id="chatMessages"></div>
-        <div class="chat-input-row">
-          <input type="text" id="chatInput" placeholder="Typ je antwoord..." onkeydown="if(event.key==='Enter')sendChat()">
-          <button id="chatSendBtn" onclick="sendChat()">Stuur</button>
-        </div>
-      </div>
-    </div>
+    <button class="practice-btn" onclick="goToPractice('${data.word.replace(/'/g, "\\'")}')">🎭 Oefenen met "${data.word}"</button>
   `;
 }
 
-// --- Practice mode ---
-async function startPractice() {
-  if (!currentWordData) return;
-  const container = document.getElementById('chatContainer');
-  container.classList.add('active');
-  container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+// --- Practice view ---
+function goToPractice(word) {
+  navigateTo('#practice');
+  // Wait for route to render, then start practice
+  setTimeout(() => startPracticeForWord(word), 50);
+}
+
+function renderPracticeHistoryList() {
+  const list = document.getElementById('practiceHistoryList');
+  const wordsWithData = searchHistory.filter(h => h.wordData);
+  if (wordsWithData.length === 0) {
+    list.innerHTML = '<div class="history-empty" style="padding:2rem 0;">Zoek eerst een woord op om mee te oefenen</div>';
+    return;
+  }
+  list.innerHTML = wordsWithData.map(entry => {
+    const safe = escapeHtml(entry.word);
+    const typeHint = entry.wordData?.type ? escapeHtml(entry.wordData.type) : '';
+    return `<li onclick="startPracticeForWord('${safe.replace(/'/g, "&#39;")}')">
+      <span class="word-label">${safe}</span>
+      <span class="word-type-hint">${typeHint}</span>
+    </li>`;
+  }).join('');
+}
+
+function startPracticeWithInput() {
+  const input = document.getElementById('practiceWordInput');
+  const word = input.value.trim();
+  if (!word) return;
+  input.value = '';
+  startPracticeForWord(word);
+}
+
+function showPracticePicker() {
+  document.getElementById('practicePickerSection').style.display = '';
+  document.getElementById('practiceChatSection').style.display = 'none';
+  practiceMessages = [];
+}
+
+async function startPracticeForWord(word) {
+  // Find word data from history, or use a minimal version
+  const entry = searchHistory.find(h => h.word === word.toLowerCase());
+  const wordData = entry?.wordData || { word: word, meaning_en: '' };
+
+  document.getElementById('practicePickerSection').style.display = 'none';
+  document.getElementById('practiceChatSection').style.display = '';
+  document.getElementById('practiceChatWord').textContent = wordData.word;
 
   const msgs = document.getElementById('chatMessages');
   msgs.innerHTML = `<div class="chat-msg system">Scenario wordt voorbereid...</div>`;
 
+  const meaningHint = wordData.meaning_en ? ` (${wordData.meaning_en})` : '';
   practiceMessages = [
     {
       role: 'system',
-      content: `You are a friendly Dutch language tutor running a role-play practice session. The student is learning the word "${currentWordData.word}" (${currentWordData.meaning_en}).
+      content: `You are a friendly Dutch language tutor running a role-play practice session. The student is learning the word "${wordData.word}"${meaningHint}.
 
 Your job:
-1. First message: Set up a short, fun real-life scenario in Dutch (with English hint in parentheses) where the student must use "${currentWordData.word}" naturally. Keep it conversational and simple.
+1. First message: Set up a short, fun real-life scenario in Dutch (with English hint in parentheses) where the student must use "${wordData.word}" naturally. Keep it conversational and simple.
 2. In subsequent messages: Stay in character for the scenario. Respond naturally in Dutch.
 3. After the student uses the word: Give brief, encouraging feedback on their usage (correct/incorrect, natural/unnatural). Then either continue the conversation or wrap up.
 4. Keep messages short (2-3 sentences max).
@@ -1069,11 +1270,6 @@ async function sendChat() {
     document.getElementById('chatSendBtn').disabled = false;
     msgs.scrollTop = msgs.scrollHeight;
   }
-}
-
-function closePractice() {
-  document.getElementById('chatContainer').classList.remove('active');
-  practiceMessages = [];
 }
 
 function escapeHtml(s) {
