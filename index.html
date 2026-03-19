@@ -832,8 +832,6 @@ main {
   <div class="logo">Poort<span>aal</span></div>
   <div class="header-actions">
     <button class="header-btn" onclick="toggleHistory()">Geschiedenis</button>
-    <button class="header-btn" onclick="openApiModal()">API Key</button>
-    <button class="header-btn" onclick="openElModal()">EL Key</button>
   </div>
 </header>
 
@@ -926,47 +924,9 @@ main {
   </div>
 </div>
 
-<!-- API key modal -->
-<div class="modal-overlay" id="apiModal">
-  <div class="modal">
-    <h2>OpenAI API Key</h2>
-    <p>Poortaal gebruikt de OpenAI API om woordinformatie te genereren. Je key wordt alleen lokaal in je browser opgeslagen.</p>
-    <input type="password" id="apiKeyInput" placeholder="sk-...">
-    <div class="modal-actions">
-      <button class="btn-secondary" onclick="closeApiModal()">Annuleren</button>
-      <button class="btn-primary" onclick="saveApiKey()">Opslaan</button>
-    </div>
-  </div>
-</div>
-
-<!-- ElevenLabs API key modal -->
-<div class="modal-overlay" id="elModal">
-  <div class="modal">
-    <h2>ElevenLabs API Key</h2>
-    <p>Voeg een ElevenLabs API key toe om de uitspraak van woorden te beluisteren. Je key wordt alleen lokaal opgeslagen.</p>
-    <input type="password" id="elKeyInput" placeholder="xi-...">
-    <div class="modal-actions">
-      <button class="btn-secondary" onclick="closeElModal()">Annuleren</button>
-      <button class="btn-primary" onclick="saveElKey()">Opslaan</button>
-    </div>
-  </div>
-</div>
-
 <script>
 // --- State ---
-// Auto-setup from URL fragment: poortaal/#setup=sk-...
-(function() {
-  const hash = window.location.hash;
-  if (hash.startsWith('#setup=')) {
-    const key = decodeURIComponent(hash.slice(7));
-    if (key.startsWith('sk-')) {
-      localStorage.setItem('poortaal_apikey', key);
-      window.history.replaceState(null, '', window.location.pathname);
-    }
-  }
-})();
-let apiKey = localStorage.getItem('poortaal_apikey') || '';
-let elKey = localStorage.getItem('poortaal_elevenlabs_key') || '';
+const API_BASE = 'https://poortaal-api.weilin1990.workers.dev';
 let searchHistory = JSON.parse(localStorage.getItem('poortaal_history') || '[]');
 // Migrate old format (string[]) to new format ({word, timestamp, wordData?}[])
 if (searchHistory.length > 0 && typeof searchHistory[0] === 'string') {
@@ -1005,7 +965,6 @@ window.addEventListener('hashchange', handleRoute);
 
 // --- Init ---
 document.addEventListener('DOMContentLoaded', () => {
-  if (!apiKey) openApiModal();
   renderHistory();
   document.getElementById('wordInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') lookupWord();
@@ -1013,88 +972,25 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('practiceWordInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') startPracticeWithInput();
   });
-  // Handle initial route (skip #setup= which is handled above)
-  if (!window.location.hash.startsWith('#setup=')) {
-    handleRoute();
-  }
+  handleRoute();
 });
-
-// --- API key ---
-function openApiModal() {
-  document.getElementById('apiKeyInput').value = apiKey;
-  document.getElementById('apiModal').classList.add('open');
-}
-
-function closeApiModal() {
-  document.getElementById('apiModal').classList.remove('open');
-}
-
-function saveApiKey() {
-  const key = document.getElementById('apiKeyInput').value.trim();
-  if (!key) return;
-  apiKey = key;
-  localStorage.setItem('poortaal_apikey', apiKey);
-  closeApiModal();
-}
-
-// --- ElevenLabs key ---
-function openElModal() {
-  document.getElementById('elKeyInput').value = elKey;
-  document.getElementById('elModal').classList.add('open');
-}
-
-function closeElModal() {
-  document.getElementById('elModal').classList.remove('open');
-}
-
-function saveElKey() {
-  const key = document.getElementById('elKeyInput').value.trim();
-  if (!key) return;
-  elKey = key;
-  localStorage.setItem('poortaal_elevenlabs_key', elKey);
-  closeElModal();
-}
 
 // --- TTS ---
 async function playTTS(word) {
-  if (!elKey) {
-    showToast('Stel eerst een ElevenLabs API key in.');
-    openElModal();
-    return;
-  }
-
   const btn = document.getElementById('ttsBtn');
   if (!btn || btn.classList.contains('loading')) return;
   btn.classList.add('loading');
   btn.innerHTML = '<div class="tts-spinner"></div>';
 
   try {
-    const voiceId = '21m00Tcm4TlvDq8ikWAM';
-    const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+    const res = await fetch(`${API_BASE}/tts`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'xi-api-key': elKey
-      },
-      body: JSON.stringify({
-        text: word,
-        model_id: 'eleven_multilingual_v2',
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.75,
-          language_code: 'nl'
-        }
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: word, voice_id: '21m00Tcm4TlvDq8ikWAM' })
     });
 
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      if (res.status === 401) {
-        showToast('Ongeldige ElevenLabs API key.');
-        openElModal();
-      } else {
-        showToast(err.detail?.message || `ElevenLabs fout (${res.status})`);
-      }
+      showToast('Er ging iets mis');
       return;
     }
 
@@ -1104,7 +1000,7 @@ async function playTTS(word) {
     audio.addEventListener('ended', () => URL.revokeObjectURL(url));
     audio.play();
   } catch (e) {
-    showToast('Kon uitspraak niet afspelen.');
+    showToast('Er ging iets mis');
   } finally {
     if (btn) {
       btn.classList.remove('loading');
@@ -1176,16 +1072,13 @@ function showToast(msg) {
 
 // --- OpenAI call ---
 async function callOpenAI(messages, temperature = 0.7) {
-  if (!apiKey) { openApiModal(); throw new Error('API key required'); }
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+  const res = await fetch(`${API_BASE}/openai`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ model: 'gpt-4o-mini', messages, temperature })
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    if (res.status === 401) { showToast('Ongeldige API key. Controleer je instellingen.'); openApiModal(); }
-    else showToast(err.error?.message || `API fout (${res.status})`);
+    showToast('Er ging iets mis');
     throw new Error('API error');
   }
   const data = await res.json();
@@ -1205,8 +1098,6 @@ async function lookupWord() {
   const input = document.getElementById('wordInput');
   const word = input.value.trim();
   if (!word) return;
-  if (!apiKey) { openApiModal(); return; }
-
   const btn = document.getElementById('searchBtn');
   btn.disabled = true;
   const content = document.getElementById('content');
@@ -1240,7 +1131,7 @@ async function lookupWord() {
     if (e.message !== 'API error') {
       content.innerHTML = `<div class="empty-state"><div class="icon">😅</div><p>Kon het woord niet verwerken. Probeer het opnieuw.</p></div>`;
     } else {
-      content.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Er ging iets mis. Controleer je API key en probeer opnieuw.</p></div>`;
+      content.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Er ging iets mis. Probeer het opnieuw.</p></div>`;
     }
   } finally {
     btn.disabled = false;
