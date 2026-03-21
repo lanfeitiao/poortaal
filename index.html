@@ -1798,12 +1798,19 @@ async function startVoiceSession() {
     
     let currentAssistantText = '';
     
+    let userPendingEl = null;
+    
     dc.addEventListener('message', (e) => {
       const event = JSON.parse(e.data);
       
-      // User starts speaking
+      // User starts speaking — create placeholder immediately
       if (event.type === 'input_audio_buffer.speech_started') {
         setVoiceDots(true);
+        userPendingEl = document.createElement('div');
+        userPendingEl.className = 'chat-msg user streaming';
+        userPendingEl.textContent = '...';
+        transcript.appendChild(userPendingEl);
+        transcript.scrollTop = transcript.scrollHeight;
       }
       
       // User finished speaking
@@ -1811,10 +1818,16 @@ async function startVoiceSession() {
         setVoiceDots(false);
       }
       
-      // User transcript complete
+      // User transcript complete — update the placeholder
       if (event.type === 'conversation.item.input_audio_transcription.completed') {
         const text = event.transcript;
-        transcript.innerHTML += `<div class="chat-msg user">${escapeHtml(text)}</div>`;
+        if (userPendingEl) {
+          userPendingEl.classList.remove('streaming');
+          userPendingEl.innerHTML = escapeHtml(text);
+          userPendingEl = null;
+        } else {
+          transcript.innerHTML += `<div class="chat-msg user">${escapeHtml(text)}</div>`;
+        }
         transcript.scrollTop = transcript.scrollHeight;
       }
       
@@ -1900,7 +1913,7 @@ function stopVoiceSession() {
   }
   
   const statusEl = document.getElementById('voiceStatus');
-  if (statusEl && statusEl.textContent.startsWith('Verbonden')) {
+  if (statusEl) {
     statusEl.textContent = 'Gesprek beëindigd';
     // Mark word as practiced
     if (currentVoiceWord) {
