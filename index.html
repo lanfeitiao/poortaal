@@ -59,10 +59,15 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
 }
+
+/* Offset body content below the fixed header */
+body { padding-top: 3.5rem; }
 
 .logo {
   font-size: 1.5rem;
