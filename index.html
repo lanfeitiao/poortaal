@@ -874,6 +874,93 @@ main {
 
 .practice-back-btn:hover { background: var(--blue-50); border-color: var(--blue-300); }
 
+/* Practice mode toggle */
+.practice-mode-btn {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid var(--blue-200);
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--gray-600);
+  transition: all 0.2s;
+}
+.practice-mode-btn.active {
+  background: var(--blue-600);
+  color: white;
+  border-color: var(--blue-600);
+}
+.practice-mode-btn:hover:not(.active) {
+  background: var(--blue-50);
+  border-color: var(--blue-300);
+}
+
+/* Voice practice */
+.voice-status {
+  text-align: center;
+  padding: 0.75rem;
+  color: var(--gray-500);
+  font-size: 0.9rem;
+}
+.voice-visualizer {
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem;
+}
+.voice-dots {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.voice-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--blue-300);
+  transition: transform 0.15s;
+}
+.voice-dot.active {
+  animation: voicePulse 0.6s ease-in-out infinite alternate;
+}
+@keyframes voicePulse {
+  0% { transform: scale(1); background: var(--blue-300); }
+  100% { transform: scale(1.8); background: var(--blue-500); }
+}
+.voice-dot:nth-child(2).active { animation-delay: 0.15s; }
+.voice-dot:nth-child(3).active { animation-delay: 0.3s; }
+.voice-dot:nth-child(4).active { animation-delay: 0.45s; }
+.voice-transcript {
+  max-height: 300px;
+  min-height: 100px;
+}
+.voice-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 2rem;
+  border: none;
+  border-radius: 2rem;
+  background: var(--blue-600);
+  color: white;
+  font-size: 1rem;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.voice-btn:hover { background: var(--blue-700); }
+.voice-btn.recording {
+  background: #DC2626;
+  animation: recordPulse 1.5s ease-in-out infinite;
+}
+@keyframes recordPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+  50% { box-shadow: 0 0 0 12px rgba(220, 38, 38, 0); }
+}
+
 /* Responsive */
 @media (max-width: 480px) {
   main { padding: 1.5rem 1rem 5rem; }
@@ -929,14 +1016,43 @@ main {
 
     <div id="practiceChatSection" style="display:none;">
       <button class="practice-back-btn" onclick="showPracticePicker()">← Terug naar woordkeuze</button>
-      <div class="card">
-        <div class="chat-header">
-          <h3>🗣️ Oefen: <span id="practiceChatWord"></span></h3>
+      <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;">
+        <button class="practice-mode-btn active" id="textModeBtn" onclick="switchPracticeMode('text')">💬 Tekst</button>
+        <button class="practice-mode-btn" id="voiceModeBtn" onclick="switchPracticeMode('voice')">🎙️ Stem</button>
+      </div>
+      <div id="textPracticePanel">
+        <div class="card">
+          <div class="chat-header">
+            <h3>🗣️ Oefen: <span id="practiceChatWord"></span></h3>
+          </div>
+          <div class="chat-messages" id="chatMessages"></div>
+          <div class="chat-input-row">
+            <input type="text" id="chatInput" placeholder="Typ je antwoord..." onkeydown="if(event.key==='Enter')sendChat()">
+            <button id="chatSendBtn" onclick="sendChat()">Stuur</button>
+          </div>
         </div>
-        <div class="chat-messages" id="chatMessages"></div>
-        <div class="chat-input-row">
-          <input type="text" id="chatInput" placeholder="Typ je antwoord..." onkeydown="if(event.key==='Enter')sendChat()">
-          <button id="chatSendBtn" onclick="sendChat()">Stuur</button>
+      </div>
+      <div id="voicePracticePanel" style="display:none;">
+        <div class="card">
+          <div class="chat-header">
+            <h3>🎙️ Spreek: <span id="voicePracticeWord"></span></h3>
+          </div>
+          <div class="voice-status" id="voiceStatus">Druk op de knop om te beginnen</div>
+          <div class="voice-visualizer" id="voiceVisualizer">
+            <div class="voice-dots">
+              <span class="voice-dot"></span>
+              <span class="voice-dot"></span>
+              <span class="voice-dot"></span>
+              <span class="voice-dot"></span>
+            </div>
+          </div>
+          <div class="chat-messages voice-transcript" id="voiceTranscript"></div>
+          <div style="text-align:center;padding:1rem;">
+            <button class="voice-btn" id="voiceStartBtn" onclick="toggleVoiceSession()">
+              <span id="voiceBtnIcon">🎙️</span>
+              <span id="voiceBtnText">Start gesprek</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -1434,6 +1550,8 @@ function startPracticeWithInput() {
 }
 
 function showPracticePicker() {
+  // Stop voice session if active
+  if (voiceActive) stopVoiceSession();
   // Mark word as practiced when leaving the chat (if at least 1 message was sent)
   const practicedWord = document.getElementById('practiceChatWord')?.textContent?.toLowerCase()?.trim();
   const userSentMessages = practiceMessages.filter(m => m.role === 'user').length;
@@ -1443,6 +1561,8 @@ function showPracticePicker() {
   }
   document.getElementById('practicePickerSection').style.display = '';
   document.getElementById('practiceChatSection').style.display = 'none';
+  // Reset to text mode
+  switchPracticeMode('text');
   practiceMessages = [];
 }
 
@@ -1593,6 +1713,209 @@ function finishReview(knew) {
 function closeMicroReview() {
   if (microReviewInterval) { clearInterval(microReviewInterval); microReviewInterval = null; }
   document.getElementById('microReviewOverlay').classList.remove('open');
+}
+
+// --- Voice Practice (OpenAI Realtime) ---
+let voicePeerConnection = null;
+let voiceDataChannel = null;
+let voiceActive = false;
+let currentVoiceWord = '';
+
+function switchPracticeMode(mode) {
+  document.getElementById('textModeBtn').classList.toggle('active', mode === 'text');
+  document.getElementById('voiceModeBtn').classList.toggle('active', mode === 'voice');
+  document.getElementById('textPracticePanel').style.display = mode === 'text' ? '' : 'none';
+  document.getElementById('voicePracticePanel').style.display = mode === 'voice' ? '' : 'none';
+  
+  if (mode === 'voice') {
+    const word = document.getElementById('practiceChatWord').textContent;
+    document.getElementById('voicePracticeWord').textContent = word;
+    currentVoiceWord = word;
+  }
+  
+  // Stop voice session when switching to text
+  if (mode === 'text' && voiceActive) {
+    stopVoiceSession();
+  }
+}
+
+async function toggleVoiceSession() {
+  if (voiceActive) {
+    stopVoiceSession();
+  } else {
+    await startVoiceSession();
+  }
+}
+
+async function startVoiceSession() {
+  const word = currentVoiceWord;
+  const statusEl = document.getElementById('voiceStatus');
+  const btn = document.getElementById('voiceStartBtn');
+  const transcript = document.getElementById('voiceTranscript');
+  
+  statusEl.textContent = 'Verbinding maken...';
+  transcript.innerHTML = '';
+  
+  try {
+    // Get microphone permission
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    
+    // Get ephemeral token from worker
+    const tokenRes = await fetch(`${API_BASE}/realtime-token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ word }),
+    });
+    
+    if (!tokenRes.ok) {
+      throw new Error('Kon geen sessie starten');
+    }
+    
+    const tokenData = await tokenRes.json();
+    const ephemeralToken = tokenData.client_secret?.value;
+    
+    if (!ephemeralToken) {
+      throw new Error('Geen token ontvangen');
+    }
+    
+    // Set up WebRTC
+    const pc = new RTCPeerConnection();
+    voicePeerConnection = pc;
+    
+    // Play AI audio
+    const audioEl = document.createElement('audio');
+    audioEl.autoplay = true;
+    pc.ontrack = (e) => {
+      audioEl.srcObject = e.streams[0];
+    };
+    
+    // Send microphone audio
+    stream.getTracks().forEach(track => pc.addTrack(track, stream));
+    
+    // Data channel for events
+    const dc = pc.createDataChannel('oai-events');
+    voiceDataChannel = dc;
+    
+    let currentAssistantText = '';
+    
+    dc.addEventListener('message', (e) => {
+      const event = JSON.parse(e.data);
+      
+      // User starts speaking
+      if (event.type === 'input_audio_buffer.speech_started') {
+        setVoiceDots(true);
+      }
+      
+      // User finished speaking
+      if (event.type === 'input_audio_buffer.speech_stopped') {
+        setVoiceDots(false);
+      }
+      
+      // User transcript complete
+      if (event.type === 'conversation.item.input_audio_transcription.completed') {
+        const text = event.transcript;
+        transcript.innerHTML += `<div class="chat-msg user">${escapeHtml(text)}</div>`;
+        transcript.scrollTop = transcript.scrollHeight;
+      }
+      
+      // AI response streaming
+      if (event.type === 'response.audio_transcript.delta') {
+        currentAssistantText += event.delta;
+        const lastMsg = transcript.querySelector('.chat-msg.tutor.streaming');
+        if (lastMsg) {
+          lastMsg.innerHTML = formatChat(currentAssistantText);
+        } else {
+          transcript.innerHTML += `<div class="chat-msg tutor streaming">${formatChat(currentAssistantText)}</div>`;
+        }
+        transcript.scrollTop = transcript.scrollHeight;
+        setVoiceDots(true);
+      }
+      
+      // AI response done
+      if (event.type === 'response.audio_transcript.done') {
+        const lastMsg = transcript.querySelector('.chat-msg.tutor.streaming');
+        if (lastMsg) {
+          lastMsg.classList.remove('streaming');
+          lastMsg.innerHTML = formatChat(event.transcript);
+        }
+        currentAssistantText = '';
+        setVoiceDots(false);
+      }
+    });
+    
+    dc.addEventListener('open', () => {
+      statusEl.textContent = 'Verbonden — begin te praten!';
+      btn.classList.add('recording');
+      document.getElementById('voiceBtnIcon').textContent = '⏹️';
+      document.getElementById('voiceBtnText').textContent = 'Stop gesprek';
+      voiceActive = true;
+    });
+    
+    dc.addEventListener('close', () => {
+      stopVoiceSession();
+    });
+    
+    // Create and send SDP offer
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    
+    const sdpRes = await fetch('https://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview', {
+      method: 'POST',
+      body: offer.sdp,
+      headers: {
+        'Authorization': `Bearer ${ephemeralToken}`,
+        'Content-Type': 'application/sdp',
+      },
+    });
+    
+    const answerSdp = await sdpRes.text();
+    await pc.setRemoteDescription({ type: 'answer', sdp: answerSdp });
+    
+  } catch (err) {
+    console.error('Voice session error:', err);
+    statusEl.textContent = `Fout: ${err.message}`;
+    stopVoiceSession();
+  }
+}
+
+function stopVoiceSession() {
+  voiceActive = false;
+  
+  if (voiceDataChannel) {
+    voiceDataChannel.close();
+    voiceDataChannel = null;
+  }
+  
+  if (voicePeerConnection) {
+    voicePeerConnection.getSenders().forEach(s => { if (s.track) s.track.stop(); });
+    voicePeerConnection.close();
+    voicePeerConnection = null;
+  }
+  
+  const btn = document.getElementById('voiceStartBtn');
+  if (btn) {
+    btn.classList.remove('recording');
+    document.getElementById('voiceBtnIcon').textContent = '🎙️';
+    document.getElementById('voiceBtnText').textContent = 'Start gesprek';
+  }
+  
+  const statusEl = document.getElementById('voiceStatus');
+  if (statusEl && statusEl.textContent.startsWith('Verbonden')) {
+    statusEl.textContent = 'Gesprek beëindigd';
+    // Mark word as practiced
+    if (currentVoiceWord) {
+      updateWordStats(currentVoiceWord.toLowerCase(), 'practice');
+      renderHistory();
+    }
+  }
+  
+  setVoiceDots(false);
+}
+
+function setVoiceDots(active) {
+  document.querySelectorAll('.voice-dot').forEach(dot => {
+    dot.classList.toggle('active', active);
+  });
 }
 </script>
 
