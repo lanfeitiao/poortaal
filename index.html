@@ -1832,7 +1832,7 @@ async function startVoiceSession() {
       }
       
       // AI response streaming
-      if (event.type === 'response.audio_transcript.delta') {
+      if (event.type === 'response.output_audio_transcript.delta') {
         currentAssistantText += event.delta;
         const lastMsg = transcript.querySelector('.chat-msg.tutor.streaming');
         if (lastMsg) {
@@ -1845,7 +1845,7 @@ async function startVoiceSession() {
       }
       
       // AI response done
-      if (event.type === 'response.audio_transcript.done') {
+      if (event.type === 'response.output_audio_transcript.done') {
         const lastMsg = transcript.querySelector('.chat-msg.tutor.streaming');
         if (lastMsg) {
           lastMsg.classList.remove('streaming');
