@@ -1897,6 +1897,11 @@ function stopVoiceSession() {
   // Remove any pending "..." placeholder messages
   document.querySelectorAll('#voiceTranscript .chat-msg.streaming').forEach(el => el.remove());
   
+  // Force hide visualizer
+  const viz = document.getElementById('voiceVisualizer');
+  if (viz) viz.style.display = 'none';
+  document.querySelectorAll('.voice-dot').forEach(dot => dot.classList.remove('active'));
+  
   if (voiceDataChannel) {
     voiceDataChannel.close();
     voiceDataChannel = null;
