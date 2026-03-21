@@ -1772,7 +1772,7 @@ async function startVoiceSession() {
     }
     
     const tokenData = await tokenRes.json();
-    const ephemeralToken = tokenData.client_secret?.value;
+    const ephemeralToken = tokenData.client_secret?.value || tokenData.value;
     
     if (!ephemeralToken) {
       throw new Error('Geen token ontvangen');

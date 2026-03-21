@@ -90,24 +90,38 @@ Your behavior:
 5. Be warm, patient, and encouraging. Speak at a natural but slightly slower pace.
 6. If the student struggles, offer hints in English.`;
 
-  const response = await fetch('https://api.openai.com/v1/realtime/sessions', {
+  const response = await fetch('https://api.openai.com/v1/realtime/client_secrets', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${env.OPENAI_API_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-4o-realtime-preview',
-      voice: 'alloy',
-      instructions,
-      input_audio_transcription: {
-        model: 'whisper-1',
+      expires_after: {
+        anchor: 'created_at',
+        seconds: 120,
       },
-      turn_detection: {
-        type: 'server_vad',
-        threshold: 0.5,
-        prefix_padding_ms: 300,
-        silence_duration_ms: 1000,
+      session: {
+        type: 'realtime',
+        model: 'gpt-4o-realtime-preview',
+        instructions,
+        audio: {
+          input: {
+            turn_detection: {
+              type: 'server_vad',
+              threshold: 0.5,
+              prefix_padding_ms: 300,
+              silence_duration_ms: 1000,
+            },
+            transcription: {
+              model: 'whisper-1',
+            },
+          },
+          output: {
+            voice: 'alloy',
+            speed: 0.9,
+          },
+        },
       },
     }),
   });
