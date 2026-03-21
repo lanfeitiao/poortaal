@@ -1038,6 +1038,22 @@ window.addEventListener('hashchange', handleRoute);
 
 // --- Init ---
 document.addEventListener('DOMContentLoaded', () => {
+  // Prevent iOS PWA rubber-band bounce on header/nav/body
+  // Only allow touchmove inside scrollable containers (main, overlays, chat)
+  document.addEventListener('touchmove', function(e) {
+    let el = e.target;
+    while (el && el !== document.documentElement) {
+      if (el.scrollHeight > el.clientHeight) {
+        const style = window.getComputedStyle(el);
+        if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
+          return; // scrollable container found, allow
+        }
+      }
+      el = el.parentElement;
+    }
+    e.preventDefault();
+  }, { passive: false });
+
   renderHistory();
   document.getElementById('wordInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') lookupWord();
