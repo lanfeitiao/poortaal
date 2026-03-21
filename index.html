@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -43,22 +43,12 @@
   --gray-900: #111827;
 }
 
-html {
-  height: 100%;
-  overflow: hidden;
-}
-
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   background: var(--blue-50);
   color: var(--gray-800);
-  height: 100%;
-  height: 100dvh;
+  min-height: 100vh;
   line-height: 1.6;
-  overflow: hidden;
-  overscroll-behavior: none;
-  display: flex;
-  flex-direction: column;
 }
 
 /* Header */
@@ -66,14 +56,11 @@ header {
   background: white;
   border-bottom: 1px solid var(--blue-100);
   padding: 1rem 1.5rem;
-  padding-top: calc(1rem + env(safe-area-inset-top, 0));
   display: flex;
   align-items: center;
   justify-content: space-between;
-  position: fixed;
+  position: sticky;
   top: 0;
-  left: 0;
-  right: 0;
   z-index: 100;
 }
 
@@ -112,10 +99,6 @@ main {
   max-width: 720px;
   margin: 0 auto;
   padding: 2rem 1.5rem 5rem;
-  padding-top: calc(4rem + env(safe-area-inset-top, 0));
-  flex: 1;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
 /* Search area */
@@ -801,7 +784,6 @@ main {
   display: flex;
   z-index: 100;
   padding-bottom: env(safe-area-inset-bottom, 0);
-  flex-shrink: 0;
 }
 
 .bottom-nav a {
@@ -1041,22 +1023,6 @@ window.addEventListener('hashchange', handleRoute);
 
 // --- Init ---
 document.addEventListener('DOMContentLoaded', () => {
-  // Prevent iOS PWA rubber-band bounce on header/nav/body
-  // Only allow touchmove inside scrollable containers (main, overlays, chat)
-  document.addEventListener('touchmove', function(e) {
-    let el = e.target;
-    while (el && el !== document.documentElement) {
-      if (el.scrollHeight > el.clientHeight) {
-        const style = window.getComputedStyle(el);
-        if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
-          return; // scrollable container found, allow
-        }
-      }
-      el = el.parentElement;
-    }
-    e.preventDefault();
-  }, { passive: false });
-
   renderHistory();
   document.getElementById('wordInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') lookupWord();
