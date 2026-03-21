@@ -1434,6 +1434,13 @@ function startPracticeWithInput() {
 }
 
 function showPracticePicker() {
+  // Mark word as practiced when leaving the chat (if at least 1 message was sent)
+  const practicedWord = document.getElementById('practiceChatWord')?.textContent?.toLowerCase()?.trim();
+  const userSentMessages = practiceMessages.filter(m => m.role === 'user').length;
+  if (practicedWord && userSentMessages > 0) {
+    updateWordStats(practicedWord, 'practice');
+    renderHistory();
+  }
   document.getElementById('practicePickerSection').style.display = '';
   document.getElementById('practiceChatSection').style.display = 'none';
   practiceMessages = [];
