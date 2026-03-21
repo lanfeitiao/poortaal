@@ -59,7 +59,6 @@ body {
   overscroll-behavior: none;
   display: flex;
   flex-direction: column;
-  padding-top: env(safe-area-inset-top, 0);
 }
 
 /* Header */
@@ -67,6 +66,7 @@ header {
   background: white;
   border-bottom: 1px solid var(--blue-100);
   padding: 1rem 1.5rem;
+  padding-top: calc(1rem + env(safe-area-inset-top, 0));
   display: flex;
   align-items: center;
   justify-content: space-between;
