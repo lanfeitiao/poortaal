@@ -1797,8 +1797,8 @@ async function startVoiceSession() {
     voiceDataChannel = dc;
     
     let currentAssistantText = '';
-    
     let userPendingEl = null;
+    let assistantStreamEl = null;
     
     dc.addEventListener('message', (e) => {
       const event = JSON.parse(e.data);
@@ -1807,7 +1807,7 @@ async function startVoiceSession() {
       if (event.type === 'input_audio_buffer.speech_started') {
         setVoiceDots(true);
         userPendingEl = document.createElement('div');
-        userPendingEl.className = 'chat-msg user streaming';
+        userPendingEl.className = 'chat-msg user';
         userPendingEl.textContent = '...';
         transcript.appendChild(userPendingEl);
         transcript.scrollTop = transcript.scrollHeight;
@@ -1822,11 +1822,13 @@ async function startVoiceSession() {
       if (event.type === 'conversation.item.input_audio_transcription.completed') {
         const text = event.transcript;
         if (userPendingEl) {
-          userPendingEl.classList.remove('streaming');
           userPendingEl.innerHTML = escapeHtml(text);
           userPendingEl = null;
         } else {
-          transcript.innerHTML += `<div class="chat-msg user">${escapeHtml(text)}</div>`;
+          const el = document.createElement('div');
+          el.className = 'chat-msg user';
+          el.innerHTML = escapeHtml(text);
+          transcript.appendChild(el);
         }
         transcript.scrollTop = transcript.scrollHeight;
       }
@@ -1834,11 +1836,13 @@ async function startVoiceSession() {
       // AI response streaming
       if (event.type === 'response.output_audio_transcript.delta') {
         currentAssistantText += event.delta;
-        const lastMsg = transcript.querySelector('.chat-msg.tutor.streaming');
-        if (lastMsg) {
-          lastMsg.innerHTML = formatChat(currentAssistantText);
+        if (assistantStreamEl) {
+          assistantStreamEl.innerHTML = formatChat(currentAssistantText);
         } else {
-          transcript.innerHTML += `<div class="chat-msg tutor streaming">${formatChat(currentAssistantText)}</div>`;
+          assistantStreamEl = document.createElement('div');
+          assistantStreamEl.className = 'chat-msg tutor';
+          assistantStreamEl.innerHTML = formatChat(currentAssistantText);
+          transcript.appendChild(assistantStreamEl);
         }
         transcript.scrollTop = transcript.scrollHeight;
         setVoiceDots(true);
@@ -1846,10 +1850,9 @@ async function startVoiceSession() {
       
       // AI response done
       if (event.type === 'response.output_audio_transcript.done') {
-        const lastMsg = transcript.querySelector('.chat-msg.tutor.streaming');
-        if (lastMsg) {
-          lastMsg.classList.remove('streaming');
-          lastMsg.innerHTML = formatChat(event.transcript);
+        if (assistantStreamEl) {
+          assistantStreamEl.innerHTML = formatChat(event.transcript);
+          assistantStreamEl = null;
         }
         currentAssistantText = '';
         setVoiceDots(false);
