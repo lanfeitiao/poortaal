@@ -1894,6 +1894,9 @@ async function startVoiceSession() {
 function stopVoiceSession() {
   voiceActive = false;
   
+  // Remove any pending "..." placeholder messages
+  document.querySelectorAll('#voiceTranscript .chat-msg.streaming').forEach(el => el.remove());
+  
   if (voiceDataChannel) {
     voiceDataChannel.close();
     voiceDataChannel = null;
