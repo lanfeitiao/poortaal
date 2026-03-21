@@ -1038,7 +1038,7 @@ main {
             <h3>🎙️ Spreek: <span id="voicePracticeWord"></span></h3>
           </div>
           <div class="voice-status" id="voiceStatus">Druk op de knop om te beginnen</div>
-          <div class="voice-visualizer" id="voiceVisualizer">
+          <div class="voice-visualizer" id="voiceVisualizer" style="display:none;">
             <div class="voice-dots">
               <span class="voice-dot"></span>
               <span class="voice-dot"></span>
@@ -1926,6 +1926,8 @@ function stopVoiceSession() {
 }
 
 function setVoiceDots(active) {
+  const viz = document.getElementById('voiceVisualizer');
+  if (viz) viz.style.display = active ? '' : 'none';
   document.querySelectorAll('.voice-dot').forEach(dot => {
     dot.classList.toggle('active', active);
   });
