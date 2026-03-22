@@ -1219,12 +1219,11 @@ function updateWordStats(word, type) {
   if (type === 'practice') stats[w].practices++;
   if (type === 'review' || type === 'practice') {
     stats[w].reviews.push(Date.now());
-    // Spaced repetition: level up if reviewed on time
-    const interval = getNextInterval(stats[w].level);
-    const daysSinceLast = stats[w].reviews.length >= 2
-      ? (Date.now() - stats[w].reviews[stats[w].reviews.length - 2]) / 86400000
-      : 0;
-    stats[w].level = Math.min(stats[w].level + 1, 4);
+    // First practice just records the review — stay at seed (level 0)
+    // Spaced repetition level only increases from the second practice onwards
+    if (stats[w].reviews.length >= 2) {
+      stats[w].level = Math.min(stats[w].level + 1, 4);
+    }
   }
   stats[w].lastSeen = Date.now();
   localStorage.setItem('poortaal_word_stats', JSON.stringify(stats));
@@ -1275,8 +1274,12 @@ function getPlantStage(word) {
   if (level >= 3) return { emoji: '🪴', label: 'Groeiend', key: 'growing', hint: `${daysLeft}d tot herhaling` };
   if (level >= 1) return { emoji: '🌿', label: 'Kiempje', key: 'sprout', hint: `${daysLeft}d tot herhaling` };
   
-  // Level 0: just looked up
-  return { emoji: '🌱', label: 'Zaaisel', key: 'seed', hint: daysLeft > 0 ? `${daysLeft}d tot herhaling` : 'Herhaal vandaag!' };
+  // Level 0: seed — either just looked up, or practiced once
+  const hasPracticed = stats.practices > 0 || stats.reviews.length > 0;
+  const seedHint = hasPracticed
+    ? (daysLeft > 0 ? `${daysLeft}d tot herhaling` : 'Herhaal vandaag!')
+    : 'Oefen om te groeien';
+  return { emoji: '🌱', label: 'Zaaisel', key: 'seed', hint: seedHint };
 }
 
 function renderHistory() {
