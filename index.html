@@ -14,6 +14,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Poortaal">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -961,6 +962,76 @@ main {
   50% { box-shadow: 0 0 0 12px rgba(220, 38, 38, 0); }
 }
 
+/* Auth */
+.auth-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.auth-overlay.open { display: flex; }
+.auth-modal {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 380px;
+  width: 100%;
+  animation: fadeUp 0.3s ease-out;
+}
+.auth-modal h2 { font-size: 1.3rem; color: var(--blue-700); margin-bottom: 0.5rem; }
+.auth-modal p { color: var(--gray-500); font-size: 0.85rem; margin-bottom: 1rem; }
+.auth-modal input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--blue-200);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  outline: none;
+  margin-bottom: 0.75rem;
+}
+.auth-modal input:focus { border-color: var(--blue-500); }
+.auth-error { color: #DC2626; font-size: 0.85rem; margin-bottom: 0.75rem; display: none; }
+.auth-actions { display: flex; flex-direction: column; gap: 0.5rem; }
+.auth-actions button {
+  padding: 0.7rem;
+  border-radius: 10px;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+}
+.auth-toggle { background: none; border: none; color: var(--blue-500); font-size: 0.85rem; cursor: pointer; margin-top: 0.5rem; }
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--gray-600);
+}
+.user-info .user-email {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sync-indicator {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #22C55E;
+  margin-right: 0.25rem;
+}
+.sync-indicator.syncing {
+  background: var(--blue-400);
+  animation: spin 1s linear infinite;
+}
+
 /* Responsive */
 @media (max-width: 480px) {
   main { padding: 1.5rem 1rem 5rem; }
@@ -975,6 +1046,12 @@ main {
 <header>
   <div class="logo">Poort<span>aal</span></div>
   <div class="header-actions">
+    <div class="user-info" id="userInfo" style="display:none;">
+      <span class="sync-indicator" id="syncIndicator"></span>
+      <span class="user-email" id="userEmail"></span>
+      <button class="header-btn" onclick="doLogout()">Uit</button>
+    </div>
+    <button class="header-btn" id="loginBtn" onclick="openAuthModal()">Inloggen</button>
     <button class="header-btn" onclick="toggleHistory()">Geschiedenis</button>
   </div>
 </header>
@@ -1079,6 +1156,22 @@ main {
   <ul class="history-list" id="historyList"></ul>
 </div>
 
+<!-- Auth modal -->
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-modal">
+    <h2 id="authTitle">Inloggen</h2>
+    <p id="authSubtitle">Log in om je woorden te synchroniseren</p>
+    <div class="auth-error" id="authError"></div>
+    <input type="email" id="authEmail" placeholder="E-mail" autocomplete="email">
+    <input type="password" id="authPassword" placeholder="Wachtwoord" autocomplete="current-password">
+    <div class="auth-actions">
+      <button class="btn-primary" id="authSubmitBtn" onclick="handleAuth()">Inloggen</button>
+      <button class="btn-secondary" onclick="closeAuthModal()">Annuleren</button>
+    </div>
+    <button class="auth-toggle" id="authToggle" onclick="toggleAuthMode()">Nog geen account? Registreren</button>
+  </div>
+</div>
+
 <!-- Micro-review modal -->
 <div class="micro-review-overlay" id="microReviewOverlay">
   <div class="micro-review">
@@ -1099,6 +1192,215 @@ main {
 </div>
 
 <script>
+// --- Supabase ---
+const SUPABASE_URL = 'https://fcpauyuwylnomuxdqtln.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_gs091zHItkPEaLWQhmH3MQ_vspCp-Yl';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let currentUser = null;
+let authMode = 'login'; // 'login' or 'signup'
+
+// Auth UI
+function openAuthModal() {
+  authMode = 'login';
+  updateAuthUI();
+  document.getElementById('authOverlay').classList.add('open');
+  document.getElementById('authEmail').focus();
+}
+function closeAuthModal() {
+  document.getElementById('authOverlay').classList.remove('open');
+  document.getElementById('authError').style.display = 'none';
+  document.getElementById('authEmail').value = '';
+  document.getElementById('authPassword').value = '';
+}
+function toggleAuthMode() {
+  authMode = authMode === 'login' ? 'signup' : 'login';
+  updateAuthUI();
+}
+function updateAuthUI() {
+  document.getElementById('authTitle').textContent = authMode === 'login' ? 'Inloggen' : 'Registreren';
+  document.getElementById('authSubtitle').textContent = authMode === 'login'
+    ? 'Log in om je woorden te synchroniseren'
+    : 'Maak een account aan';
+  document.getElementById('authSubmitBtn').textContent = authMode === 'login' ? 'Inloggen' : 'Registreren';
+  document.getElementById('authToggle').textContent = authMode === 'login'
+    ? 'Nog geen account? Registreren'
+    : 'Al een account? Inloggen';
+  document.getElementById('authError').style.display = 'none';
+}
+async function handleAuth() {
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const errEl = document.getElementById('authError');
+  if (!email || !password) { errEl.textContent = 'Vul e-mail en wachtwoord in'; errEl.style.display = 'block'; return; }
+  if (password.length < 6) { errEl.textContent = 'Wachtwoord moet minstens 6 tekens zijn'; errEl.style.display = 'block'; return; }
+
+  document.getElementById('authSubmitBtn').disabled = true;
+  try {
+    let result;
+    if (authMode === 'signup') {
+      result = await supabase.auth.signUp({ email, password });
+    } else {
+      result = await supabase.auth.signInWithPassword({ email, password });
+    }
+    if (result.error) throw result.error;
+    if (authMode === 'signup' && !result.data.session) {
+      errEl.textContent = 'Controleer je e-mail om je account te bevestigen';
+      errEl.style.display = 'block';
+      errEl.style.color = '#22C55E';
+      return;
+    }
+    currentUser = result.data.user;
+    closeAuthModal();
+    updateUserUI();
+    await syncFromCloud();
+  } catch (e) {
+    errEl.textContent = e.message || 'Er ging iets mis';
+    errEl.style.display = 'block';
+    errEl.style.color = '#DC2626';
+  } finally {
+    document.getElementById('authSubmitBtn').disabled = false;
+  }
+}
+async function doLogout() {
+  await supabase.auth.signOut();
+  currentUser = null;
+  updateUserUI();
+}
+function updateUserUI() {
+  const info = document.getElementById('userInfo');
+  const btn = document.getElementById('loginBtn');
+  if (currentUser) {
+    info.style.display = 'flex';
+    btn.style.display = 'none';
+    document.getElementById('userEmail').textContent = currentUser.email;
+  } else {
+    info.style.display = 'none';
+    btn.style.display = '';
+  }
+}
+
+// Cloud sync
+async function syncFromCloud() {
+  if (!currentUser) return;
+  const ind = document.getElementById('syncIndicator');
+  ind.classList.add('syncing');
+  try {
+    // Fetch cloud word stats
+    const { data: cloudWords } = await supabase.from('user_words').select('*').eq('user_id', currentUser.id);
+    // Fetch cloud history
+    const { data: cloudHistory } = await supabase.from('user_history').select('*').eq('user_id', currentUser.id);
+
+    // Merge word stats: cloud wins for conflicts
+    const localStats = getWordStats();
+    if (cloudWords) {
+      for (const cw of cloudWords) {
+        localStats[cw.word] = {
+          lookups: cw.lookups || 0,
+          practices: cw.practices || 0,
+          reviews: cw.reviews || [],
+          level: cw.level || 0,
+          lastSeen: cw.last_seen || Date.now(),
+        };
+        // Also cache word_data if available
+        if (cw.word_data) setWordCache(cw.word, cw.word_data);
+      }
+    }
+    localStorage.setItem('poortaal_word_stats', JSON.stringify(localStats));
+
+    // Merge history: cloud wins, then add local-only entries
+    if (cloudHistory) {
+      const cloudMap = new Map(cloudHistory.map(h => [h.word, h]));
+      // Keep local entries not in cloud
+      const localOnly = searchHistory.filter(h => !cloudMap.has(h.word));
+      // Build merged history from cloud + local-only
+      const merged = cloudHistory.map(h => ({
+        word: h.word,
+        timestamp: h.timestamp || Date.now(),
+        wordData: h.word_data || undefined,
+      }));
+      merged.push(...localOnly);
+      merged.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+      searchHistory = merged.slice(0, 50);
+      localStorage.setItem('poortaal_history', JSON.stringify(searchHistory));
+
+      // Push local-only entries to cloud
+      if (localOnly.length > 0) {
+        const rows = localOnly.map(h => ({
+          user_id: currentUser.id,
+          word: h.word,
+          word_data: h.wordData || null,
+          timestamp: h.timestamp || Date.now(),
+        }));
+        await supabase.from('user_history').upsert(rows, { onConflict: 'user_id,word' });
+      }
+      // Push local-only stats to cloud
+      const cloudWordSet = new Set((cloudWords || []).map(w => w.word));
+      const localOnlyStats = Object.entries(localStats).filter(([w]) => !cloudWordSet.has(w));
+      if (localOnlyStats.length > 0) {
+        const rows = localOnlyStats.map(([w, s]) => ({
+          user_id: currentUser.id,
+          word: w,
+          lookups: s.lookups || 0,
+          practices: s.practices || 0,
+          reviews: s.reviews || [],
+          level: s.level || 0,
+          last_seen: s.lastSeen || Date.now(),
+          word_data: getCachedWord(w) || null,
+        }));
+        await supabase.from('user_words').upsert(rows, { onConflict: 'user_id,word' });
+      }
+    }
+
+    renderHistory();
+  } catch (e) {
+    console.error('Sync error:', e);
+  } finally {
+    ind.classList.remove('syncing');
+  }
+}
+
+async function saveWordStatsToCloud(word) {
+  if (!currentUser) return;
+  const stats = getWordStats()[word];
+  if (!stats) return;
+  await supabase.from('user_words').upsert({
+    user_id: currentUser.id,
+    word: word,
+    lookups: stats.lookups || 0,
+    practices: stats.practices || 0,
+    reviews: stats.reviews || [],
+    level: stats.level || 0,
+    last_seen: stats.lastSeen || Date.now(),
+    word_data: getCachedWord(word) || null,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'user_id,word' }).then(({ error }) => { if (error) console.error('Save word error:', error); });
+}
+
+async function saveHistoryToCloud(word, wordData) {
+  if (!currentUser) return;
+  await supabase.from('user_history').upsert({
+    user_id: currentUser.id,
+    word: word,
+    word_data: wordData || null,
+    timestamp: Date.now(),
+  }, { onConflict: 'user_id,word' }).then(({ error }) => { if (error) console.error('Save history error:', error); });
+}
+
+// Init auth state
+async function initAuth() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    currentUser = user;
+    updateUserUI();
+    syncFromCloud();
+  }
+  // Listen for auth changes
+  supabase.auth.onAuthStateChange((event, session) => {
+    currentUser = session?.user || null;
+    updateUserUI();
+  });
+}
+
 // --- State ---
 const API_BASE = 'https://poortaal-api.weilin1990.workers.dev';
 let searchHistory = JSON.parse(localStorage.getItem('poortaal_history') || '[]');
@@ -1139,12 +1441,16 @@ window.addEventListener('hashchange', handleRoute);
 
 // --- Init ---
 document.addEventListener('DOMContentLoaded', () => {
+  initAuth();
   renderHistory();
   document.getElementById('wordInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') lookupWord();
   });
   document.getElementById('practiceWordInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') startPracticeWithInput();
+  });
+  document.getElementById('authPassword').addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleAuth();
   });
   handleRoute();
 });
@@ -1227,6 +1533,7 @@ function updateWordStats(word, type) {
   }
   stats[w].lastSeen = Date.now();
   localStorage.setItem('poortaal_word_stats', JSON.stringify(stats));
+  saveWordStatsToCloud(w);
   return stats[w];
 }
 
@@ -1250,6 +1557,7 @@ function addToHistory(word, wordData) {
   if (searchHistory.length > 50) searchHistory = searchHistory.slice(0, 50);
   localStorage.setItem('poortaal_history', JSON.stringify(searchHistory));
   updateWordStats(w, 'lookup');
+  saveHistoryToCloud(w, wordData);
   renderHistory();
 }
 
@@ -1319,14 +1627,20 @@ function renderHistory() {
 }
 
 function deleteHistoryItem(word) {
-  searchHistory = searchHistory.filter(h => h.word !== word);
+  const w = word.toLowerCase().trim();
+  searchHistory = searchHistory.filter(h => h.word !== w);
   localStorage.setItem('poortaal_history', JSON.stringify(searchHistory));
   const cache = getWordCache();
-  delete cache[word.toLowerCase().trim()];
+  delete cache[w];
   localStorage.setItem('poortaal_word_cache', JSON.stringify(cache));
   const stats = getWordStats();
-  delete stats[word.toLowerCase().trim()];
+  delete stats[w];
   localStorage.setItem('poortaal_word_stats', JSON.stringify(stats));
+  // Delete from cloud too
+  if (currentUser) {
+    supabase.from('user_history').delete().eq('user_id', currentUser.id).eq('word', w).then(() => {});
+    supabase.from('user_words').delete().eq('user_id', currentUser.id).eq('word', w).then(() => {});
+  }
   renderHistory();
 }
 
