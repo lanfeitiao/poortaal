@@ -1820,7 +1820,7 @@ async function startVoiceSession() {
         setVoiceDots(false);
       }
       
-      // User transcript complete — update the placeholder
+      // User transcript complete — update placeholder, then trigger AI response
       if (event.type === 'conversation.item.input_audio_transcription.completed') {
         const text = event.transcript;
         if (userPendingEl) {
@@ -1834,6 +1834,11 @@ async function startVoiceSession() {
           transcript.appendChild(el);
         }
         transcript.scrollTop = transcript.scrollHeight;
+        
+        // Manually trigger AI response after transcript is ready
+        if (dc && dc.readyState === 'open') {
+          dc.send(JSON.stringify({ type: 'response.create' }));
+        }
       }
       
       // AI response streaming

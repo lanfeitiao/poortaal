@@ -112,6 +112,7 @@ Your behavior:
               threshold: 0.5,
               prefix_padding_ms: 300,
               silence_duration_ms: 1000,
+              create_response: false,
             },
             transcription: {
               model: 'whisper-1',
