@@ -1169,6 +1169,7 @@ main {
       <button class="btn-secondary" onclick="closeAuthModal()">Annuleren</button>
     </div>
     <button class="auth-toggle" id="authToggle" onclick="toggleAuthMode()">Nog geen account? Registreren</button>
+    <button class="auth-toggle" id="authForgot" onclick="handleForgotPassword()" style="margin-top:0.25rem;">Wachtwoord vergeten?</button>
   </div>
 </div>
 
@@ -1217,6 +1218,28 @@ function closeAuthModal() {
   document.getElementById('authEmail').value = '';
   document.getElementById('authPassword').value = '';
 }
+async function handleForgotPassword() {
+  const email = document.getElementById('authEmail').value.trim();
+  const errEl = document.getElementById('authError');
+  if (!email) {
+    errEl.textContent = 'Vul je e-mail in';
+    errEl.style.display = 'block';
+    return;
+  }
+  try {
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://lanfeitiao.github.io/poortaal/'
+    });
+    if (error) throw error;
+    errEl.style.display = 'block';
+    errEl.style.color = 'var(--blue-600)';
+    errEl.textContent = `Reset link verstuurd naar ${email}. Check je inbox!`;
+  } catch(e) {
+    errEl.textContent = e.message || 'Fout bij wachtwoord reset';
+    errEl.style.display = 'block';
+    errEl.style.color = '';
+  }
+}
 function toggleAuthMode() {
   authMode = authMode === 'login' ? 'signup' : 'login';
   updateAuthUI();
@@ -1230,7 +1253,9 @@ function updateAuthUI() {
   document.getElementById('authToggle').textContent = authMode === 'login'
     ? 'Nog geen account? Registreren'
     : 'Al een account? Inloggen';
+  document.getElementById('authForgot').style.display = authMode === 'login' ? '' : 'none';
   document.getElementById('authError').style.display = 'none';
+  document.getElementById('authError').style.color = '';
 }
 async function handleAuth() {
   const email = document.getElementById('authEmail').value.trim();
