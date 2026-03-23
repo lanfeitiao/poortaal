@@ -1049,6 +1049,7 @@ main {
     <div class="user-info" id="userInfo" style="display:none;">
       <span class="sync-indicator" id="syncIndicator" style="display:none;"></span>
       <span class="user-email" id="userEmail" style="display:none;"></span>
+      <button class="header-btn" onclick="openChangePassword()">🔑</button>
       <button class="header-btn" onclick="doLogout()">Uit</button>
     </div>
     <button class="header-btn" id="loginBtn" onclick="openAuthModal()">Inloggen</button>
@@ -1170,6 +1171,21 @@ main {
     </div>
     <button class="auth-toggle" id="authToggle" onclick="toggleAuthMode()">Nog geen account? Registreren</button>
     <button class="auth-toggle" id="authForgot" onclick="handleForgotPassword()" style="margin-top:0.25rem;">Wachtwoord vergeten?</button>
+  </div>
+</div>
+
+<!-- Change password modal -->
+<div class="auth-overlay" id="changePwOverlay">
+  <div class="auth-modal">
+    <h2>Wachtwoord wijzigen</h2>
+    <p>Kies een nieuw wachtwoord</p>
+    <div class="auth-error" id="changePwError"></div>
+    <input type="password" id="newPassword" placeholder="Nieuw wachtwoord" autocomplete="new-password">
+    <input type="password" id="confirmPassword" placeholder="Bevestig wachtwoord" autocomplete="new-password">
+    <div class="auth-actions">
+      <button class="btn-primary" onclick="doChangePassword()">Opslaan</button>
+      <button class="btn-secondary" onclick="closeChangePassword()">Annuleren</button>
+    </div>
   </div>
 </div>
 
@@ -1308,6 +1324,45 @@ async function handleAuth() {
     errEl.style.color = '#DC2626';
   } finally {
     document.getElementById('authSubmitBtn').disabled = false;
+  }
+}
+function openChangePassword() {
+  document.getElementById('changePwOverlay').classList.add('open');
+  document.getElementById('newPassword').value = '';
+  document.getElementById('confirmPassword').value = '';
+  document.getElementById('changePwError').style.display = 'none';
+  document.getElementById('newPassword').focus();
+}
+function closeChangePassword() {
+  document.getElementById('changePwOverlay').classList.remove('open');
+}
+async function doChangePassword() {
+  const pw = document.getElementById('newPassword').value;
+  const confirm = document.getElementById('confirmPassword').value;
+  const errEl = document.getElementById('changePwError');
+  if (!pw || pw.length < 6) {
+    errEl.textContent = 'Wachtwoord moet minimaal 6 tekens zijn';
+    errEl.style.display = 'block';
+    errEl.style.color = '';
+    return;
+  }
+  if (pw !== confirm) {
+    errEl.textContent = 'Wachtwoorden komen niet overeen';
+    errEl.style.display = 'block';
+    errEl.style.color = '';
+    return;
+  }
+  try {
+    const { error } = await supabaseClient.auth.updateUser({ password: pw });
+    if (error) throw error;
+    errEl.textContent = 'Wachtwoord gewijzigd!';
+    errEl.style.display = 'block';
+    errEl.style.color = 'var(--blue-600)';
+    setTimeout(closeChangePassword, 1500);
+  } catch(e) {
+    errEl.textContent = e.message || 'Fout bij wijzigen';
+    errEl.style.display = 'block';
+    errEl.style.color = '';
   }
 }
 async function doLogout() {
