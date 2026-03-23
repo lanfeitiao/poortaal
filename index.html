@@ -1217,13 +1217,32 @@ function closeAuthModal() {
   document.getElementById('authError').style.display = 'none';
   document.getElementById('authEmail').value = '';
   document.getElementById('authPassword').value = '';
+  document.getElementById('authPassword').style.display = '';
+  document.getElementById('authSubmitBtn').onclick = handleAuth;
+  document.getElementById('authToggle').onclick = toggleAuthMode;
+  authMode = 'login';
+  updateAuthUI();
 }
 async function handleForgotPassword() {
+  // Switch to forgot mode: hide password field, change button
+  authMode = 'forgot';
+  document.getElementById('authTitle').textContent = 'Wachtwoord resetten';
+  document.getElementById('authSubtitle').textContent = 'Vul je e-mail in om een reset link te ontvangen';
+  document.getElementById('authPassword').style.display = 'none';
+  document.getElementById('authSubmitBtn').textContent = 'Verstuur reset link';
+  document.getElementById('authSubmitBtn').onclick = doForgotPassword;
+  document.getElementById('authToggle').textContent = 'Terug naar inloggen';
+  document.getElementById('authToggle').onclick = () => { authMode = 'login'; updateAuthUI(); document.getElementById('authPassword').style.display = ''; document.getElementById('authSubmitBtn').onclick = handleAuth; document.getElementById('authToggle').onclick = toggleAuthMode; };
+  document.getElementById('authForgot').style.display = 'none';
+  document.getElementById('authError').style.display = 'none';
+}
+async function doForgotPassword() {
   const email = document.getElementById('authEmail').value.trim();
   const errEl = document.getElementById('authError');
   if (!email) {
     errEl.textContent = 'Vul je e-mail in';
     errEl.style.display = 'block';
+    errEl.style.color = '';
     return;
   }
   try {
