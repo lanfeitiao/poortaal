@@ -1619,11 +1619,19 @@ function updateWordStats(word, type) {
   if (type === 'lookup') stats[w].lookups++;
   if (type === 'practice') stats[w].practices++;
   if (type === 'review' || type === 'practice') {
-    stats[w].reviews.push(Date.now());
-    // First practice just records the review — stay at seed (level 0)
-    // Spaced repetition level only increases from the second practice onwards
-    if (stats[w].reviews.length >= 2) {
-      stats[w].level = Math.min(stats[w].level + 1, 4);
+    // Only count once per day — check if already reviewed today
+    const today = new Date().toDateString();
+    const lastReview = stats[w].reviews.length > 0 ? stats[w].reviews[stats[w].reviews.length - 1] : 0;
+    const lastReviewDay = new Date(lastReview).toDateString();
+    const alreadyReviewedToday = lastReview && lastReviewDay === today;
+    
+    if (!alreadyReviewedToday) {
+      stats[w].reviews.push(Date.now());
+      // First practice just records the review — stay at seed (level 0)
+      // Spaced repetition level only increases from the second review day onwards
+      if (stats[w].reviews.length >= 2) {
+        stats[w].level = Math.min(stats[w].level + 1, 4);
+      }
     }
   }
   stats[w].lastSeen = Date.now();
