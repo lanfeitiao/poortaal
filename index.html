@@ -2216,8 +2216,18 @@ async function startVoiceSession() {
       const event = JSON.parse(e.data);
       console.log('🎙️ Event:', event.type, event);
       
-      // User starts speaking — create placeholder immediately
+      // User starts speaking — cancel any ongoing AI response and create placeholder
       if (event.type === 'input_audio_buffer.speech_started') {
+        // Cancel ongoing AI response when user interrupts
+        if (assistantStreamEl) {
+          dc.send(JSON.stringify({ type: 'response.cancel' }));
+          // Finalize the partial assistant transcript
+          if (currentAssistantText) {
+            assistantStreamEl.innerHTML = formatChat(currentAssistantText + '...');
+          }
+          assistantStreamEl = null;
+          currentAssistantText = '';
+        }
         setVoiceDots(true);
         userPendingEl = document.createElement('div');
         userPendingEl.className = 'chat-msg user';
