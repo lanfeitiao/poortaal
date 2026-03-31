@@ -71,8 +71,6 @@ const todayWord = effectiveList[absoluteDay % words.length];
 
 Position: top of `<main>`, above the search area. Visually distinct from result cards.
 
-**Default state** (word not yet explored today):
-
 ```
 +--------------------------------------------------+
 |  WOORD VAN DE DAG              Dag 7 streak      |
@@ -88,27 +86,13 @@ Position: top of `<main>`, above the search area. Visually distinct from result 
 - Category shown as a small tag (same style as `.word-type`)
 - Streak counter in top-right corner
 - CTA button styled like the existing `.practice-btn` but smaller
-
-**Completed state** (user has explored today's word):
-
-```
-+--------------------------------------------------+
-|  WOORD VAN DE DAG              Dag 7 streak      |
-|                                                   |
-|  gezellig                     [culture]  done     |
-|  The untranslatable heart of Dutch culture        |
-+--------------------------------------------------+
-```
-
-- CTA button replaced with a subtle "done" indicator (checkmark + muted text)
-- Card still visible but visually de-emphasized (slightly lower opacity or muted border)
-- User can still click the word to revisit it
+- Card always looks the same — no completed/done state
 
 ### Styling
 
 - Reuses existing design tokens (`--blue-*`, `--gray-*`, `.card` base styles)
 - Daily word card class: `.daily-word-card`
-- Streak badge: small pill-shaped element, `var(--blue-50)` background, `var(--blue-600)` text
+- Streak badge: small pill-shaped element, `var(--blue-50)` background, `var(--blue-600)` text, with 🌳 tree emoji
 - Responsive: on mobile, card stacks vertically (word, teaser, button each on own row)
 
 ## Streak Logic
@@ -127,7 +111,7 @@ Position: top of `<main>`, above the search area. Visually distinct from result 
 ### Rules
 
 - User opens Poortaal and clicks "Ontdek dit woord" on the daily word card
-- If `lastDate` is today: already engaged, show completed state, count unchanged
+- If `lastDate` is today: already engaged, count unchanged
 - If `lastDate` is yesterday: increment count by 1
 - If `lastDate` is older or missing: reset count to 1 (streak broken)
 - Streak updates when the user clicks the CTA (not just on page load)
@@ -137,9 +121,8 @@ Position: top of `<main>`, above the search area. Visually distinct from result 
 1. Page loads → `fetch('words.json')` runs
 2. On success → compute today's word, render the daily word card above the search area
 3. On failure (network error, 404) → silently skip; the app works normally without the daily word
-4. User clicks "Ontdek dit woord" → word is placed in the search input, `lookupWord()` is called, streak is updated, card transitions to completed state
-5. If user has already explored today's word (detected from localStorage on load) → card renders directly in completed state
-6. User can still use the search box to look up any word at any time — no change to existing behavior
+4. User clicks "Ontdek dit woord" → word is placed in the search input, `lookupWord()` is called, streak is updated
+5. User can still use the search box to look up any word at any time — no change to existing behavior
 
 ## Error Handling
 
