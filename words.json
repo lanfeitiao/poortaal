@@ -45,118 +45,8 @@
     "category": "nature"
   },
   {
-    "word": "alsjeblieft",
-    "teaser": "Please, or here you go — used constantly",
-    "category": "everyday"
-  },
-  {
-    "word": "hallo",
-    "teaser": "A friendly hello to start any conversation",
-    "category": "everyday"
-  },
-  {
-    "word": "dank je wel",
-    "teaser": "Thank you — the polite phrase you will need most",
-    "category": "everyday"
-  },
-  {
-    "word": "goedemorgen",
-    "teaser": "Good morning — greet the day the Dutch way",
-    "category": "everyday"
-  },
-  {
-    "word": "goedemiddag",
-    "teaser": "Good afternoon — used after twelve o'clock",
-    "category": "everyday"
-  },
-  {
-    "word": "goedenavond",
-    "teaser": "Good evening — when the sun starts going down",
-    "category": "everyday"
-  },
-  {
-    "word": "tot ziens",
-    "teaser": "Goodbye — until we see each other again",
-    "category": "everyday"
-  },
-  {
-    "word": "ja",
-    "teaser": "Yes — short, sweet, and universal",
-    "category": "everyday"
-  },
-  {
-    "word": "nee",
-    "teaser": "No — the Dutch are famous for being direct",
-    "category": "everyday"
-  },
-  {
-    "word": "water",
-    "teaser": "Water — the element the Dutch have mastered",
-    "category": "everyday"
-  },
-  {
-    "word": "brood",
-    "teaser": "Bread — the backbone of every Dutch meal",
-    "category": "food"
-  },
-  {
     "word": "kaas",
     "teaser": "Cheese — the Netherlands is a cheese superpower",
-    "category": "food"
-  },
-  {
-    "word": "melk",
-    "teaser": "Milk — the Dutch drink it with every meal",
-    "category": "food"
-  },
-  {
-    "word": "koffie",
-    "teaser": "Coffee — fuel for the famously productive Dutch",
-    "category": "food"
-  },
-  {
-    "word": "thee",
-    "teaser": "Tea — the cozy alternative on a rainy afternoon",
-    "category": "food"
-  },
-  {
-    "word": "bier",
-    "teaser": "Beer — from Heineken to craft, a proud tradition",
-    "category": "food"
-  },
-  {
-    "word": "wijn",
-    "teaser": "Wine — enjoyed with dinner or at a borrel",
-    "category": "food"
-  },
-  {
-    "word": "appel",
-    "teaser": "Apple — a fruit found in every Dutch kitchen",
-    "category": "food"
-  },
-  {
-    "word": "aardappel",
-    "teaser": "Potato — the starchy star of Dutch cuisine",
-    "category": "food"
-  },
-  {
-    "word": "groente",
-    "teaser": "Vegetables — the healthy side of a Dutch plate",
-    "category": "food"
-  },
-  {
-    "word": "vlees",
-    "teaser": "Meat — traditionally the centerpiece of dinner",
-    "category": "food"
-  },
-  {
-    "word": "vis",
-    "teaser": "Fish — herring, kibbeling, and more from the North Sea",
-    "category": "food"
-  },
-  {
-    "word": "soep",
-    "teaser": "Soup — a warming bowl for cold Dutch winters",
     "category": "food"
   },
   {
@@ -425,11 +315,6 @@
     "category": "food"
   },
   {
-    "word": "suiker",
-    "teaser": "Sugar — for your coffee or on your pancakes",
-    "category": "food"
-  },
-  {
     "word": "roomboter",
     "teaser": "Real butter — the Dutch baking essential",
     "category": "food"
@@ -438,466 +323,6 @@
     "word": "roggebrood",
     "teaser": "Dark rye bread, dense and hearty",
     "category": "food"
-  },
-  {
-    "word": "huis",
-    "teaser": "House — every Dutch person's dream to own one",
-    "category": "everyday"
-  },
-  {
-    "word": "werk",
-    "teaser": "Work — but the Dutch prefer a good work-life balance",
-    "category": "everyday"
-  },
-  {
-    "word": "school",
-    "teaser": "School — where Dutch kids learn multiple languages",
-    "category": "everyday"
-  },
-  {
-    "word": "winkel",
-    "teaser": "Shop — from Albert Heijn to tiny boutiques",
-    "category": "everyday"
-  },
-  {
-    "word": "straat",
-    "teaser": "Street — often lined with bikes and canal houses",
-    "category": "everyday"
-  },
-  {
-    "word": "stad",
-    "teaser": "City — Amsterdam, Rotterdam, Utrecht and more",
-    "category": "everyday"
-  },
-  {
-    "word": "dorp",
-    "teaser": "Village — charming small towns dot the countryside",
-    "category": "everyday"
-  },
-  {
-    "word": "weer",
-    "teaser": "Weather — the Dutch favorite topic of conversation",
-    "category": "everyday"
-  },
-  {
-    "word": "regen",
-    "teaser": "Rain — bring an umbrella, always",
-    "category": "everyday"
-  },
-  {
-    "word": "zon",
-    "teaser": "Sun — when it appears, everyone goes outside immediately",
-    "category": "everyday"
-  },
-  {
-    "word": "wind",
-    "teaser": "Wind — always present, powering the famous windmills",
-    "category": "everyday"
-  },
-  {
-    "word": "koud",
-    "teaser": "Cold — the default Dutch weather setting",
-    "category": "everyday"
-  },
-  {
-    "word": "warm",
-    "teaser": "Warm — a rare and celebrated weather event",
-    "category": "everyday"
-  },
-  {
-    "word": "mooi",
-    "teaser": "Beautiful — used for weather, people, and things",
-    "category": "everyday"
-  },
-  {
-    "word": "groot",
-    "teaser": "Big or tall — the Dutch are the tallest people on earth",
-    "category": "everyday"
-  },
-  {
-    "word": "klein",
-    "teaser": "Small or little — a useful everyday adjective",
-    "category": "everyday"
-  },
-  {
-    "word": "goed",
-    "teaser": "Good — the standard positive response",
-    "category": "everyday"
-  },
-  {
-    "word": "slecht",
-    "teaser": "Bad — hopefully not describing the weather again",
-    "category": "everyday"
-  },
-  {
-    "word": "nieuw",
-    "teaser": "New — from new year to new ideas",
-    "category": "everyday"
-  },
-  {
-    "word": "oud",
-    "teaser": "Old — like the centuries-old canal houses",
-    "category": "everyday"
-  },
-  {
-    "word": "dag",
-    "teaser": "Day, or also a casual goodbye greeting",
-    "category": "everyday"
-  },
-  {
-    "word": "nacht",
-    "teaser": "Night — when the cities light up along the canals",
-    "category": "everyday"
-  },
-  {
-    "word": "morgen",
-    "teaser": "Tomorrow, or morning — context tells you which",
-    "category": "everyday"
-  },
-  {
-    "word": "vandaag",
-    "teaser": "Today — seize the day, Dutch style",
-    "category": "everyday"
-  },
-  {
-    "word": "gisteren",
-    "teaser": "Yesterday — looking back is also important",
-    "category": "everyday"
-  },
-  {
-    "word": "tijd",
-    "teaser": "Time — the Dutch are famously punctual about it",
-    "category": "everyday"
-  },
-  {
-    "word": "uur",
-    "teaser": "Hour — as in what time is it?",
-    "category": "everyday"
-  },
-  {
-    "word": "minuut",
-    "teaser": "Minute — every one counts in a busy schedule",
-    "category": "everyday"
-  },
-  {
-    "word": "week",
-    "teaser": "Week — the rhythm of Dutch working life",
-    "category": "everyday"
-  },
-  {
-    "word": "maand",
-    "teaser": "Month — twelve of them, each with its own character",
-    "category": "everyday"
-  },
-  {
-    "word": "jaar",
-    "teaser": "Year — another trip around the sun",
-    "category": "everyday"
-  },
-  {
-    "word": "vriend",
-    "teaser": "Friend — someone to share a borrel with",
-    "category": "everyday"
-  },
-  {
-    "word": "vriendin",
-    "teaser": "Female friend or girlfriend — context matters",
-    "category": "everyday"
-  },
-  {
-    "word": "familie",
-    "teaser": "Family — central to Dutch social life",
-    "category": "everyday"
-  },
-  {
-    "word": "kind",
-    "teaser": "Child — the Netherlands is very child-friendly",
-    "category": "everyday"
-  },
-  {
-    "word": "man",
-    "teaser": "Man or husband — depends on the situation",
-    "category": "everyday"
-  },
-  {
-    "word": "vrouw",
-    "teaser": "Woman or wife — a common everyday word",
-    "category": "everyday"
-  },
-  {
-    "word": "baby",
-    "teaser": "Baby — celebrated with beschuit met muisjes",
-    "category": "everyday"
-  },
-  {
-    "word": "hond",
-    "teaser": "Dog — a popular pet in Dutch households",
-    "category": "everyday"
-  },
-  {
-    "word": "kat",
-    "teaser": "Cat — the other beloved Dutch pet",
-    "category": "everyday"
-  },
-  {
-    "word": "auto",
-    "teaser": "Car — though bikes are often preferred",
-    "category": "everyday"
-  },
-  {
-    "word": "telefoon",
-    "teaser": "Phone — always in hand for checking Buienradar",
-    "category": "everyday"
-  },
-  {
-    "word": "geld",
-    "teaser": "Money — the Dutch are known for being thrifty",
-    "category": "everyday"
-  },
-  {
-    "word": "eten",
-    "teaser": "To eat or food — a fundamental daily activity",
-    "category": "everyday"
-  },
-  {
-    "word": "drinken",
-    "teaser": "To drink — coffee, beer, or just water",
-    "category": "everyday"
-  },
-  {
-    "word": "slapen",
-    "teaser": "To sleep — recharging for another productive day",
-    "category": "everyday"
-  },
-  {
-    "word": "lopen",
-    "teaser": "To walk — strolling along the grachten",
-    "category": "everyday"
-  },
-  {
-    "word": "fietsen",
-    "teaser": "To cycle — the Dutch national mode of transport",
-    "category": "everyday"
-  },
-  {
-    "word": "werken",
-    "teaser": "To work — but preferably part-time on Fridays",
-    "category": "everyday"
-  },
-  {
-    "word": "lezen",
-    "teaser": "To read — the Dutch are avid readers",
-    "category": "everyday"
-  },
-  {
-    "word": "schrijven",
-    "teaser": "To write — from emails to birthday cards",
-    "category": "everyday"
-  },
-  {
-    "word": "praten",
-    "teaser": "To talk — the Dutch love a good conversation",
-    "category": "everyday"
-  },
-  {
-    "word": "kopen",
-    "teaser": "To buy — whether at the market or online",
-    "category": "everyday"
-  },
-  {
-    "word": "betalen",
-    "teaser": "To pay — tikkie me later!",
-    "category": "everyday"
-  },
-  {
-    "word": "wachten",
-    "teaser": "To wait — patience is a virtue",
-    "category": "everyday"
-  },
-  {
-    "word": "beginnen",
-    "teaser": "To begin — every journey starts somewhere",
-    "category": "everyday"
-  },
-  {
-    "word": "stoppen",
-    "teaser": "To stop — knowing when to pause",
-    "category": "everyday"
-  },
-  {
-    "word": "helpen",
-    "teaser": "To help — the Dutch are generally helpful",
-    "category": "everyday"
-  },
-  {
-    "word": "vragen",
-    "teaser": "To ask — just go ahead, the Dutch appreciate directness",
-    "category": "everyday"
-  },
-  {
-    "word": "antwoorden",
-    "teaser": "To answer — expect a straightforward Dutch reply",
-    "category": "everyday"
-  },
-  {
-    "word": "denken",
-    "teaser": "To think — reflection before action",
-    "category": "everyday"
-  },
-  {
-    "word": "weten",
-    "teaser": "To know — knowledge is power",
-    "category": "everyday"
-  },
-  {
-    "word": "willen",
-    "teaser": "To want — expressing your desires",
-    "category": "everyday"
-  },
-  {
-    "word": "kunnen",
-    "teaser": "To be able to — can you do it?",
-    "category": "everyday"
-  },
-  {
-    "word": "moeten",
-    "teaser": "Must or have to — obligation in Dutch",
-    "category": "everyday"
-  },
-  {
-    "word": "mogen",
-    "teaser": "May or to be allowed — asking permission politely",
-    "category": "everyday"
-  },
-  {
-    "word": "zien",
-    "teaser": "To see — with your own eyes",
-    "category": "everyday"
-  },
-  {
-    "word": "horen",
-    "teaser": "To hear — listening to sounds or music",
-    "category": "everyday"
-  },
-  {
-    "word": "voelen",
-    "teaser": "To feel — both physically and emotionally",
-    "category": "everyday"
-  },
-  {
-    "word": "vinden",
-    "teaser": "To find or to think/have an opinion about something",
-    "category": "everyday"
-  },
-  {
-    "word": "maken",
-    "teaser": "To make — creating something from scratch",
-    "category": "everyday"
-  },
-  {
-    "word": "geven",
-    "teaser": "To give — generosity in action",
-    "category": "everyday"
-  },
-  {
-    "word": "nemen",
-    "teaser": "To take — grab what you need",
-    "category": "everyday"
-  },
-  {
-    "word": "komen",
-    "teaser": "To come — arriving at your destination",
-    "category": "everyday"
-  },
-  {
-    "word": "gaan",
-    "teaser": "To go — heading out on an adventure",
-    "category": "everyday"
-  },
-  {
-    "word": "staan",
-    "teaser": "To stand — on your own two feet",
-    "category": "everyday"
-  },
-  {
-    "word": "zitten",
-    "teaser": "To sit — take a seat and relax",
-    "category": "everyday"
-  },
-  {
-    "word": "liggen",
-    "teaser": "To lie down — the Netherlands lies below sea level",
-    "category": "everyday"
-  },
-  {
-    "word": "blijven",
-    "teaser": "To stay — remain where you are",
-    "category": "everyday"
-  },
-  {
-    "word": "worden",
-    "teaser": "To become — transformation and change",
-    "category": "everyday"
-  },
-  {
-    "word": "leven",
-    "teaser": "To live or life — the Dutch art of living well",
-    "category": "everyday"
-  },
-  {
-    "word": "doen",
-    "teaser": "To do — the most practical Dutch verb",
-    "category": "everyday"
-  },
-  {
-    "word": "zeggen",
-    "teaser": "To say — speaking your mind directly",
-    "category": "everyday"
-  },
-  {
-    "word": "kijken",
-    "teaser": "To look or watch — observing the world around you",
-    "category": "everyday"
-  },
-  {
-    "word": "wonen",
-    "teaser": "To live or reside — the eternal Dutch housing hunt",
-    "category": "everyday"
-  },
-  {
-    "word": "spelen",
-    "teaser": "To play — from kids' games to football",
-    "category": "everyday"
-  },
-  {
-    "word": "lachen",
-    "teaser": "To laugh — the Dutch have a great sense of humor",
-    "category": "everyday"
-  },
-  {
-    "word": "huilen",
-    "teaser": "To cry — sometimes the rain makes you emotional",
-    "category": "everyday"
-  },
-  {
-    "word": "zingen",
-    "teaser": "To sing — from birthday songs to choir practice",
-    "category": "everyday"
-  },
-  {
-    "word": "dansen",
-    "teaser": "To dance — at festivals, clubs, and celebrations",
-    "category": "everyday"
-  },
-  {
-    "word": "koken",
-    "teaser": "To cook — preparing a warm meal at home",
-    "category": "everyday"
-  },
-  {
-    "word": "schoonmaken",
-    "teaser": "To clean — the Dutch keep things spotless",
-    "category": "everyday"
   },
   {
     "word": "boodschappen",
@@ -910,98 +335,8 @@
     "category": "everyday"
   },
   {
-    "word": "schoenen",
-    "teaser": "Shoes — from clogs to modern sneakers",
-    "category": "everyday"
-  },
-  {
-    "word": "tas",
-    "teaser": "Bag — always have one for groceries",
-    "category": "everyday"
-  },
-  {
-    "word": "sleutel",
-    "teaser": "Key — don't forget it when you leave",
-    "category": "everyday"
-  },
-  {
-    "word": "deur",
-    "teaser": "Door — the entrance to every Dutch home",
-    "category": "everyday"
-  },
-  {
-    "word": "raam",
-    "teaser": "Window — often without curtains, because why hide?",
-    "category": "everyday"
-  },
-  {
-    "word": "trap",
-    "teaser": "Stairs — dangerously steep in old Dutch houses",
-    "category": "everyday"
-  },
-  {
-    "word": "tuin",
-    "teaser": "Garden — a cherished green space behind the house",
-    "category": "everyday"
-  },
-  {
-    "word": "buur",
-    "teaser": "Neighbor — good fences make good buren",
-    "category": "everyday"
-  },
-  {
-    "word": "bed",
-    "teaser": "Bed — where you rest under a warm dekbed",
-    "category": "everyday"
-  },
-  {
-    "word": "stoel",
-    "teaser": "Chair — have a seat at the kitchen table",
-    "category": "everyday"
-  },
-  {
-    "word": "tafel",
-    "teaser": "Table — the center of family meals and gatherings",
-    "category": "everyday"
-  },
-  {
-    "word": "boek",
-    "teaser": "Book — the Dutch read more than most Europeans",
-    "category": "everyday"
-  },
-  {
-    "word": "muziek",
-    "teaser": "Music — from classical to electronic dance",
-    "category": "everyday"
-  },
-  {
-    "word": "film",
-    "teaser": "Film — Dutch cinema has a distinctive style",
-    "category": "everyday"
-  },
-  {
-    "word": "sport",
-    "teaser": "Sport — football, hockey, and speed skating rule",
-    "category": "everyday"
-  },
-  {
     "word": "voetbal",
     "teaser": "Football — the Dutch invented total football",
-    "category": "everyday"
-  },
-  {
-    "word": "zwemmen",
-    "teaser": "To swim — all Dutch kids get swimming diplomas",
-    "category": "everyday"
-  },
-  {
-    "word": "rennen",
-    "teaser": "To run — jogging through parks and along canals",
-    "category": "everyday"
-  },
-  {
-    "word": "dokter",
-    "teaser": "Doctor — but first, take a paracetamol",
     "category": "everyday"
   },
   {
@@ -1012,11 +347,6 @@
   {
     "word": "apotheek",
     "teaser": "Pharmacy — for prescriptions and health advice",
-    "category": "everyday"
-  },
-  {
-    "word": "park",
-    "teaser": "Park — green oases in every Dutch city",
     "category": "everyday"
   },
   {
@@ -2280,11 +1610,6 @@
     "category": "expressions"
   },
   {
-    "word": "sorry",
-    "teaser": "Sorry — borrowed from English, used frequently",
-    "category": "expressions"
-  },
-  {
     "word": "het spijt me",
     "teaser": "I'm sorry — a more sincere apology",
     "category": "expressions"
@@ -2730,26 +2055,6 @@
     "category": "seasonal"
   },
   {
-    "word": "lente",
-    "teaser": "Spring — when tulip fields burst into color",
-    "category": "seasonal"
-  },
-  {
-    "word": "zomer",
-    "teaser": "Summer — terrace season and outdoor festivals",
-    "category": "seasonal"
-  },
-  {
-    "word": "herfst",
-    "teaser": "Autumn — golden leaves and cozy indoor evenings",
-    "category": "seasonal"
-  },
-  {
-    "word": "winter",
-    "teaser": "Winter — dark days, warm drinks, and skating hopes",
-    "category": "seasonal"
-  },
-  {
     "word": "voorjaar",
     "teaser": "Early spring — the first crocuses push through",
     "category": "seasonal"
@@ -2787,11 +2092,6 @@
   {
     "word": "kerstmarkt",
     "teaser": "Christmas market — festive stalls with crafts and treats",
-    "category": "seasonal"
-  },
-  {
-    "word": "sneeuw",
-    "teaser": "Snow — rare but magical when it falls",
     "category": "seasonal"
   },
   {
@@ -3000,18 +2300,8 @@
     "category": "nature"
   },
   {
-    "word": "strand",
-    "teaser": "Beach — wide sandy beaches along the Dutch coast",
-    "category": "nature"
-  },
-  {
     "word": "duin",
     "teaser": "Dune — sandy hills protecting the coast from the sea",
-    "category": "nature"
-  },
-  {
-    "word": "zee",
-    "teaser": "Sea — the vast water that defines the Dutch western border",
     "category": "nature"
   },
   {
@@ -3052,11 +2342,6 @@
   {
     "word": "eiland",
     "teaser": "Island — the Wadden Islands are popular holiday destinations",
-    "category": "nature"
-  },
-  {
-    "word": "bos",
-    "teaser": "Forest — the Veluwe has the largest woodlands",
     "category": "nature"
   },
   {
@@ -3145,21 +2430,6 @@
     "category": "nature"
   },
   {
-    "word": "boom",
-    "teaser": "Tree — from elm-lined canals to forest giants",
-    "category": "nature"
-  },
-  {
-    "word": "bloem",
-    "teaser": "Flower — the Netherlands is the world's florist",
-    "category": "nature"
-  },
-  {
-    "word": "gras",
-    "teaser": "Grass — endless green fields in every direction",
-    "category": "nature"
-  },
-  {
     "word": "eik",
     "teaser": "Oak — a sturdy tree found in Dutch forests",
     "category": "nature"
@@ -3180,16 +2450,6 @@
     "category": "nature"
   },
   {
-    "word": "koe",
-    "teaser": "Cow — grazing in green meadows, an iconic Dutch sight",
-    "category": "nature"
-  },
-  {
-    "word": "paard",
-    "teaser": "Horse — from Frisian horses to riding schools",
-    "category": "nature"
-  },
-  {
     "word": "schaap",
     "teaser": "Sheep — dotting the dikes and heathlands",
     "category": "nature"
@@ -3197,11 +2457,6 @@
   {
     "word": "varken",
     "teaser": "Pig — the Netherlands is a major pork producer",
-    "category": "nature"
-  },
-  {
-    "word": "kip",
-    "teaser": "Chicken — free-range farms across the countryside",
     "category": "nature"
   },
   {
@@ -3460,11 +2715,6 @@
     "category": "nature"
   },
   {
-    "word": "lucht",
-    "teaser": "Sky or air — the vast Dutch sky is a painter's canvas",
-    "category": "nature"
-  },
-  {
     "word": "zonsondergang",
     "teaser": "Sunset — spectacular over the flat Dutch horizon",
     "category": "nature"
@@ -3490,21 +2740,6 @@
     "category": "nature"
   },
   {
-    "word": "hebben",
-    "teaser": "To have — one of the most essential Dutch verbs",
-    "category": "everyday"
-  },
-  {
-    "word": "zijn",
-    "teaser": "To be — the fundamental verb of existence",
-    "category": "everyday"
-  },
-  {
-    "word": "brug",
-    "teaser": "Bridge — thousands cross Dutch canals and rivers",
-    "category": "everyday"
-  },
-  {
     "word": "hoek",
     "teaser": "Corner — every street corner has a story",
     "category": "everyday"
@@ -3515,11 +2750,6 @@
     "category": "everyday"
   },
   {
-    "word": "weg",
-    "teaser": "Road or away — depends on how you use it",
-    "category": "everyday"
-  },
-  {
     "word": "fietssleutel",
     "teaser": "Bike key — losing it is a Dutch nightmare",
     "category": "everyday"
@@ -3527,11 +2757,6 @@
   {
     "word": "paraplu",
     "teaser": "Umbrella — essential gear in the Netherlands",
-    "category": "everyday"
-  },
-  {
-    "word": "jas",
-    "teaser": "Coat — layers are the Dutch fashion strategy",
     "category": "everyday"
   },
   {
@@ -3555,11 +2780,6 @@
     "category": "everyday"
   },
   {
-    "word": "broek",
-    "teaser": "Trousers — a basic wardrobe item",
-    "category": "everyday"
-  },
-  {
     "word": "overhemd",
     "teaser": "Shirt — for work or formal occasions",
     "category": "everyday"
@@ -3572,16 +2792,6 @@
   {
     "word": "trui",
     "teaser": "Sweater — cozy knitwear for cold days",
-    "category": "everyday"
-  },
-  {
-    "word": "sokken",
-    "teaser": "Socks — keep your feet warm on the bike",
-    "category": "everyday"
-  },
-  {
-    "word": "bril",
-    "teaser": "Glasses — for seeing or for sunglasses",
     "category": "everyday"
   },
   {
@@ -3600,443 +2810,13 @@
     "category": "everyday"
   },
   {
-    "word": "kamer",
-    "teaser": "Room — a space in your house or apartment",
-    "category": "everyday"
-  },
-  {
-    "word": "keuken",
-    "teaser": "Kitchen — where stamppot and pannenkoeken are made",
-    "category": "everyday"
-  },
-  {
-    "word": "badkamer",
-    "teaser": "Bathroom — often surprisingly small in Dutch houses",
-    "category": "everyday"
-  },
-  {
-    "word": "slaapkamer",
-    "teaser": "Bedroom — a private retreat for sleeping",
-    "category": "everyday"
-  },
-  {
-    "word": "woonkamer",
-    "teaser": "Living room — the heart of a Dutch home",
-    "category": "everyday"
-  },
-  {
-    "word": "zolder",
-    "teaser": "Attic — extra storage in tall Dutch houses",
-    "category": "everyday"
-  },
-  {
-    "word": "kelder",
-    "teaser": "Basement or cellar — tricky in a low-lying country",
-    "category": "everyday"
-  },
-  {
-    "word": "balkon",
-    "teaser": "Balcony — a prized feature in Dutch apartments",
-    "category": "everyday"
-  },
-  {
-    "word": "verwarming",
-    "teaser": "Heating — turned on reluctantly by thrifty Dutch",
-    "category": "everyday"
-  },
-  {
-    "word": "douche",
-    "teaser": "Shower — a quick daily Dutch routine",
-    "category": "everyday"
-  },
-  {
-    "word": "toilet",
-    "teaser": "Toilet — sometimes you still pay to use one",
-    "category": "everyday"
-  },
-  {
-    "word": "spiegel",
-    "teaser": "Mirror — checking your look before heading out",
-    "category": "everyday"
-  },
-  {
-    "word": "lamp",
-    "teaser": "Lamp — warm lighting for cozy Dutch evenings",
-    "category": "everyday"
-  },
-  {
-    "word": "televisie",
-    "teaser": "Television — for watching the NOS news and football",
-    "category": "everyday"
-  },
-  {
-    "word": "computer",
-    "teaser": "Computer — the Dutch are highly tech-savvy",
-    "category": "everyday"
-  },
-  {
-    "word": "internet",
-    "teaser": "Internet — Dutch broadband is among the fastest",
-    "category": "everyday"
-  },
-  {
-    "word": "e-mail",
-    "teaser": "Email — the standard for Dutch business communication",
-    "category": "everyday"
-  },
-  {
-    "word": "vuilnis",
-    "teaser": "Garbage — Dutch recycling rules are strict",
-    "category": "everyday"
-  },
-  {
-    "word": "afval",
-    "teaser": "Waste — carefully separated and recycled",
-    "category": "everyday"
-  },
-  {
-    "word": "schoon",
-    "teaser": "Clean — the Dutch keep things tidy",
-    "category": "everyday"
-  },
-  {
-    "word": "vies",
-    "teaser": "Dirty or gross — expressing mild disgust",
-    "category": "everyday"
-  },
-  {
-    "word": "druk",
-    "teaser": "Busy — the standard Dutch state of being",
-    "category": "everyday"
-  },
-  {
-    "word": "rustig",
-    "teaser": "Calm, quiet, peaceful — the ideal Dutch setting",
-    "category": "everyday"
-  },
-  {
-    "word": "moe",
-    "teaser": "Tired — after a long day of work and cycling",
-    "category": "everyday"
-  },
-  {
-    "word": "blij",
-    "teaser": "Happy, glad — a sunny disposition",
-    "category": "everyday"
-  },
-  {
-    "word": "boos",
-    "teaser": "Angry — even the Dutch get mad sometimes",
-    "category": "everyday"
-  },
-  {
     "word": "verdrietig",
     "teaser": "Sad — expressing genuine sorrow",
     "category": "everyday"
   },
   {
-    "word": "bang",
-    "teaser": "Afraid or scared — facing Dutch fears",
-    "category": "everyday"
-  },
-  {
     "word": "zeker weten",
     "teaser": "To know for sure — being absolutely certain",
-    "category": "everyday"
-  },
-  {
-    "word": "licht",
-    "teaser": "Light — both the noun and adjective",
-    "category": "everyday"
-  },
-  {
-    "word": "donker",
-    "teaser": "Dark — the long Dutch winter evenings",
-    "category": "everyday"
-  },
-  {
-    "word": "snel",
-    "teaser": "Fast, quick — the Dutch pace of life",
-    "category": "everyday"
-  },
-  {
-    "word": "langzaam",
-    "teaser": "Slow — sometimes life needs a slower speed",
-    "category": "everyday"
-  },
-  {
-    "word": "dichtbij",
-    "teaser": "Nearby, close — everything is close in compact NL",
-    "category": "everyday"
-  },
-  {
-    "word": "ver",
-    "teaser": "Far — nothing is really far in the Netherlands",
-    "category": "everyday"
-  },
-  {
-    "word": "links",
-    "teaser": "Left — as in direction or politics",
-    "category": "everyday"
-  },
-  {
-    "word": "rechts",
-    "teaser": "Right — the other direction or political leaning",
-    "category": "everyday"
-  },
-  {
-    "word": "rechtdoor",
-    "teaser": "Straight ahead — basic Dutch direction giving",
-    "category": "everyday"
-  },
-  {
-    "word": "boven",
-    "teaser": "Above, upstairs — going up the steep Dutch stairs",
-    "category": "everyday"
-  },
-  {
-    "word": "beneden",
-    "teaser": "Below, downstairs — coming back down",
-    "category": "everyday"
-  },
-  {
-    "word": "binnen",
-    "teaser": "Inside — where you escape the Dutch rain",
-    "category": "everyday"
-  },
-  {
-    "word": "buiten",
-    "teaser": "Outside — where the Dutch go when the sun appears",
-    "category": "everyday"
-  },
-  {
-    "word": "hier",
-    "teaser": "Here — pointing to this spot",
-    "category": "everyday"
-  },
-  {
-    "word": "daar",
-    "teaser": "There — pointing to that spot over there",
-    "category": "everyday"
-  },
-  {
-    "word": "waar",
-    "teaser": "Where — the question word for location",
-    "category": "everyday"
-  },
-  {
-    "word": "wanneer",
-    "teaser": "When — asking about time in Dutch",
-    "category": "everyday"
-  },
-  {
-    "word": "wie",
-    "teaser": "Who — asking about a person",
-    "category": "everyday"
-  },
-  {
-    "word": "wat",
-    "teaser": "What — the versatile question word",
-    "category": "everyday"
-  },
-  {
-    "word": "waarom",
-    "teaser": "Why — the Dutch love asking this",
-    "category": "everyday"
-  },
-  {
-    "word": "hoe",
-    "teaser": "How — finding out the way to do things",
-    "category": "everyday"
-  },
-  {
-    "word": "hoeveel",
-    "teaser": "How much or how many — essential for shopping",
-    "category": "everyday"
-  },
-  {
-    "word": "welke",
-    "teaser": "Which — making choices and selections",
-    "category": "everyday"
-  },
-  {
-    "word": "iets",
-    "teaser": "Something — a vague but useful word",
-    "category": "everyday"
-  },
-  {
-    "word": "niets",
-    "teaser": "Nothing — there is nothing here",
-    "category": "everyday"
-  },
-  {
-    "word": "alles",
-    "teaser": "Everything — all of it, the whole lot",
-    "category": "everyday"
-  },
-  {
-    "word": "iedereen",
-    "teaser": "Everyone — the whole group included",
-    "category": "everyday"
-  },
-  {
-    "word": "niemand",
-    "teaser": "Nobody — not a single person",
-    "category": "everyday"
-  },
-  {
-    "word": "altijd",
-    "teaser": "Always — without exception, every time",
-    "category": "everyday"
-  },
-  {
-    "word": "nooit",
-    "teaser": "Never — not once, under no circumstances",
-    "category": "everyday"
-  },
-  {
-    "word": "soms",
-    "teaser": "Sometimes — on occasion, now and then",
-    "category": "everyday"
-  },
-  {
-    "word": "vaak",
-    "teaser": "Often — it happens frequently",
-    "category": "everyday"
-  },
-  {
-    "word": "samen",
-    "teaser": "Together — doing things as a group",
-    "category": "everyday"
-  },
-  {
-    "word": "alleen",
-    "teaser": "Alone or only — by yourself or just this",
-    "category": "everyday"
-  },
-  {
-    "word": "nog",
-    "teaser": "Still or yet — a versatile time word",
-    "category": "everyday"
-  },
-  {
-    "word": "al",
-    "teaser": "Already — it has happened sooner than expected",
-    "category": "everyday"
-  },
-  {
-    "word": "ook",
-    "teaser": "Also, too — including this as well",
-    "category": "everyday"
-  },
-  {
-    "word": "maar",
-    "teaser": "But — the small word that changes everything",
-    "category": "everyday"
-  },
-  {
-    "word": "en",
-    "teaser": "And — connecting words and ideas",
-    "category": "everyday"
-  },
-  {
-    "word": "of",
-    "teaser": "Or — presenting alternatives and choices",
-    "category": "everyday"
-  },
-  {
-    "word": "omdat",
-    "teaser": "Because — giving reasons the Dutch way",
-    "category": "everyday"
-  },
-  {
-    "word": "dus",
-    "teaser": "So, therefore — drawing a conclusion",
-    "category": "everyday"
-  },
-  {
-    "word": "heel erg",
-    "teaser": "Very much — emphasizing intensity in Dutch",
-    "category": "everyday"
-  },
-  {
-    "word": "een beetje",
-    "teaser": "A little bit — softening a statement",
-    "category": "everyday"
-  },
-  {
-    "word": "genoeg",
-    "teaser": "Enough — knowing when you have plenty",
-    "category": "everyday"
-  },
-  {
-    "word": "te veel",
-    "teaser": "Too much — crossing the line of excess",
-    "category": "everyday"
-  },
-  {
-    "word": "te weinig",
-    "teaser": "Too little — not quite enough of something",
-    "category": "everyday"
-  },
-  {
-    "word": "nummer",
-    "teaser": "Number — from phone numbers to house numbers",
-    "category": "everyday"
-  },
-  {
-    "word": "prijs",
-    "teaser": "Price — how much does it cost?",
-    "category": "everyday"
-  },
-  {
-    "word": "naam",
-    "teaser": "Name — how do you introduce yourself",
-    "category": "everyday"
-  },
-  {
-    "word": "taal",
-    "teaser": "Language — Dutch is spoken by 25 million people",
-    "category": "everyday"
-  },
-  {
-    "word": "woord",
-    "teaser": "Word — the building block of every language",
-    "category": "everyday"
-  },
-  {
-    "word": "zin",
-    "teaser": "Sentence, or desire — I have a sentence or I feel like",
-    "category": "everyday"
-  },
-  {
-    "word": "probleem",
-    "teaser": "Problem — something that needs solving",
-    "category": "everyday"
-  },
-  {
-    "word": "oplossing",
-    "teaser": "Solution — the Dutch are practical problem-solvers",
-    "category": "everyday"
-  },
-  {
-    "word": "vraag",
-    "teaser": "Question — asking is how you learn",
-    "category": "everyday"
-  },
-  {
-    "word": "antwoord",
-    "teaser": "Answer — the response you are looking for",
-    "category": "everyday"
-  },
-  {
-    "word": "idee",
-    "teaser": "Idea — a spark of creative thinking",
-    "category": "everyday"
-  },
-  {
-    "word": "plan",
-    "teaser": "Plan — the Dutch always have one",
     "category": "everyday"
   },
   {
@@ -4290,46 +3070,6 @@
     "category": "culture"
   },
   {
-    "word": "ik",
-    "teaser": "I — the smallest but most important Dutch word",
-    "category": "everyday"
-  },
-  {
-    "word": "jij",
-    "teaser": "You (informal) — for friends, family, and peers",
-    "category": "everyday"
-  },
-  {
-    "word": "u",
-    "teaser": "You (formal) — showing respect to elders and officials",
-    "category": "everyday"
-  },
-  {
-    "word": "wij",
-    "teaser": "We — togetherness is a Dutch value",
-    "category": "everyday"
-  },
-  {
-    "word": "zij",
-    "teaser": "They or she — context reveals the meaning",
-    "category": "everyday"
-  },
-  {
-    "word": "het",
-    "teaser": "It or the — the neutral article and pronoun",
-    "category": "everyday"
-  },
-  {
-    "word": "deze",
-    "teaser": "This — pointing to something specific",
-    "category": "everyday"
-  },
-  {
-    "word": "fijn",
-    "teaser": "Fine, nice, pleasant — a warm positive word",
-    "category": "everyday"
-  },
-  {
     "word": "levendig",
     "teaser": "Lively, vibrant — describing a bustling Dutch street",
     "category": "everyday"
@@ -4377,11 +3117,6 @@
   {
     "word": "tsja",
     "teaser": "Well then — philosophical acceptance of circumstances",
-    "category": "expressions"
-  },
-  {
-    "word": "oké",
-    "teaser": "Okay — universal agreement borrowed into Dutch",
     "category": "expressions"
   },
   {
@@ -4535,33 +3270,8 @@
     "category": "useful"
   },
   {
-    "word": "gesloten",
-    "teaser": "Closed — check before you go on Sundays",
-    "category": "useful"
-  },
-  {
-    "word": "open",
-    "teaser": "Open — welcome, come on in",
-    "category": "useful"
-  },
-  {
-    "word": "ingang",
-    "teaser": "Entrance — the way in to buildings and stations",
-    "category": "useful"
-  },
-  {
-    "word": "uitgang",
-    "teaser": "Exit — the way out, clearly marked everywhere",
-    "category": "useful"
-  },
-  {
     "word": "nooduitgang",
     "teaser": "Emergency exit — always know where it is",
-    "category": "useful"
-  },
-  {
-    "word": "lift",
-    "teaser": "Elevator — helpful in buildings without steep Dutch stairs",
     "category": "useful"
   },
   {
@@ -4657,11 +3367,6 @@
   {
     "word": "taxi",
     "teaser": "Taxi — available but expensive compared to public transport",
-    "category": "useful"
-  },
-  {
-    "word": "rijden",
-    "teaser": "To drive or ride — getting from A to B",
     "category": "useful"
   },
   {
@@ -4998,5 +3703,1300 @@
     "word": "karnemelk",
     "teaser": "Buttermilk — a refreshing Dutch dairy drink",
     "category": "food"
+  },
+  {
+    "word": "aanmelden",
+    "teaser": "To register or sign up — required for almost everything",
+    "category": "everyday"
+  },
+  {
+    "word": "opruimen",
+    "teaser": "To tidy up — the Dutch love for orderliness",
+    "category": "everyday"
+  },
+  {
+    "word": "uitzoeken",
+    "teaser": "To figure out or sort through options",
+    "category": "everyday"
+  },
+  {
+    "word": "ophalen",
+    "teaser": "To pick up — packages, kids, or friends",
+    "category": "everyday"
+  },
+  {
+    "word": "aankomen",
+    "teaser": "To arrive, or to gain weight — context matters",
+    "category": "everyday"
+  },
+  {
+    "word": "meenemen",
+    "teaser": "To bring along — people or things",
+    "category": "everyday"
+  },
+  {
+    "word": "terugkomen",
+    "teaser": "To come back or return later",
+    "category": "everyday"
+  },
+  {
+    "word": "afspreken",
+    "teaser": "To arrange to meet — making plans with friends",
+    "category": "everyday"
+  },
+  {
+    "word": "uitleggen",
+    "teaser": "To explain — teachers and friends do this a lot",
+    "category": "everyday"
+  },
+  {
+    "word": "opvallen",
+    "teaser": "To stand out or be noticeable",
+    "category": "everyday"
+  },
+  {
+    "word": "meevallen",
+    "teaser": "To turn out better than expected — a relief",
+    "category": "everyday"
+  },
+  {
+    "word": "tegenvallen",
+    "teaser": "To be disappointing — worse than you hoped",
+    "category": "everyday"
+  },
+  {
+    "word": "uitvinden",
+    "teaser": "To find out or discover something new",
+    "category": "everyday"
+  },
+  {
+    "word": "doorgaan",
+    "teaser": "To continue, or to go ahead as planned",
+    "category": "everyday"
+  },
+  {
+    "word": "afzeggen",
+    "teaser": "To cancel plans — happens more than you'd think",
+    "category": "everyday"
+  },
+  {
+    "word": "bespreken",
+    "teaser": "To discuss — the Dutch discuss everything",
+    "category": "everyday"
+  },
+  {
+    "word": "voorstellen",
+    "teaser": "To introduce someone, or to propose an idea",
+    "category": "everyday"
+  },
+  {
+    "word": "ondertussen",
+    "teaser": "Meanwhile — connecting events in a story",
+    "category": "everyday"
+  },
+  {
+    "word": "inmiddels",
+    "teaser": "By now or in the meantime — marks time passing",
+    "category": "everyday"
+  },
+  {
+    "word": "uiteindelijk",
+    "teaser": "Eventually or in the end — wrapping up a story",
+    "category": "everyday"
+  },
+  {
+    "word": "onderhouden",
+    "teaser": "To maintain — a house, garden, or relationship",
+    "category": "everyday"
+  },
+  {
+    "word": "afwassen",
+    "teaser": "To do the dishes — a daily Dutch chore",
+    "category": "everyday"
+  },
+  {
+    "word": "stofzuigen",
+    "teaser": "To vacuum — part of the weekly cleaning routine",
+    "category": "everyday"
+  },
+  {
+    "word": "uitpakken",
+    "teaser": "To unpack — suitcases, presents, or groceries",
+    "category": "everyday"
+  },
+  {
+    "word": "inpakken",
+    "teaser": "To pack or wrap — gifts, bags, or lunch",
+    "category": "everyday"
+  },
+  {
+    "word": "opschieten",
+    "teaser": "To hurry up — Dutch directness at its finest",
+    "category": "everyday"
+  },
+  {
+    "word": "opletten",
+    "teaser": "To pay attention — what teachers always say",
+    "category": "everyday"
+  },
+  {
+    "word": "uitrusten",
+    "teaser": "To rest or recover — well-deserved after work",
+    "category": "everyday"
+  },
+  {
+    "word": "opwarmen",
+    "teaser": "To warm up — food, or yourself on a cold day",
+    "category": "everyday"
+  },
+  {
+    "word": "aantrekken",
+    "teaser": "To put on clothes, or to attract attention",
+    "category": "everyday"
+  },
+  {
+    "word": "uittrekken",
+    "teaser": "To take off clothes, or to pull something out",
+    "category": "everyday"
+  },
+  {
+    "word": "omgaan met",
+    "teaser": "To deal with — situations, people, or problems",
+    "category": "everyday"
+  },
+  {
+    "word": "rekening houden met",
+    "teaser": "To take into account — considerate planning",
+    "category": "everyday"
+  },
+  {
+    "word": "opzoeken",
+    "teaser": "To look up information or visit someone",
+    "category": "everyday"
+  },
+  {
+    "word": "aanpassen",
+    "teaser": "To adapt or adjust — crucial for expat life",
+    "category": "everyday"
+  },
+  {
+    "word": "vergeten",
+    "teaser": "To forget — it happens to the best of us",
+    "category": "everyday"
+  },
+  {
+    "word": "herinneren",
+    "teaser": "To remember or remind someone about something",
+    "category": "everyday"
+  },
+  {
+    "word": "verwachten",
+    "teaser": "To expect — managing expectations is very Dutch",
+    "category": "everyday"
+  },
+  {
+    "word": "beslissen",
+    "teaser": "To decide — after thorough overleg of course",
+    "category": "everyday"
+  },
+  {
+    "word": "vergelijken",
+    "teaser": "To compare — prices, options, or products",
+    "category": "everyday"
+  },
+  {
+    "word": "proberen",
+    "teaser": "To try or attempt — give it a shot",
+    "category": "everyday"
+  },
+  {
+    "word": "uitproberen",
+    "teaser": "To try out — testing something new",
+    "category": "everyday"
+  },
+  {
+    "word": "veranderen",
+    "teaser": "To change — yourself, plans, or the world",
+    "category": "everyday"
+  },
+  {
+    "word": "verbeteren",
+    "teaser": "To improve or correct — always striving for better",
+    "category": "everyday"
+  },
+  {
+    "word": "vervangen",
+    "teaser": "To replace — broken items or temporary workers",
+    "category": "everyday"
+  },
+  {
+    "word": "verdienen",
+    "teaser": "To earn or deserve — money or a treat",
+    "category": "everyday"
+  },
+  {
+    "word": "bezighouden",
+    "teaser": "To keep busy — the Dutch value productivity",
+    "category": "everyday"
+  },
+  {
+    "word": "meedoen",
+    "teaser": "To participate or join in — don't just watch",
+    "category": "everyday"
+  },
+  {
+    "word": "afhangen van",
+    "teaser": "To depend on — it depends, a very Dutch answer",
+    "category": "everyday"
+  },
+  {
+    "word": "overwegen",
+    "teaser": "To consider — thinking it through carefully",
+    "category": "everyday"
+  },
+  {
+    "word": "voorkomen",
+    "teaser": "To prevent, or to seem — a tricky double meaning",
+    "category": "everyday"
+  },
+  {
+    "word": "beschrijven",
+    "teaser": "To describe — putting things into words",
+    "category": "everyday"
+  },
+  {
+    "word": "ontmoeten",
+    "teaser": "To meet someone — for the first time or by chance",
+    "category": "everyday"
+  },
+  {
+    "word": "bezoeken",
+    "teaser": "To visit — friends, museums, or cities",
+    "category": "everyday"
+  },
+  {
+    "word": "oefenen",
+    "teaser": "To practice — the key to learning Dutch",
+    "category": "everyday"
+  },
+  {
+    "word": "ervaring",
+    "teaser": "Experience — what you gain from trying new things",
+    "category": "everyday"
+  },
+  {
+    "word": "gelegenheid",
+    "teaser": "Opportunity or occasion — seize the moment",
+    "category": "everyday"
+  },
+  {
+    "word": "behoefte",
+    "teaser": "Need or desire — what you require or long for",
+    "category": "everyday"
+  },
+  {
+    "word": "gedrag",
+    "teaser": "Behavior — how someone acts in public or private",
+    "category": "everyday"
+  },
+  {
+    "word": "sfeer",
+    "teaser": "Atmosphere or vibe — what makes a place gezellig",
+    "category": "everyday"
+  },
+  {
+    "word": "indruk",
+    "teaser": "Impression — first impressions count",
+    "category": "everyday"
+  },
+  {
+    "word": "mening",
+    "teaser": "Opinion — the Dutch always have one",
+    "category": "everyday"
+  },
+  {
+    "word": "voordeel",
+    "teaser": "Advantage — weighing pros and cons",
+    "category": "everyday"
+  },
+  {
+    "word": "nadeel",
+    "teaser": "Disadvantage — the other side of the coin",
+    "category": "everyday"
+  },
+  {
+    "word": "verschil",
+    "teaser": "Difference — what sets things apart",
+    "category": "everyday"
+  },
+  {
+    "word": "overeenkomst",
+    "teaser": "Agreement or similarity — what things share",
+    "category": "everyday"
+  },
+  {
+    "word": "gewoonlijk",
+    "teaser": "Usually — describing regular habits",
+    "category": "everyday"
+  },
+  {
+    "word": "tegenwoordig",
+    "teaser": "Nowadays — comparing then and now",
+    "category": "everyday"
+  },
+  {
+    "word": "nauwelijks",
+    "teaser": "Hardly or barely — just by a whisker",
+    "category": "everyday"
+  },
+  {
+    "word": "kennelijk",
+    "teaser": "Apparently — when something seems to be the case",
+    "category": "everyday"
+  },
+  {
+    "word": "vanzelfsprekend",
+    "teaser": "Self-evident or obvious — goes without saying",
+    "category": "everyday"
+  },
+  {
+    "word": "noodzakelijk",
+    "teaser": "Necessary — when something must be done",
+    "category": "everyday"
+  },
+  {
+    "word": "beschikbaar",
+    "teaser": "Available — for appointments, products, or people",
+    "category": "everyday"
+  },
+  {
+    "word": "verantwoordelijk",
+    "teaser": "Responsible — taking ownership of tasks",
+    "category": "everyday"
+  },
+  {
+    "word": "gemakkelijk",
+    "teaser": "Easy or comfortable — the opposite of moeilijk",
+    "category": "everyday"
+  },
+  {
+    "word": "moeilijk",
+    "teaser": "Difficult — learning Dutch can be this sometimes",
+    "category": "everyday"
+  },
+  {
+    "word": "gevaarlijk",
+    "teaser": "Dangerous — watch out on those bike paths",
+    "category": "everyday"
+  },
+  {
+    "word": "onmogelijk",
+    "teaser": "Impossible — or so you think until you try",
+    "category": "everyday"
+  },
+  {
+    "word": "tevreden",
+    "teaser": "Satisfied or content — a state worth striving for",
+    "category": "everyday"
+  },
+  {
+    "word": "teleurgesteld",
+    "teaser": "Disappointed — when expectations aren't met",
+    "category": "everyday"
+  },
+  {
+    "word": "verbaasd",
+    "teaser": "Surprised or amazed — didn't see that coming",
+    "category": "everyday"
+  },
+  {
+    "word": "bezorgd",
+    "teaser": "Worried or concerned — about someone or something",
+    "category": "everyday"
+  },
+  {
+    "word": "jaloers",
+    "teaser": "Jealous — the green-eyed monster",
+    "category": "everyday"
+  },
+  {
+    "word": "nieuwsgierig",
+    "teaser": "Curious — wanting to know more",
+    "category": "everyday"
+  },
+  {
+    "word": "verlegen",
+    "teaser": "Shy or embarrassed — not every Dutchie is direct",
+    "category": "everyday"
+  },
+  {
+    "word": "geïrriteerd",
+    "teaser": "Irritated — when small annoyances pile up",
+    "category": "everyday"
+  },
+  {
+    "word": "opgelucht",
+    "teaser": "Relieved — when worry finally lifts",
+    "category": "everyday"
+  },
+  {
+    "word": "enthousiast",
+    "teaser": "Enthusiastic — showing excitement for something",
+    "category": "everyday"
+  },
+  {
+    "word": "voorzichtig",
+    "teaser": "Careful — take it slow and steady",
+    "category": "everyday"
+  },
+  {
+    "word": "ondanks",
+    "teaser": "Despite — something happened anyway",
+    "category": "everyday"
+  },
+  {
+    "word": "bovendien",
+    "teaser": "Moreover or besides — adding another point",
+    "category": "everyday"
+  },
+  {
+    "word": "daardoor",
+    "teaser": "Because of that — explaining cause and effect",
+    "category": "everyday"
+  },
+  {
+    "word": "zodra",
+    "teaser": "As soon as — timing matters in Dutch plans",
+    "category": "everyday"
+  },
+  {
+    "word": "voordat",
+    "teaser": "Before — sequencing events in time",
+    "category": "everyday"
+  },
+  {
+    "word": "nadat",
+    "teaser": "After — what comes next in the story",
+    "category": "everyday"
+  },
+  {
+    "word": "hoewel",
+    "teaser": "Although — introducing a contrast or exception",
+    "category": "everyday"
+  },
+  {
+    "word": "tenzij",
+    "teaser": "Unless — adding a condition to your statement",
+    "category": "everyday"
+  },
+  {
+    "word": "zolang",
+    "teaser": "As long as — setting boundaries or conditions",
+    "category": "everyday"
+  },
+  {
+    "word": "waardoor",
+    "teaser": "Through which — explaining how something happened",
+    "category": "everyday"
+  },
+  {
+    "word": "vervolgens",
+    "teaser": "Subsequently or then — what happened next",
+    "category": "everyday"
+  },
+  {
+    "word": "opmerking",
+    "teaser": "Remark or comment — an observation worth sharing",
+    "category": "everyday"
+  },
+  {
+    "word": "beoordeling",
+    "teaser": "Assessment or review — evaluating quality",
+    "category": "everyday"
+  },
+  {
+    "word": "voorwaarde",
+    "teaser": "Condition or requirement — what needs to be met",
+    "category": "everyday"
+  },
+  {
+    "word": "bijdrage",
+    "teaser": "Contribution — your part in a shared effort",
+    "category": "everyday"
+  },
+  {
+    "word": "toestemming",
+    "teaser": "Permission — asking before you act",
+    "category": "everyday"
+  },
+  {
+    "word": "uitnodiging",
+    "teaser": "Invitation — to a party, event, or dinner",
+    "category": "everyday"
+  },
+  {
+    "word": "herinnering",
+    "teaser": "Memory or reminder — don't forget",
+    "category": "everyday"
+  },
+  {
+    "word": "waarschuwing",
+    "teaser": "Warning — heads up about potential danger",
+    "category": "everyday"
+  },
+  {
+    "word": "bevestiging",
+    "teaser": "Confirmation — yes, it's happening",
+    "category": "everyday"
+  },
+  {
+    "word": "aanbeveling",
+    "teaser": "Recommendation — a trusted suggestion",
+    "category": "everyday"
+  },
+  {
+    "word": "verklaring",
+    "teaser": "Explanation or declaration — making things clear",
+    "category": "everyday"
+  },
+  {
+    "word": "ontwikkeling",
+    "teaser": "Development — how things progress over time",
+    "category": "everyday"
+  },
+  {
+    "word": "onderzoek",
+    "teaser": "Research or investigation — looking into it",
+    "category": "everyday"
+  },
+  {
+    "word": "verplichting",
+    "teaser": "Obligation — something you must do",
+    "category": "everyday"
+  },
+  {
+    "word": "goedkeuring",
+    "teaser": "Approval — getting the green light",
+    "category": "everyday"
+  },
+  {
+    "word": "behandeling",
+    "teaser": "Treatment — medical or how someone is handled",
+    "category": "everyday"
+  },
+  {
+    "word": "vervoer",
+    "teaser": "Transport — getting from A to B in the Netherlands",
+    "category": "everyday"
+  },
+  {
+    "word": "onderdeel",
+    "teaser": "Part or component — a piece of the whole",
+    "category": "everyday"
+  },
+  {
+    "word": "omgeving",
+    "teaser": "Surroundings or environment — where you are",
+    "category": "everyday"
+  },
+  {
+    "word": "gebeurtenis",
+    "teaser": "Event or occurrence — something that happened",
+    "category": "everyday"
+  },
+  {
+    "word": "gevolg",
+    "teaser": "Consequence or result — what follows from an action",
+    "category": "everyday"
+  },
+  {
+    "word": "oorzaak",
+    "teaser": "Cause — the reason behind something",
+    "category": "everyday"
+  },
+  {
+    "word": "verband",
+    "teaser": "Connection or bandage — context decides the meaning",
+    "category": "everyday"
+  },
+  {
+    "word": "toestand",
+    "teaser": "State or condition — describing how things are",
+    "category": "everyday"
+  },
+  {
+    "word": "invloed",
+    "teaser": "Influence — the power to shape outcomes",
+    "category": "everyday"
+  },
+  {
+    "word": "waarde",
+    "teaser": "Value — what something is worth, literally or figuratively",
+    "category": "everyday"
+  },
+  {
+    "word": "aandacht",
+    "teaser": "Attention — give it or pay it",
+    "category": "everyday"
+  },
+  {
+    "word": "vertrouwen",
+    "teaser": "Trust or confidence — the foundation of relationships",
+    "category": "everyday"
+  },
+  {
+    "word": "overtuigen",
+    "teaser": "To convince — winning someone over to your side",
+    "category": "everyday"
+  },
+  {
+    "word": "voorkeur",
+    "teaser": "Preference — what you'd rather have or do",
+    "category": "everyday"
+  },
+  {
+    "word": "bezwaar",
+    "teaser": "Objection — raising a concern formally",
+    "category": "everyday"
+  },
+  {
+    "word": "schade",
+    "teaser": "Damage — from weather, accidents, or bad luck",
+    "category": "everyday"
+  },
+  {
+    "word": "hulp",
+    "teaser": "Help or assistance — everyone needs it sometimes",
+    "category": "everyday"
+  },
+  {
+    "word": "inspanning",
+    "teaser": "Effort — the energy you put into something",
+    "category": "everyday"
+  },
+  {
+    "word": "geduld",
+    "teaser": "Patience — a virtue, especially in bureaucracy",
+    "category": "everyday"
+  },
+  {
+    "word": "aankondiging",
+    "teaser": "Announcement — important news being shared",
+    "category": "everyday"
+  },
+  {
+    "word": "afleiding",
+    "teaser": "Distraction — what pulls your focus away",
+    "category": "everyday"
+  },
+  {
+    "word": "gewoonte",
+    "teaser": "Habit — the things you do without thinking",
+    "category": "everyday"
+  },
+  {
+    "word": "ontspanning",
+    "teaser": "Relaxation — well-earned after a long week",
+    "category": "everyday"
+  },
+  {
+    "word": "verbazing",
+    "teaser": "Astonishment — when reality exceeds expectations",
+    "category": "everyday"
+  },
+  {
+    "word": "uitdaging",
+    "teaser": "Challenge — something that tests your abilities",
+    "category": "everyday"
+  },
+  {
+    "word": "bereiken",
+    "teaser": "To reach or achieve — goals or destinations",
+    "category": "everyday"
+  },
+  {
+    "word": "beïnvloeden",
+    "teaser": "To influence — shaping outcomes or opinions",
+    "category": "everyday"
+  },
+  {
+    "word": "vermijden",
+    "teaser": "To avoid — steering clear of trouble",
+    "category": "everyday"
+  },
+  {
+    "word": "verzamelen",
+    "teaser": "To collect or gather — stamps, people, or courage",
+    "category": "everyday"
+  },
+  {
+    "word": "voorbereiden",
+    "teaser": "To prepare — getting ready for what's ahead",
+    "category": "everyday"
+  },
+  {
+    "word": "aanbieden",
+    "teaser": "To offer — your help, a drink, or a deal",
+    "category": "everyday"
+  },
+  {
+    "word": "begeleiden",
+    "teaser": "To guide or accompany — showing someone the way",
+    "category": "everyday"
+  },
+  {
+    "word": "opmerken",
+    "teaser": "To notice or remark upon something",
+    "category": "everyday"
+  },
+  {
+    "word": "onderscheiden",
+    "teaser": "To distinguish — telling things apart",
+    "category": "everyday"
+  },
+  {
+    "word": "verbinden",
+    "teaser": "To connect or link — people, ideas, or phone calls",
+    "category": "everyday"
+  },
+  {
+    "word": "samenwerken",
+    "teaser": "To collaborate — working together towards a goal",
+    "category": "everyday"
+  },
+  {
+    "word": "beperken",
+    "teaser": "To limit or restrict — setting boundaries",
+    "category": "everyday"
+  },
+  {
+    "word": "uitbreiden",
+    "teaser": "To expand or extend — making something bigger",
+    "category": "everyday"
+  },
+  {
+    "word": "afnemen",
+    "teaser": "To decrease, or to take an exam — depends on context",
+    "category": "everyday"
+  },
+  {
+    "word": "toenemen",
+    "teaser": "To increase — numbers, prices, or worries growing",
+    "category": "everyday"
+  },
+  {
+    "word": "onderbreken",
+    "teaser": "To interrupt — breaking into someone's flow",
+    "category": "everyday"
+  },
+  {
+    "word": "beschermen",
+    "teaser": "To protect — keeping safe from harm",
+    "category": "everyday"
+  },
+  {
+    "word": "vertrouwen op",
+    "teaser": "To rely on — counting on someone or something",
+    "category": "everyday"
+  },
+  {
+    "word": "afvragen",
+    "teaser": "To wonder — asking yourself a question",
+    "category": "everyday"
+  },
+  {
+    "word": "vertalen",
+    "teaser": "To translate — bridging language gaps",
+    "category": "everyday"
+  },
+  {
+    "word": "opnemen",
+    "teaser": "To record, pick up the phone, or absorb",
+    "category": "everyday"
+  },
+  {
+    "word": "inleveren",
+    "teaser": "To hand in or submit — assignments or documents",
+    "category": "everyday"
+  },
+  {
+    "word": "afsluiten",
+    "teaser": "To close off, lock, or conclude something",
+    "category": "everyday"
+  },
+  {
+    "word": "vooruitgang",
+    "teaser": "Progress — moving forward step by step",
+    "category": "everyday"
+  },
+  {
+    "word": "oorspronkelijk",
+    "teaser": "Original — the first version, or where it began",
+    "category": "everyday"
+  },
+  {
+    "word": "uitzonderlijk",
+    "teaser": "Exceptional — standing out from the rest",
+    "category": "everyday"
+  },
+  {
+    "word": "wezenlijk",
+    "teaser": "Essential or fundamental — at the core of things",
+    "category": "everyday"
+  },
+  {
+    "word": "geleidelijk",
+    "teaser": "Gradually — slow and steady change",
+    "category": "everyday"
+  },
+  {
+    "word": "uitgebreid",
+    "teaser": "Extensive or elaborate — thorough and detailed",
+    "category": "everyday"
+  },
+  {
+    "word": "nadrukkelijk",
+    "teaser": "Emphatically — making your point very clear",
+    "category": "everyday"
+  },
+  {
+    "word": "ogenschijnlijk",
+    "teaser": "Seemingly or apparently — looks can deceive",
+    "category": "everyday"
+  },
+  {
+    "word": "achteraf",
+    "teaser": "In hindsight — looking back on what happened",
+    "category": "everyday"
+  },
+  {
+    "word": "desondanks",
+    "teaser": "Nevertheless — it happened anyway",
+    "category": "everyday"
+  },
+  {
+    "word": "daadwerkelijk",
+    "teaser": "Actually or really — confirming something is true",
+    "category": "everyday"
+  },
+  {
+    "word": "doelbewust",
+    "teaser": "Deliberately — done on purpose with intent",
+    "category": "everyday"
+  },
+  {
+    "word": "bijzonder",
+    "teaser": "Special or remarkable — standing out positively",
+    "category": "everyday"
+  },
+  {
+    "word": "klaarblijkelijk",
+    "teaser": "Evidently — clearly the case from what you see",
+    "category": "everyday"
+  },
+  {
+    "word": "gerecht",
+    "teaser": "A dish or course — what's on the menu tonight",
+    "category": "food"
+  },
+  {
+    "word": "voorgerecht",
+    "teaser": "Starter or appetizer — the opening act of dinner",
+    "category": "food"
+  },
+  {
+    "word": "nagerecht",
+    "teaser": "Dessert — the sweet reward at the end",
+    "category": "food"
+  },
+  {
+    "word": "hoofdgerecht",
+    "teaser": "Main course — the star of the meal",
+    "category": "food"
+  },
+  {
+    "word": "bestek",
+    "teaser": "Cutlery — knife, fork, and spoon together",
+    "category": "food"
+  },
+  {
+    "word": "veganistisch",
+    "teaser": "Vegan — a growing movement in Dutch cuisine",
+    "category": "food"
+  },
+  {
+    "word": "biologisch",
+    "teaser": "Organic — the label-conscious Dutch love this",
+    "category": "food"
+  },
+  {
+    "word": "versgebakken",
+    "teaser": "Freshly baked — the smell from a Dutch bakery",
+    "category": "food"
+  },
+  {
+    "word": "hartig",
+    "teaser": "Savory — the opposite of sweet in Dutch food",
+    "category": "food"
+  },
+  {
+    "word": "smullen",
+    "teaser": "To feast or enjoy food with gusto",
+    "category": "food"
+  },
+  {
+    "word": "eetlust",
+    "teaser": "Appetite — the hunger that drives you to the table",
+    "category": "food"
+  },
+  {
+    "word": "tussendoortje",
+    "teaser": "Snack between meals — a little something to tide you over",
+    "category": "food"
+  },
+  {
+    "word": "lekkernij",
+    "teaser": "Delicacy or treat — something especially tasty",
+    "category": "food"
+  },
+  {
+    "word": "waterloop",
+    "teaser": "Watercourse — the veins of the Dutch landscape",
+    "category": "nature"
+  },
+  {
+    "word": "kwelwater",
+    "teaser": "Seepage water — groundwater pushing to the surface",
+    "category": "nature"
+  },
+  {
+    "word": "getijdengebied",
+    "teaser": "Tidal area — where land and sea negotiate twice daily",
+    "category": "nature"
+  },
+  {
+    "word": "duinlandschap",
+    "teaser": "Dune landscape — sandy hills protecting the coast",
+    "category": "nature"
+  },
+  {
+    "word": "veengrond",
+    "teaser": "Peat soil — spongy ground from ancient decomposed plants",
+    "category": "nature"
+  },
+  {
+    "word": "weidevogel",
+    "teaser": "Meadow bird — skylarks and lapwings in Dutch grasslands",
+    "category": "nature"
+  },
+  {
+    "word": "waterkering",
+    "teaser": "Flood defense — dikes and barriers holding back the sea",
+    "category": "nature"
+  },
+  {
+    "word": "uiterwaarden",
+    "teaser": "Floodplains — riverside areas designed to absorb high water",
+    "category": "nature"
+  },
+  {
+    "word": "kwelgebied",
+    "teaser": "Seepage area — where underground water surfaces naturally",
+    "category": "nature"
+  },
+  {
+    "word": "zoetwatermeer",
+    "teaser": "Freshwater lake — inland waters for recreation and nature",
+    "category": "nature"
+  },
+  {
+    "word": "zonnewende",
+    "teaser": "Solstice — when the sun reaches its highest or lowest point",
+    "category": "seasonal"
+  },
+  {
+    "word": "nachtvorst",
+    "teaser": "Night frost — when temperatures dip below zero after dark",
+    "category": "seasonal"
+  },
+  {
+    "word": "voorjaarsschoonmaak",
+    "teaser": "Spring cleaning — a thorough annual tradition",
+    "category": "seasonal"
+  },
+  {
+    "word": "herfstdepressie",
+    "teaser": "Autumn blues — when shorter days affect your mood",
+    "category": "seasonal"
+  },
+  {
+    "word": "winterdip",
+    "teaser": "Winter slump — the seasonal low many Dutch people experience",
+    "category": "seasonal"
+  },
+  {
+    "word": "zomerfeest",
+    "teaser": "Summer party — outdoor celebrations in the long evenings",
+    "category": "seasonal"
+  },
+  {
+    "word": "aanpak",
+    "teaser": "Approach — how you tackle a problem",
+    "category": "everyday"
+  },
+  {
+    "word": "draagvlak",
+    "teaser": "Public support — needed before any Dutch decision",
+    "category": "everyday"
+  },
+  {
+    "word": "bruikbaar",
+    "teaser": "Usable or practical — it actually works",
+    "category": "everyday"
+  },
+  {
+    "word": "verplicht",
+    "teaser": "Mandatory or obligatory — no choice about it",
+    "category": "everyday"
+  },
+  {
+    "word": "toepassen",
+    "teaser": "To apply — putting knowledge into practice",
+    "category": "everyday"
+  },
+  {
+    "word": "uitvoeren",
+    "teaser": "To carry out or execute — getting things done",
+    "category": "everyday"
+  },
+  {
+    "word": "vaststellen",
+    "teaser": "To determine or establish — pinning down the facts",
+    "category": "everyday"
+  },
+  {
+    "word": "benadrukken",
+    "teaser": "To emphasize — making a point stand out",
+    "category": "everyday"
+  },
+  {
+    "word": "handhaven",
+    "teaser": "To maintain or enforce — keeping rules in place",
+    "category": "everyday"
+  },
+  {
+    "word": "afschaffen",
+    "teaser": "To abolish — getting rid of rules or traditions",
+    "category": "everyday"
+  },
+  {
+    "word": "verdwijnen",
+    "teaser": "To disappear — gone without a trace",
+    "category": "everyday"
+  },
+  {
+    "word": "verschijnen",
+    "teaser": "To appear or be published — showing up on the scene",
+    "category": "everyday"
+  },
+  {
+    "word": "toekomst",
+    "teaser": "Future — what lies ahead",
+    "category": "everyday"
+  },
+  {
+    "word": "verleden",
+    "teaser": "Past — what came before now",
+    "category": "everyday"
+  },
+  {
+    "word": "belang",
+    "teaser": "Interest or importance — what matters most",
+    "category": "everyday"
+  },
+  {
+    "word": "doel",
+    "teaser": "Goal or purpose — what you're working towards",
+    "category": "everyday"
+  },
+  {
+    "word": "kans",
+    "teaser": "Chance or opportunity — grab it while you can",
+    "category": "everyday"
+  },
+  {
+    "word": "risico",
+    "teaser": "Risk — the chance things go wrong",
+    "category": "everyday"
+  },
+  {
+    "word": "standpunt",
+    "teaser": "Point of view — where you stand on an issue",
+    "category": "everyday"
+  },
+  {
+    "word": "samenhang",
+    "teaser": "Coherence — how things connect and fit together",
+    "category": "everyday"
+  },
+  {
+    "word": "kennismaken",
+    "teaser": "To get acquainted — meeting someone properly for the first time",
+    "category": "everyday"
+  },
+  {
+    "word": "opknappen",
+    "teaser": "To fix up or renovate — making something look new again",
+    "category": "everyday"
+  },
+  {
+    "word": "waarderen",
+    "teaser": "To appreciate — valuing what you have",
+    "category": "everyday"
+  },
+  {
+    "word": "vermelden",
+    "teaser": "To mention or state — noting something important",
+    "category": "everyday"
+  },
+  {
+    "word": "opvallend",
+    "teaser": "Striking or notable — something that catches the eye",
+    "category": "everyday"
+  },
+  {
+    "word": "overweldigend",
+    "teaser": "Overwhelming — too much to take in at once",
+    "category": "everyday"
+  },
+  {
+    "word": "geleidelijk aan",
+    "teaser": "Little by little — change happening slowly",
+    "category": "everyday"
+  },
+  {
+    "word": "daarentegen",
+    "teaser": "On the other hand — introducing a contrast",
+    "category": "everyday"
+  },
+  {
+    "word": "niettemin",
+    "teaser": "Nevertheless — it happened despite everything",
+    "category": "everyday"
+  },
+  {
+    "word": "enerzijds",
+    "teaser": "On the one hand — the first side of an argument",
+    "category": "everyday"
+  },
+  {
+    "word": "anderzijds",
+    "teaser": "On the other hand — the second side of an argument",
+    "category": "everyday"
+  },
+  {
+    "word": "weliswaar",
+    "teaser": "Admittedly — conceding a point before countering",
+    "category": "everyday"
+  },
+  {
+    "word": "immers",
+    "teaser": "After all — because it's obvious when you think about it",
+    "category": "everyday"
+  },
+  {
+    "word": "kortom",
+    "teaser": "In short — wrapping up the main point",
+    "category": "everyday"
+  },
+  {
+    "word": "mits",
+    "teaser": "Provided that — a condition that must be met",
+    "category": "everyday"
+  },
+  {
+    "word": "derhalve",
+    "teaser": "Therefore — a formal way to state consequence",
+    "category": "everyday"
+  },
+  {
+    "word": "zodoende",
+    "teaser": "In this way — explaining how it all came together",
+    "category": "everyday"
+  },
+  {
+    "word": "opbrengst",
+    "teaser": "Yield or revenue — what you get back for your effort",
+    "category": "everyday"
+  },
+  {
+    "word": "tegenstelling",
+    "teaser": "Contrast or contradiction — two things that don't match",
+    "category": "everyday"
+  },
+  {
+    "word": "stelling",
+    "teaser": "Thesis or assertion — taking a position in a debate",
+    "category": "everyday"
+  },
+  {
+    "word": "zorgvuldig",
+    "teaser": "Thorough or meticulous — paying close attention to detail",
+    "category": "everyday"
+  },
+  {
+    "word": "welwillend",
+    "teaser": "Well-disposed — open and willing to help",
+    "category": "everyday"
+  },
+  {
+    "word": "onverwacht",
+    "teaser": "Unexpected — a surprise you didn't see coming",
+    "category": "everyday"
+  },
+  {
+    "word": "wijziging",
+    "teaser": "Change or amendment — an official alteration",
+    "category": "everyday"
+  },
+  {
+    "word": "twijfel",
+    "teaser": "Doubt — uncertainty about the right choice",
+    "category": "everyday"
+  },
+  {
+    "word": "samenvatting",
+    "teaser": "Summary — the key points in brief",
+    "category": "everyday"
+  },
+  {
+    "word": "afloop",
+    "teaser": "Outcome — how something ends up",
+    "category": "everyday"
+  },
+  {
+    "word": "tussenkomst",
+    "teaser": "Intervention — stepping in when needed",
+    "category": "everyday"
+  },
+  {
+    "word": "eindresultaat",
+    "teaser": "Final result — what you end up with",
+    "category": "everyday"
+  },
+  {
+    "word": "woordenschat",
+    "teaser": "Vocabulary — the collection of words you know",
+    "category": "everyday"
+  },
+  {
+    "word": "taalvaardigheid",
+    "teaser": "Language proficiency — how well you handle a language",
+    "category": "everyday"
+  },
+  {
+    "word": "doorzettingsvermogen",
+    "teaser": "Perseverance — the grit to keep going when it gets tough",
+    "category": "everyday"
   }
 ]
