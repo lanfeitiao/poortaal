@@ -1040,12 +1040,91 @@ main {
   animation: spin 1s linear infinite;
 }
 
+/* Daily word card */
+.daily-word-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  border: 1px solid var(--blue-100);
+  border-left: 4px solid var(--blue-400);
+  animation: fadeUp 0.35s ease-out;
+}
+
+.daily-word-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.daily-word-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--blue-500);
+}
+
+.streak-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--blue-50);
+  color: var(--blue-600);
+  padding: 0.25rem 0.65rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.daily-word-main {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.daily-word-main h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--blue-800);
+}
+
+.daily-word-teaser {
+  color: var(--gray-500);
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+
+.daily-word-cta {
+  display: inline-block;
+  padding: 0.65rem 1.4rem;
+  background: linear-gradient(135deg, var(--blue-600), var(--blue-700));
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.daily-word-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37,99,235,0.35);
+}
+
 /* Responsive */
 @media (max-width: 480px) {
   main { padding: 1.5rem 1rem 5rem; }
   .word-header h1 { font-size: 1.6rem; }
   .search-box { flex-direction: column; }
   .search-box button { width: 100%; }
+  .daily-word-main h2 { font-size: 1.4rem; }
+  .daily-word-main { flex-wrap: wrap; }
 }
 </style>
 </head>
@@ -1067,6 +1146,7 @@ main {
 <main>
   <!-- HOME VIEW -->
   <div id="view-home" class="view active">
+    <div id="dailyWordContainer"></div>
     <div class="search-area">
       <h2>Typ een Nederlands woord om te ontdekken</h2>
       <div class="search-box">
@@ -1534,10 +1614,102 @@ function handleRoute() {
 
 window.addEventListener('hashchange', handleRoute);
 
+// --- Daily Word ---
+const DAILY_EPOCH = new Date(2026, 0, 1); // Jan 1, 2026
+
+function getAbsoluteDay() {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.floor((today - DAILY_EPOCH) / 86400000);
+}
+
+function seededShuffle(arr, seed) {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    seed = (seed * 16807 + 0) % 2147483647;
+    const j = seed % (i + 1);
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function getTodayWord(words) {
+  const absoluteDay = getAbsoluteDay();
+  const cycle = Math.floor(absoluteDay / words.length);
+  const effectiveList = cycle === 0 ? words : seededShuffle(words, cycle);
+  return effectiveList[absoluteDay % words.length];
+}
+
+function getStreak() {
+  try {
+    return JSON.parse(localStorage.getItem('poortaal_streak')) || { lastDate: null, count: 0 };
+  } catch { return { lastDate: null, count: 0 }; }
+}
+
+function updateStreak() {
+  const streak = getStreak();
+  const today = new Date().toISOString().slice(0, 10);
+  if (streak.lastDate === today) return streak;
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const newStreak = {
+    lastDate: today,
+    count: streak.lastDate === yesterday ? streak.count + 1 : 1
+  };
+  localStorage.setItem('poortaal_streak', JSON.stringify(newStreak));
+  return newStreak;
+}
+
+function renderDailyWord(word) {
+  const container = document.getElementById('dailyWordContainer');
+  const streak = getStreak();
+  const streakCount = streak.count || 0;
+  container.innerHTML = `
+    <div class="daily-word-card">
+      <div class="daily-word-top">
+        <div class="daily-word-label">Woord van de Dag</div>
+        <div class="streak-badge">\u{1F333} Dag ${streakCount}</div>
+      </div>
+      <div class="daily-word-main">
+        <h2>${escapeHtml(word.word)}</h2>
+        <span class="word-type">${escapeHtml(word.category)}</span>
+      </div>
+      <div class="daily-word-teaser">${escapeHtml(word.teaser)}</div>
+      <button class="daily-word-cta" onclick="exploreDailyWord()">Ontdek dit woord</button>
+    </div>
+  `;
+}
+
+function exploreDailyWord() {
+  if (!currentDailyWord) return;
+  const streak = updateStreak();
+  // Update streak display
+  const badge = document.querySelector('.streak-badge');
+  if (badge) badge.textContent = '\u{1F333} Dag ' + streak.count;
+  // Trigger word lookup
+  document.getElementById('wordInput').value = currentDailyWord.word;
+  lookupWord();
+}
+
+let currentDailyWord = null;
+
+async function loadDailyWord() {
+  try {
+    const res = await fetch('words.json');
+    if (!res.ok) return;
+    const words = await res.json();
+    if (!Array.isArray(words) || words.length === 0) return;
+    currentDailyWord = getTodayWord(words);
+    renderDailyWord(currentDailyWord);
+  } catch {
+    // Silently skip — daily word is non-essential
+  }
+}
+
 // --- Init ---
 document.addEventListener('DOMContentLoaded', () => {
   initAuth();
   renderHistory();
+  loadDailyWord();
   document.getElementById('wordInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') lookupWord();
   });
