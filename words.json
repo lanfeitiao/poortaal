@@ -1,0 +1,5002 @@
+[
+  {
+    "word": "gezellig",
+    "teaser": "The untranslatable heart of Dutch culture",
+    "category": "culture"
+  },
+  {
+    "word": "lekker",
+    "teaser": "The most versatile word in Dutch — tasty, nice, great",
+    "category": "everyday"
+  },
+  {
+    "word": "uitbuiken",
+    "teaser": "To sit back and let your belly digest after a big meal",
+    "category": "culture"
+  },
+  {
+    "word": "fiets",
+    "teaser": "The bicycle — the true king of Dutch transport",
+    "category": "useful"
+  },
+  {
+    "word": "hagelslag",
+    "teaser": "Chocolate sprinkles eaten on bread for breakfast",
+    "category": "food"
+  },
+  {
+    "word": "stamppot",
+    "teaser": "A hearty mashed potato dish with vegetables",
+    "category": "food"
+  },
+  {
+    "word": "borrel",
+    "teaser": "Drinks with friends — a Dutch social ritual",
+    "category": "culture"
+  },
+  {
+    "word": "schaatsen",
+    "teaser": "Ice skating — a beloved Dutch winter tradition",
+    "category": "seasonal"
+  },
+  {
+    "word": "polder",
+    "teaser": "Land reclaimed from water, shaping the Dutch landscape",
+    "category": "nature"
+  },
+  {
+    "word": "alsjeblieft",
+    "teaser": "Please, or here you go — used constantly",
+    "category": "everyday"
+  },
+  {
+    "word": "hallo",
+    "teaser": "A friendly hello to start any conversation",
+    "category": "everyday"
+  },
+  {
+    "word": "dank je wel",
+    "teaser": "Thank you — the polite phrase you will need most",
+    "category": "everyday"
+  },
+  {
+    "word": "goedemorgen",
+    "teaser": "Good morning — greet the day the Dutch way",
+    "category": "everyday"
+  },
+  {
+    "word": "goedemiddag",
+    "teaser": "Good afternoon — used after twelve o'clock",
+    "category": "everyday"
+  },
+  {
+    "word": "goedenavond",
+    "teaser": "Good evening — when the sun starts going down",
+    "category": "everyday"
+  },
+  {
+    "word": "tot ziens",
+    "teaser": "Goodbye — until we see each other again",
+    "category": "everyday"
+  },
+  {
+    "word": "ja",
+    "teaser": "Yes — short, sweet, and universal",
+    "category": "everyday"
+  },
+  {
+    "word": "nee",
+    "teaser": "No — the Dutch are famous for being direct",
+    "category": "everyday"
+  },
+  {
+    "word": "water",
+    "teaser": "Water — the element the Dutch have mastered",
+    "category": "everyday"
+  },
+  {
+    "word": "brood",
+    "teaser": "Bread — the backbone of every Dutch meal",
+    "category": "food"
+  },
+  {
+    "word": "kaas",
+    "teaser": "Cheese — the Netherlands is a cheese superpower",
+    "category": "food"
+  },
+  {
+    "word": "melk",
+    "teaser": "Milk — the Dutch drink it with every meal",
+    "category": "food"
+  },
+  {
+    "word": "koffie",
+    "teaser": "Coffee — fuel for the famously productive Dutch",
+    "category": "food"
+  },
+  {
+    "word": "thee",
+    "teaser": "Tea — the cozy alternative on a rainy afternoon",
+    "category": "food"
+  },
+  {
+    "word": "bier",
+    "teaser": "Beer — from Heineken to craft, a proud tradition",
+    "category": "food"
+  },
+  {
+    "word": "wijn",
+    "teaser": "Wine — enjoyed with dinner or at a borrel",
+    "category": "food"
+  },
+  {
+    "word": "appel",
+    "teaser": "Apple — a fruit found in every Dutch kitchen",
+    "category": "food"
+  },
+  {
+    "word": "aardappel",
+    "teaser": "Potato — the starchy star of Dutch cuisine",
+    "category": "food"
+  },
+  {
+    "word": "groente",
+    "teaser": "Vegetables — the healthy side of a Dutch plate",
+    "category": "food"
+  },
+  {
+    "word": "vlees",
+    "teaser": "Meat — traditionally the centerpiece of dinner",
+    "category": "food"
+  },
+  {
+    "word": "vis",
+    "teaser": "Fish — herring, kibbeling, and more from the North Sea",
+    "category": "food"
+  },
+  {
+    "word": "soep",
+    "teaser": "Soup — a warming bowl for cold Dutch winters",
+    "category": "food"
+  },
+  {
+    "word": "pannenkoeken",
+    "teaser": "Pancakes — thinner than American, thicker than French",
+    "category": "food"
+  },
+  {
+    "word": "poffertjes",
+    "teaser": "Tiny fluffy pancakes dusted with powdered sugar",
+    "category": "food"
+  },
+  {
+    "word": "stroopwafel",
+    "teaser": "Two thin waffles with caramel syrup in between",
+    "category": "food"
+  },
+  {
+    "word": "kroket",
+    "teaser": "A deep-fried ragout roll, perfect from a vending wall",
+    "category": "food"
+  },
+  {
+    "word": "bitterbal",
+    "teaser": "Round deep-fried snack — the king of borrel food",
+    "category": "food"
+  },
+  {
+    "word": "haring",
+    "teaser": "Raw herring eaten by tilting your head back",
+    "category": "food"
+  },
+  {
+    "word": "drop",
+    "teaser": "Salty licorice — you either love it or hate it",
+    "category": "food"
+  },
+  {
+    "word": "erwtensoep",
+    "teaser": "Thick split pea soup, so dense a spoon stands up",
+    "category": "food"
+  },
+  {
+    "word": "hutspot",
+    "teaser": "Mashed potatoes with carrots and onions",
+    "category": "food"
+  },
+  {
+    "word": "boerenkool",
+    "teaser": "Kale mashed with potatoes — a winter classic",
+    "category": "food"
+  },
+  {
+    "word": "ontbijt",
+    "teaser": "Breakfast — typically bread with toppings",
+    "category": "food"
+  },
+  {
+    "word": "avondeten",
+    "teaser": "Dinner — the main evening meal for families",
+    "category": "food"
+  },
+  {
+    "word": "tosti",
+    "teaser": "A toasted cheese sandwich — simple and satisfying",
+    "category": "food"
+  },
+  {
+    "word": "friet",
+    "teaser": "French fries with mayo — a Dutch street food staple",
+    "category": "food"
+  },
+  {
+    "word": "rookworst",
+    "teaser": "Smoked sausage, often served with stamppot",
+    "category": "food"
+  },
+  {
+    "word": "beschuit",
+    "teaser": "A round rusk, eaten with muisjes for a new baby",
+    "category": "food"
+  },
+  {
+    "word": "speculaas",
+    "teaser": "Spiced cookie shaped in windmills and figures",
+    "category": "food"
+  },
+  {
+    "word": "oliebollen",
+    "teaser": "Deep-fried dough balls eaten on New Year's Eve",
+    "category": "food"
+  },
+  {
+    "word": "pepernoten",
+    "teaser": "Small spiced cookies thrown during Sinterklaas",
+    "category": "food"
+  },
+  {
+    "word": "vlaai",
+    "teaser": "A fruit-filled pie from the south of the Netherlands",
+    "category": "food"
+  },
+  {
+    "word": "jenever",
+    "teaser": "Dutch gin — the ancestor of English gin",
+    "category": "food"
+  },
+  {
+    "word": "gevulde koek",
+    "teaser": "Almond paste-filled pastry — a bakery favorite",
+    "category": "food"
+  },
+  {
+    "word": "tompouce",
+    "teaser": "A pink-glazed pastry eaten on King's Day",
+    "category": "food"
+  },
+  {
+    "word": "frikandel",
+    "teaser": "A deep-fried minced meat sausage from the snackbar",
+    "category": "food"
+  },
+  {
+    "word": "kibbeling",
+    "teaser": "Battered fried fish bites with garlic sauce",
+    "category": "food"
+  },
+  {
+    "word": "muisjes",
+    "teaser": "Anise sprinkles for celebrating a new baby",
+    "category": "food"
+  },
+  {
+    "word": "appelstroop",
+    "teaser": "Apple syrup spread on bread or pancakes",
+    "category": "food"
+  },
+  {
+    "word": "boterham",
+    "teaser": "An open-faced sandwich — the Dutch lunch standard",
+    "category": "food"
+  },
+  {
+    "word": "nasi",
+    "teaser": "Indonesian fried rice adopted into Dutch cuisine",
+    "category": "food"
+  },
+  {
+    "word": "bami",
+    "teaser": "Indonesian fried noodles — a Dutch-Indonesian classic",
+    "category": "food"
+  },
+  {
+    "word": "satay",
+    "teaser": "Grilled meat skewers with peanut sauce",
+    "category": "food"
+  },
+  {
+    "word": "rijsttafel",
+    "teaser": "An elaborate Indonesian-Dutch rice table feast",
+    "category": "food"
+  },
+  {
+    "word": "vla",
+    "teaser": "A creamy custard dessert in many flavors",
+    "category": "food"
+  },
+  {
+    "word": "hagelmuis",
+    "teaser": "Chocolate and anise sprinkles mixed together on bread",
+    "category": "food"
+  },
+  {
+    "word": "uitsmijter",
+    "teaser": "Fried eggs on bread with ham and cheese",
+    "category": "food"
+  },
+  {
+    "word": "kruidnoten",
+    "teaser": "Small round spiced biscuits for Sinterklaas season",
+    "category": "food"
+  },
+  {
+    "word": "advocaat",
+    "teaser": "A thick egg-based liqueur enjoyed as a treat",
+    "category": "food"
+  },
+  {
+    "word": "wentelteefjes",
+    "teaser": "Dutch-style French toast with cinnamon and sugar",
+    "category": "food"
+  },
+  {
+    "word": "snoep",
+    "teaser": "Candy and sweets — every Dutch kid's weakness",
+    "category": "food"
+  },
+  {
+    "word": "snackbar",
+    "teaser": "A fast-food counter with deep-fried Dutch treats",
+    "category": "food"
+  },
+  {
+    "word": "koek",
+    "teaser": "Cake or cookie — a general word for baked treats",
+    "category": "food"
+  },
+  {
+    "word": "beschuitbol",
+    "teaser": "A soft round bread roll for sandwiches",
+    "category": "food"
+  },
+  {
+    "word": "taart",
+    "teaser": "A celebratory cake for birthdays and occasions",
+    "category": "food"
+  },
+  {
+    "word": "zuivel",
+    "teaser": "Dairy products — the Netherlands is a dairy giant",
+    "category": "food"
+  },
+  {
+    "word": "kopstoot",
+    "teaser": "A beer paired with a shot of jenever",
+    "category": "food"
+  },
+  {
+    "word": "pindasaus",
+    "teaser": "Peanut sauce drizzled on fries or satay",
+    "category": "food"
+  },
+  {
+    "word": "mayonaise",
+    "teaser": "Mayonnaise — the default sauce for Dutch fries",
+    "category": "food"
+  },
+  {
+    "word": "ontbijtkoek",
+    "teaser": "A spiced honey breakfast cake, dark and fragrant",
+    "category": "food"
+  },
+  {
+    "word": "krentenbол",
+    "teaser": "A sweet currant bread roll from the bakery",
+    "category": "food"
+  },
+  {
+    "word": "kaassoufflé",
+    "teaser": "A deep-fried cheese pastry from the snack wall",
+    "category": "food"
+  },
+  {
+    "word": "gehaktbal",
+    "teaser": "A large meatball served with gravy and vegetables",
+    "category": "food"
+  },
+  {
+    "word": "slagroom",
+    "teaser": "Whipped cream — piled high on everything",
+    "category": "food"
+  },
+  {
+    "word": "pindakaas",
+    "teaser": "Peanut butter, but the Dutch call it peanut cheese",
+    "category": "food"
+  },
+  {
+    "word": "suiker",
+    "teaser": "Sugar — for your coffee or on your pancakes",
+    "category": "food"
+  },
+  {
+    "word": "roomboter",
+    "teaser": "Real butter — the Dutch baking essential",
+    "category": "food"
+  },
+  {
+    "word": "roggebrood",
+    "teaser": "Dark rye bread, dense and hearty",
+    "category": "food"
+  },
+  {
+    "word": "huis",
+    "teaser": "House — every Dutch person's dream to own one",
+    "category": "everyday"
+  },
+  {
+    "word": "werk",
+    "teaser": "Work — but the Dutch prefer a good work-life balance",
+    "category": "everyday"
+  },
+  {
+    "word": "school",
+    "teaser": "School — where Dutch kids learn multiple languages",
+    "category": "everyday"
+  },
+  {
+    "word": "winkel",
+    "teaser": "Shop — from Albert Heijn to tiny boutiques",
+    "category": "everyday"
+  },
+  {
+    "word": "straat",
+    "teaser": "Street — often lined with bikes and canal houses",
+    "category": "everyday"
+  },
+  {
+    "word": "stad",
+    "teaser": "City — Amsterdam, Rotterdam, Utrecht and more",
+    "category": "everyday"
+  },
+  {
+    "word": "dorp",
+    "teaser": "Village — charming small towns dot the countryside",
+    "category": "everyday"
+  },
+  {
+    "word": "weer",
+    "teaser": "Weather — the Dutch favorite topic of conversation",
+    "category": "everyday"
+  },
+  {
+    "word": "regen",
+    "teaser": "Rain — bring an umbrella, always",
+    "category": "everyday"
+  },
+  {
+    "word": "zon",
+    "teaser": "Sun — when it appears, everyone goes outside immediately",
+    "category": "everyday"
+  },
+  {
+    "word": "wind",
+    "teaser": "Wind — always present, powering the famous windmills",
+    "category": "everyday"
+  },
+  {
+    "word": "koud",
+    "teaser": "Cold — the default Dutch weather setting",
+    "category": "everyday"
+  },
+  {
+    "word": "warm",
+    "teaser": "Warm — a rare and celebrated weather event",
+    "category": "everyday"
+  },
+  {
+    "word": "mooi",
+    "teaser": "Beautiful — used for weather, people, and things",
+    "category": "everyday"
+  },
+  {
+    "word": "groot",
+    "teaser": "Big or tall — the Dutch are the tallest people on earth",
+    "category": "everyday"
+  },
+  {
+    "word": "klein",
+    "teaser": "Small or little — a useful everyday adjective",
+    "category": "everyday"
+  },
+  {
+    "word": "goed",
+    "teaser": "Good — the standard positive response",
+    "category": "everyday"
+  },
+  {
+    "word": "slecht",
+    "teaser": "Bad — hopefully not describing the weather again",
+    "category": "everyday"
+  },
+  {
+    "word": "nieuw",
+    "teaser": "New — from new year to new ideas",
+    "category": "everyday"
+  },
+  {
+    "word": "oud",
+    "teaser": "Old — like the centuries-old canal houses",
+    "category": "everyday"
+  },
+  {
+    "word": "dag",
+    "teaser": "Day, or also a casual goodbye greeting",
+    "category": "everyday"
+  },
+  {
+    "word": "nacht",
+    "teaser": "Night — when the cities light up along the canals",
+    "category": "everyday"
+  },
+  {
+    "word": "morgen",
+    "teaser": "Tomorrow, or morning — context tells you which",
+    "category": "everyday"
+  },
+  {
+    "word": "vandaag",
+    "teaser": "Today — seize the day, Dutch style",
+    "category": "everyday"
+  },
+  {
+    "word": "gisteren",
+    "teaser": "Yesterday — looking back is also important",
+    "category": "everyday"
+  },
+  {
+    "word": "tijd",
+    "teaser": "Time — the Dutch are famously punctual about it",
+    "category": "everyday"
+  },
+  {
+    "word": "uur",
+    "teaser": "Hour — as in what time is it?",
+    "category": "everyday"
+  },
+  {
+    "word": "minuut",
+    "teaser": "Minute — every one counts in a busy schedule",
+    "category": "everyday"
+  },
+  {
+    "word": "week",
+    "teaser": "Week — the rhythm of Dutch working life",
+    "category": "everyday"
+  },
+  {
+    "word": "maand",
+    "teaser": "Month — twelve of them, each with its own character",
+    "category": "everyday"
+  },
+  {
+    "word": "jaar",
+    "teaser": "Year — another trip around the sun",
+    "category": "everyday"
+  },
+  {
+    "word": "vriend",
+    "teaser": "Friend — someone to share a borrel with",
+    "category": "everyday"
+  },
+  {
+    "word": "vriendin",
+    "teaser": "Female friend or girlfriend — context matters",
+    "category": "everyday"
+  },
+  {
+    "word": "familie",
+    "teaser": "Family — central to Dutch social life",
+    "category": "everyday"
+  },
+  {
+    "word": "kind",
+    "teaser": "Child — the Netherlands is very child-friendly",
+    "category": "everyday"
+  },
+  {
+    "word": "man",
+    "teaser": "Man or husband — depends on the situation",
+    "category": "everyday"
+  },
+  {
+    "word": "vrouw",
+    "teaser": "Woman or wife — a common everyday word",
+    "category": "everyday"
+  },
+  {
+    "word": "baby",
+    "teaser": "Baby — celebrated with beschuit met muisjes",
+    "category": "everyday"
+  },
+  {
+    "word": "hond",
+    "teaser": "Dog — a popular pet in Dutch households",
+    "category": "everyday"
+  },
+  {
+    "word": "kat",
+    "teaser": "Cat — the other beloved Dutch pet",
+    "category": "everyday"
+  },
+  {
+    "word": "auto",
+    "teaser": "Car — though bikes are often preferred",
+    "category": "everyday"
+  },
+  {
+    "word": "telefoon",
+    "teaser": "Phone — always in hand for checking Buienradar",
+    "category": "everyday"
+  },
+  {
+    "word": "geld",
+    "teaser": "Money — the Dutch are known for being thrifty",
+    "category": "everyday"
+  },
+  {
+    "word": "eten",
+    "teaser": "To eat or food — a fundamental daily activity",
+    "category": "everyday"
+  },
+  {
+    "word": "drinken",
+    "teaser": "To drink — coffee, beer, or just water",
+    "category": "everyday"
+  },
+  {
+    "word": "slapen",
+    "teaser": "To sleep — recharging for another productive day",
+    "category": "everyday"
+  },
+  {
+    "word": "lopen",
+    "teaser": "To walk — strolling along the grachten",
+    "category": "everyday"
+  },
+  {
+    "word": "fietsen",
+    "teaser": "To cycle — the Dutch national mode of transport",
+    "category": "everyday"
+  },
+  {
+    "word": "werken",
+    "teaser": "To work — but preferably part-time on Fridays",
+    "category": "everyday"
+  },
+  {
+    "word": "lezen",
+    "teaser": "To read — the Dutch are avid readers",
+    "category": "everyday"
+  },
+  {
+    "word": "schrijven",
+    "teaser": "To write — from emails to birthday cards",
+    "category": "everyday"
+  },
+  {
+    "word": "praten",
+    "teaser": "To talk — the Dutch love a good conversation",
+    "category": "everyday"
+  },
+  {
+    "word": "kopen",
+    "teaser": "To buy — whether at the market or online",
+    "category": "everyday"
+  },
+  {
+    "word": "betalen",
+    "teaser": "To pay — tikkie me later!",
+    "category": "everyday"
+  },
+  {
+    "word": "wachten",
+    "teaser": "To wait — patience is a virtue",
+    "category": "everyday"
+  },
+  {
+    "word": "beginnen",
+    "teaser": "To begin — every journey starts somewhere",
+    "category": "everyday"
+  },
+  {
+    "word": "stoppen",
+    "teaser": "To stop — knowing when to pause",
+    "category": "everyday"
+  },
+  {
+    "word": "helpen",
+    "teaser": "To help — the Dutch are generally helpful",
+    "category": "everyday"
+  },
+  {
+    "word": "vragen",
+    "teaser": "To ask — just go ahead, the Dutch appreciate directness",
+    "category": "everyday"
+  },
+  {
+    "word": "antwoorden",
+    "teaser": "To answer — expect a straightforward Dutch reply",
+    "category": "everyday"
+  },
+  {
+    "word": "denken",
+    "teaser": "To think — reflection before action",
+    "category": "everyday"
+  },
+  {
+    "word": "weten",
+    "teaser": "To know — knowledge is power",
+    "category": "everyday"
+  },
+  {
+    "word": "willen",
+    "teaser": "To want — expressing your desires",
+    "category": "everyday"
+  },
+  {
+    "word": "kunnen",
+    "teaser": "To be able to — can you do it?",
+    "category": "everyday"
+  },
+  {
+    "word": "moeten",
+    "teaser": "Must or have to — obligation in Dutch",
+    "category": "everyday"
+  },
+  {
+    "word": "mogen",
+    "teaser": "May or to be allowed — asking permission politely",
+    "category": "everyday"
+  },
+  {
+    "word": "zien",
+    "teaser": "To see — with your own eyes",
+    "category": "everyday"
+  },
+  {
+    "word": "horen",
+    "teaser": "To hear — listening to sounds or music",
+    "category": "everyday"
+  },
+  {
+    "word": "voelen",
+    "teaser": "To feel — both physically and emotionally",
+    "category": "everyday"
+  },
+  {
+    "word": "vinden",
+    "teaser": "To find or to think/have an opinion about something",
+    "category": "everyday"
+  },
+  {
+    "word": "maken",
+    "teaser": "To make — creating something from scratch",
+    "category": "everyday"
+  },
+  {
+    "word": "geven",
+    "teaser": "To give — generosity in action",
+    "category": "everyday"
+  },
+  {
+    "word": "nemen",
+    "teaser": "To take — grab what you need",
+    "category": "everyday"
+  },
+  {
+    "word": "komen",
+    "teaser": "To come — arriving at your destination",
+    "category": "everyday"
+  },
+  {
+    "word": "gaan",
+    "teaser": "To go — heading out on an adventure",
+    "category": "everyday"
+  },
+  {
+    "word": "staan",
+    "teaser": "To stand — on your own two feet",
+    "category": "everyday"
+  },
+  {
+    "word": "zitten",
+    "teaser": "To sit — take a seat and relax",
+    "category": "everyday"
+  },
+  {
+    "word": "liggen",
+    "teaser": "To lie down — the Netherlands lies below sea level",
+    "category": "everyday"
+  },
+  {
+    "word": "blijven",
+    "teaser": "To stay — remain where you are",
+    "category": "everyday"
+  },
+  {
+    "word": "worden",
+    "teaser": "To become — transformation and change",
+    "category": "everyday"
+  },
+  {
+    "word": "leven",
+    "teaser": "To live or life — the Dutch art of living well",
+    "category": "everyday"
+  },
+  {
+    "word": "doen",
+    "teaser": "To do — the most practical Dutch verb",
+    "category": "everyday"
+  },
+  {
+    "word": "zeggen",
+    "teaser": "To say — speaking your mind directly",
+    "category": "everyday"
+  },
+  {
+    "word": "kijken",
+    "teaser": "To look or watch — observing the world around you",
+    "category": "everyday"
+  },
+  {
+    "word": "wonen",
+    "teaser": "To live or reside — the eternal Dutch housing hunt",
+    "category": "everyday"
+  },
+  {
+    "word": "spelen",
+    "teaser": "To play — from kids' games to football",
+    "category": "everyday"
+  },
+  {
+    "word": "lachen",
+    "teaser": "To laugh — the Dutch have a great sense of humor",
+    "category": "everyday"
+  },
+  {
+    "word": "huilen",
+    "teaser": "To cry — sometimes the rain makes you emotional",
+    "category": "everyday"
+  },
+  {
+    "word": "zingen",
+    "teaser": "To sing — from birthday songs to choir practice",
+    "category": "everyday"
+  },
+  {
+    "word": "dansen",
+    "teaser": "To dance — at festivals, clubs, and celebrations",
+    "category": "everyday"
+  },
+  {
+    "word": "koken",
+    "teaser": "To cook — preparing a warm meal at home",
+    "category": "everyday"
+  },
+  {
+    "word": "schoonmaken",
+    "teaser": "To clean — the Dutch keep things spotless",
+    "category": "everyday"
+  },
+  {
+    "word": "boodschappen",
+    "teaser": "Groceries — the daily shopping run",
+    "category": "everyday"
+  },
+  {
+    "word": "kleren",
+    "teaser": "Clothes — practical and weather-appropriate",
+    "category": "everyday"
+  },
+  {
+    "word": "schoenen",
+    "teaser": "Shoes — from clogs to modern sneakers",
+    "category": "everyday"
+  },
+  {
+    "word": "tas",
+    "teaser": "Bag — always have one for groceries",
+    "category": "everyday"
+  },
+  {
+    "word": "sleutel",
+    "teaser": "Key — don't forget it when you leave",
+    "category": "everyday"
+  },
+  {
+    "word": "deur",
+    "teaser": "Door — the entrance to every Dutch home",
+    "category": "everyday"
+  },
+  {
+    "word": "raam",
+    "teaser": "Window — often without curtains, because why hide?",
+    "category": "everyday"
+  },
+  {
+    "word": "trap",
+    "teaser": "Stairs — dangerously steep in old Dutch houses",
+    "category": "everyday"
+  },
+  {
+    "word": "tuin",
+    "teaser": "Garden — a cherished green space behind the house",
+    "category": "everyday"
+  },
+  {
+    "word": "buur",
+    "teaser": "Neighbor — good fences make good buren",
+    "category": "everyday"
+  },
+  {
+    "word": "bed",
+    "teaser": "Bed — where you rest under a warm dekbed",
+    "category": "everyday"
+  },
+  {
+    "word": "stoel",
+    "teaser": "Chair — have a seat at the kitchen table",
+    "category": "everyday"
+  },
+  {
+    "word": "tafel",
+    "teaser": "Table — the center of family meals and gatherings",
+    "category": "everyday"
+  },
+  {
+    "word": "boek",
+    "teaser": "Book — the Dutch read more than most Europeans",
+    "category": "everyday"
+  },
+  {
+    "word": "muziek",
+    "teaser": "Music — from classical to electronic dance",
+    "category": "everyday"
+  },
+  {
+    "word": "film",
+    "teaser": "Film — Dutch cinema has a distinctive style",
+    "category": "everyday"
+  },
+  {
+    "word": "sport",
+    "teaser": "Sport — football, hockey, and speed skating rule",
+    "category": "everyday"
+  },
+  {
+    "word": "voetbal",
+    "teaser": "Football — the Dutch invented total football",
+    "category": "everyday"
+  },
+  {
+    "word": "zwemmen",
+    "teaser": "To swim — all Dutch kids get swimming diplomas",
+    "category": "everyday"
+  },
+  {
+    "word": "rennen",
+    "teaser": "To run — jogging through parks and along canals",
+    "category": "everyday"
+  },
+  {
+    "word": "dokter",
+    "teaser": "Doctor — but first, take a paracetamol",
+    "category": "everyday"
+  },
+  {
+    "word": "ziekenhuis",
+    "teaser": "Hospital — hopefully you won't need it",
+    "category": "everyday"
+  },
+  {
+    "word": "apotheek",
+    "teaser": "Pharmacy — for prescriptions and health advice",
+    "category": "everyday"
+  },
+  {
+    "word": "park",
+    "teaser": "Park — green oases in every Dutch city",
+    "category": "everyday"
+  },
+  {
+    "word": "markt",
+    "teaser": "Market — fresh produce, cheese, and flowers weekly",
+    "category": "everyday"
+  },
+  {
+    "word": "bibliotheek",
+    "teaser": "Library — a quiet haven for book lovers",
+    "category": "everyday"
+  },
+  {
+    "word": "bioscoop",
+    "teaser": "Cinema — movies in original language with subtitles",
+    "category": "everyday"
+  },
+  {
+    "word": "restaurant",
+    "teaser": "Restaurant — dining out for special occasions",
+    "category": "everyday"
+  },
+  {
+    "word": "café",
+    "teaser": "A pub or bar — the social living room of the Dutch",
+    "category": "everyday"
+  },
+  {
+    "word": "kerk",
+    "teaser": "Church — historic landmarks in every town center",
+    "category": "everyday"
+  },
+  {
+    "word": "museum",
+    "teaser": "Museum — the Dutch have world-class collections",
+    "category": "everyday"
+  },
+  {
+    "word": "trein",
+    "teaser": "Train — the NS connects the whole country",
+    "category": "useful"
+  },
+  {
+    "word": "bus",
+    "teaser": "Bus — public transport for shorter distances",
+    "category": "useful"
+  },
+  {
+    "word": "tram",
+    "teaser": "Tram — gliding through Amsterdam and Den Haag",
+    "category": "useful"
+  },
+  {
+    "word": "metro",
+    "teaser": "Metro — underground trains in Amsterdam and Rotterdam",
+    "category": "useful"
+  },
+  {
+    "word": "station",
+    "teaser": "Station — the hub of Dutch public transport",
+    "category": "useful"
+  },
+  {
+    "word": "halte",
+    "teaser": "Stop — where you wait for the bus or tram",
+    "category": "useful"
+  },
+  {
+    "word": "kaartje",
+    "teaser": "Ticket — you need one for travel or events",
+    "category": "useful"
+  },
+  {
+    "word": "ov-chipkaart",
+    "teaser": "The contactless card for all Dutch public transport",
+    "category": "useful"
+  },
+  {
+    "word": "vertraging",
+    "teaser": "Delay — an all-too-common word for train travelers",
+    "category": "useful"
+  },
+  {
+    "word": "perron",
+    "teaser": "Platform — where you wait for your train",
+    "category": "useful"
+  },
+  {
+    "word": "spoor",
+    "teaser": "Track — as in which platform number",
+    "category": "useful"
+  },
+  {
+    "word": "overstappen",
+    "teaser": "To transfer — changing trains or buses",
+    "category": "useful"
+  },
+  {
+    "word": "enkele reis",
+    "teaser": "A single or one-way ticket",
+    "category": "useful"
+  },
+  {
+    "word": "retour",
+    "teaser": "A return ticket — there and back again",
+    "category": "useful"
+  },
+  {
+    "word": "fietspad",
+    "teaser": "Bike path — a sacred lane just for cyclists",
+    "category": "useful"
+  },
+  {
+    "word": "fietsstalling",
+    "teaser": "Bike parking — massive garages full of bicycles",
+    "category": "useful"
+  },
+  {
+    "word": "slot",
+    "teaser": "Lock — essential for keeping your bike safe",
+    "category": "useful"
+  },
+  {
+    "word": "band",
+    "teaser": "Tire — flat tires happen to every Dutch cyclist",
+    "category": "useful"
+  },
+  {
+    "word": "supermarkt",
+    "teaser": "Supermarket — Albert Heijn, Jumbo, Lidl, and more",
+    "category": "useful"
+  },
+  {
+    "word": "kassa",
+    "teaser": "Checkout or cash register — where you pay",
+    "category": "useful"
+  },
+  {
+    "word": "pinnen",
+    "teaser": "To pay by debit card — cash is nearly obsolete",
+    "category": "useful"
+  },
+  {
+    "word": "contant",
+    "teaser": "Cash — some places still accept it",
+    "category": "useful"
+  },
+  {
+    "word": "bon",
+    "teaser": "Receipt — proof of purchase",
+    "category": "useful"
+  },
+  {
+    "word": "korting",
+    "teaser": "Discount — the Dutch love a good deal",
+    "category": "useful"
+  },
+  {
+    "word": "aanbieding",
+    "teaser": "Special offer — check the weekly flyers",
+    "category": "useful"
+  },
+  {
+    "word": "gratis",
+    "teaser": "Free — the best price of all",
+    "category": "useful"
+  },
+  {
+    "word": "duur",
+    "teaser": "Expensive — a common complaint about Dutch prices",
+    "category": "useful"
+  },
+  {
+    "word": "goedkoop",
+    "teaser": "Cheap — what the thrifty Dutch aim for",
+    "category": "useful"
+  },
+  {
+    "word": "rekening",
+    "teaser": "Bill or invoice — time to settle up",
+    "category": "useful"
+  },
+  {
+    "word": "fooi",
+    "teaser": "Tip — not expected but always appreciated",
+    "category": "useful"
+  },
+  {
+    "word": "huur",
+    "teaser": "Rent — a major expense in Dutch cities",
+    "category": "useful"
+  },
+  {
+    "word": "hypotheek",
+    "teaser": "Mortgage — the path to Dutch homeownership",
+    "category": "useful"
+  },
+  {
+    "word": "verzekering",
+    "teaser": "Insurance — health insurance is mandatory in NL",
+    "category": "useful"
+  },
+  {
+    "word": "belasting",
+    "teaser": "Tax — the Dutch pay their fair share",
+    "category": "useful"
+  },
+  {
+    "word": "gemeente",
+    "teaser": "Municipality — your local government office",
+    "category": "useful"
+  },
+  {
+    "word": "gemeentehuis",
+    "teaser": "Town hall — where you register and get documents",
+    "category": "useful"
+  },
+  {
+    "word": "paspoort",
+    "teaser": "Passport — your key document for identification",
+    "category": "useful"
+  },
+  {
+    "word": "identiteitskaart",
+    "teaser": "ID card — always carry one in the Netherlands",
+    "category": "useful"
+  },
+  {
+    "word": "rijbewijs",
+    "teaser": "Driver's license — though many Dutch prefer bikes",
+    "category": "useful"
+  },
+  {
+    "word": "verblijfsvergunning",
+    "teaser": "Residence permit — essential for non-EU residents",
+    "category": "useful"
+  },
+  {
+    "word": "inschrijven",
+    "teaser": "To register — first thing when moving to NL",
+    "category": "useful"
+  },
+  {
+    "word": "afspraak",
+    "teaser": "Appointment — the Dutch plan everything in advance",
+    "category": "useful"
+  },
+  {
+    "word": "agenda",
+    "teaser": "Calendar or diary — Dutch social life runs on agendas",
+    "category": "useful"
+  },
+  {
+    "word": "huisarts",
+    "teaser": "General practitioner — your first stop for health issues",
+    "category": "useful"
+  },
+  {
+    "word": "recept",
+    "teaser": "Prescription — needed for most medications",
+    "category": "useful"
+  },
+  {
+    "word": "zorgverzekering",
+    "teaser": "Health insurance — required for everyone in NL",
+    "category": "useful"
+  },
+  {
+    "word": "tandarts",
+    "teaser": "Dentist — not always covered by basic insurance",
+    "category": "useful"
+  },
+  {
+    "word": "postkantoor",
+    "teaser": "Post office — for sending packages and letters",
+    "category": "useful"
+  },
+  {
+    "word": "pakketje",
+    "teaser": "Package — online shopping deliveries are constant",
+    "category": "useful"
+  },
+  {
+    "word": "brievenbus",
+    "teaser": "Mailbox — bright orange, found on every corner",
+    "category": "useful"
+  },
+  {
+    "word": "postcode",
+    "teaser": "Postal code — the Dutch system is very precise",
+    "category": "useful"
+  },
+  {
+    "word": "adres",
+    "teaser": "Address — needed for everything official",
+    "category": "useful"
+  },
+  {
+    "word": "buren",
+    "teaser": "Neighbors — good relations matter in close quarters",
+    "category": "useful"
+  },
+  {
+    "word": "verhuizen",
+    "teaser": "To move house — a stressful Dutch rite of passage",
+    "category": "useful"
+  },
+  {
+    "word": "huurcontract",
+    "teaser": "Rental contract — read the small print carefully",
+    "category": "useful"
+  },
+  {
+    "word": "makelaar",
+    "teaser": "Real estate agent — essential in the housing market",
+    "category": "useful"
+  },
+  {
+    "word": "werkgever",
+    "teaser": "Employer — who signs your paycheck",
+    "category": "useful"
+  },
+  {
+    "word": "werknemer",
+    "teaser": "Employee — workers have strong rights in NL",
+    "category": "useful"
+  },
+  {
+    "word": "salaris",
+    "teaser": "Salary — what you earn for your work",
+    "category": "useful"
+  },
+  {
+    "word": "vakantie",
+    "teaser": "Vacation — the Dutch love traveling abroad",
+    "category": "useful"
+  },
+  {
+    "word": "vakantiegeld",
+    "teaser": "Holiday pay — an extra month's salary in May",
+    "category": "useful"
+  },
+  {
+    "word": "ziek",
+    "teaser": "Sick — call in sick and your employer still pays",
+    "category": "useful"
+  },
+  {
+    "word": "contract",
+    "teaser": "Contract — the basis of Dutch employment",
+    "category": "useful"
+  },
+  {
+    "word": "sollicitatie",
+    "teaser": "Job application — the formal process of applying",
+    "category": "useful"
+  },
+  {
+    "word": "cv",
+    "teaser": "Resume — keep it concise and professional",
+    "category": "useful"
+  },
+  {
+    "word": "loon",
+    "teaser": "Wages — what you take home each month",
+    "category": "useful"
+  },
+  {
+    "word": "pensioen",
+    "teaser": "Pension — the Dutch retirement system is well-funded",
+    "category": "useful"
+  },
+  {
+    "word": "uitkering",
+    "teaser": "Benefits or welfare payment from the government",
+    "category": "useful"
+  },
+  {
+    "word": "DigiD",
+    "teaser": "Digital ID — your login for all government services",
+    "category": "useful"
+  },
+  {
+    "word": "BSN",
+    "teaser": "Citizen service number — your Dutch social security number",
+    "category": "useful"
+  },
+  {
+    "word": "belastingaangifte",
+    "teaser": "Tax return — filed online every spring",
+    "category": "useful"
+  },
+  {
+    "word": "formulier",
+    "teaser": "Form — bureaucracy requires many of these",
+    "category": "useful"
+  },
+  {
+    "word": "handtekening",
+    "teaser": "Signature — still needed on official documents",
+    "category": "useful"
+  },
+  {
+    "word": "kopie",
+    "teaser": "Copy — always keep copies of important documents",
+    "category": "useful"
+  },
+  {
+    "word": "aanvraag",
+    "teaser": "Application or request — for permits and documents",
+    "category": "useful"
+  },
+  {
+    "word": "vergunning",
+    "teaser": "Permit — needed for building, parking, and more",
+    "category": "useful"
+  },
+  {
+    "word": "boete",
+    "teaser": "Fine — watch out for parking and cycling violations",
+    "category": "useful"
+  },
+  {
+    "word": "politie",
+    "teaser": "Police — keeping the streets safe",
+    "category": "useful"
+  },
+  {
+    "word": "brandweer",
+    "teaser": "Fire department — emergency responders",
+    "category": "useful"
+  },
+  {
+    "word": "ambulance",
+    "teaser": "Ambulance — call 112 for emergencies",
+    "category": "useful"
+  },
+  {
+    "word": "noodgeval",
+    "teaser": "Emergency — dial 112 for immediate help",
+    "category": "useful"
+  },
+  {
+    "word": "verzenden",
+    "teaser": "To send or ship — packages and letters",
+    "category": "useful"
+  },
+  {
+    "word": "ontvangen",
+    "teaser": "To receive — getting mail and deliveries",
+    "category": "useful"
+  },
+  {
+    "word": "bestellen",
+    "teaser": "To order — online shopping or at a restaurant",
+    "category": "useful"
+  },
+  {
+    "word": "bezorgen",
+    "teaser": "To deliver — packages to your front door",
+    "category": "useful"
+  },
+  {
+    "word": "openbaar vervoer",
+    "teaser": "Public transport — buses, trains, trams, and metros",
+    "category": "useful"
+  },
+  {
+    "word": "parkeren",
+    "teaser": "To park — expensive in most Dutch cities",
+    "category": "useful"
+  },
+  {
+    "word": "tankstation",
+    "teaser": "Gas station — also sells snacks and car washes",
+    "category": "useful"
+  },
+  {
+    "word": "snelweg",
+    "teaser": "Highway — connecting Dutch cities at 100-130 km/h",
+    "category": "useful"
+  },
+  {
+    "word": "file",
+    "teaser": "Traffic jam — a daily reality on Dutch highways",
+    "category": "useful"
+  },
+  {
+    "word": "rotonde",
+    "teaser": "Roundabout — the Dutch love them for traffic flow",
+    "category": "useful"
+  },
+  {
+    "word": "stoplicht",
+    "teaser": "Traffic light — red, orange, green",
+    "category": "useful"
+  },
+  {
+    "word": "zebrapad",
+    "teaser": "Crosswalk — pedestrians have the right of way",
+    "category": "useful"
+  },
+  {
+    "word": "voetganger",
+    "teaser": "Pedestrian — sometimes the safest way to travel",
+    "category": "useful"
+  },
+  {
+    "word": "luchthaven",
+    "teaser": "Airport — Schiphol is a major European hub",
+    "category": "useful"
+  },
+  {
+    "word": "vlucht",
+    "teaser": "Flight — the Dutch fly frequently for holidays",
+    "category": "useful"
+  },
+  {
+    "word": "bagage",
+    "teaser": "Luggage — pack light for budget airlines",
+    "category": "useful"
+  },
+  {
+    "word": "douane",
+    "teaser": "Customs — the checkpoint at borders and airports",
+    "category": "useful"
+  },
+  {
+    "word": "wisselkoers",
+    "teaser": "Exchange rate — useful info for travelers",
+    "category": "useful"
+  },
+  {
+    "word": "bankrekening",
+    "teaser": "Bank account — one of the first things to open in NL",
+    "category": "useful"
+  },
+  {
+    "word": "tikkie",
+    "teaser": "A payment request app — splitting bills Dutch style",
+    "category": "useful"
+  },
+  {
+    "word": "bellen",
+    "teaser": "To call — pick up the phone",
+    "category": "useful"
+  },
+  {
+    "word": "niksen",
+    "teaser": "The Dutch art of doing nothing — guilt-free idleness",
+    "category": "culture"
+  },
+  {
+    "word": "gedogen",
+    "teaser": "To tolerate officially — the Dutch pragmatic approach to rules",
+    "category": "culture"
+  },
+  {
+    "word": "poldermodel",
+    "teaser": "Consensus-based decision making — everyone gets a say",
+    "category": "culture"
+  },
+  {
+    "word": "nuchter",
+    "teaser": "Sober and down-to-earth — the Dutch ideal temperament",
+    "category": "culture"
+  },
+  {
+    "word": "zuinig",
+    "teaser": "Thrifty and frugal — a core Dutch value",
+    "category": "culture"
+  },
+  {
+    "word": "gezelligheid",
+    "teaser": "The warm feeling of togetherness and coziness",
+    "category": "culture"
+  },
+  {
+    "word": "bescheiden",
+    "teaser": "Modest — the Dutch frown on showing off",
+    "category": "culture"
+  },
+  {
+    "word": "tolerantie",
+    "teaser": "Tolerance — a cornerstone of Dutch society since the Golden Age",
+    "category": "culture"
+  },
+  {
+    "word": "overleg",
+    "teaser": "Consultation — every decision needs a meeting first",
+    "category": "culture"
+  },
+  {
+    "word": "vergadering",
+    "teaser": "Meeting — the Dutch have meetings about meetings",
+    "category": "culture"
+  },
+  {
+    "word": "directheid",
+    "teaser": "Directness — the Dutch say exactly what they mean",
+    "category": "culture"
+  },
+  {
+    "word": "doe maar normaal",
+    "teaser": "Just act normal — the ultimate Dutch life rule",
+    "category": "culture"
+  },
+  {
+    "word": "uitwaaien",
+    "teaser": "Walking in the wind to clear your head",
+    "category": "culture"
+  },
+  {
+    "word": "gezelschap",
+    "teaser": "Company or companionship — being together matters",
+    "category": "culture"
+  },
+  {
+    "word": "kring",
+    "teaser": "Circle — birthday parties are seated in a circle",
+    "category": "culture"
+  },
+  {
+    "word": "feliciteren",
+    "teaser": "To congratulate — even the birthday person's family gets congrats",
+    "category": "culture"
+  },
+  {
+    "word": "drie zoenen",
+    "teaser": "Three kisses on the cheek as a greeting",
+    "category": "culture"
+  },
+  {
+    "word": "gefeliciteerd",
+    "teaser": "Congratulations — said to everyone at a birthday party",
+    "category": "culture"
+  },
+  {
+    "word": "verjaardag",
+    "teaser": "Birthday — you bring your own cake to work",
+    "category": "culture"
+  },
+  {
+    "word": "trakteren",
+    "teaser": "To treat — the birthday person treats others",
+    "category": "culture"
+  },
+  {
+    "word": "clubje",
+    "teaser": "A small club or group activity — very Dutch",
+    "category": "culture"
+  },
+  {
+    "word": "vereniging",
+    "teaser": "Association — the Dutch join clubs for everything",
+    "category": "culture"
+  },
+  {
+    "word": "vrijwilliger",
+    "teaser": "Volunteer — volunteering is deeply embedded in Dutch life",
+    "category": "culture"
+  },
+  {
+    "word": "gracht",
+    "teaser": "Canal — the defining feature of Dutch cities",
+    "category": "culture"
+  },
+  {
+    "word": "grachtenpand",
+    "teaser": "A canal house — tall, narrow, and centuries old",
+    "category": "culture"
+  },
+  {
+    "word": "molen",
+    "teaser": "Windmill — the iconic symbol of the Netherlands",
+    "category": "culture"
+  },
+  {
+    "word": "klompen",
+    "teaser": "Wooden clogs — still worn by some farmers today",
+    "category": "culture"
+  },
+  {
+    "word": "tulp",
+    "teaser": "Tulip — the flower that once caused economic mania",
+    "category": "culture"
+  },
+  {
+    "word": "Oranje",
+    "teaser": "Orange — the national color from the royal family",
+    "category": "culture"
+  },
+  {
+    "word": "Wilhelmus",
+    "teaser": "The Dutch national anthem — the oldest in the world",
+    "category": "culture"
+  },
+  {
+    "word": "VOC",
+    "teaser": "The Dutch East India Company — history's first multinational",
+    "category": "culture"
+  },
+  {
+    "word": "Gouden Eeuw",
+    "teaser": "The Golden Age — when Dutch art and trade flourished",
+    "category": "culture"
+  },
+  {
+    "word": "meester",
+    "teaser": "Master or teacher — a respectful title",
+    "category": "culture"
+  },
+  {
+    "word": "dominee",
+    "teaser": "Protestant minister — reflecting the Reformed tradition",
+    "category": "culture"
+  },
+  {
+    "word": "verzuiling",
+    "teaser": "Pillarization — Dutch society divided by religion and politics",
+    "category": "culture"
+  },
+  {
+    "word": "polderlandschap",
+    "teaser": "The flat polder landscape stretching to the horizon",
+    "category": "culture"
+  },
+  {
+    "word": "Deltawerken",
+    "teaser": "The Delta Works — a modern engineering marvel against the sea",
+    "category": "culture"
+  },
+  {
+    "word": "Rijksmuseum",
+    "teaser": "The national museum housing Rembrandt and Vermeer",
+    "category": "culture"
+  },
+  {
+    "word": "schilderij",
+    "teaser": "Painting — the Dutch Masters are world-renowned",
+    "category": "culture"
+  },
+  {
+    "word": "tegeltjeswijsheid",
+    "teaser": "Tile wisdom — proverbs on decorative wall tiles",
+    "category": "culture"
+  },
+  {
+    "word": "jeneverbes",
+    "teaser": "Juniper berry — the flavor behind Dutch gin",
+    "category": "culture"
+  },
+  {
+    "word": "koopavond",
+    "teaser": "Shopping evening — when stores stay open late",
+    "category": "culture"
+  },
+  {
+    "word": "koffietijd",
+    "teaser": "Coffee time — a sacred mid-morning break",
+    "category": "culture"
+  },
+  {
+    "word": "borreltijd",
+    "teaser": "Drinks time — late afternoon socializing",
+    "category": "culture"
+  },
+  {
+    "word": "thuiswerken",
+    "teaser": "Working from home — normalized long before 2020",
+    "category": "culture"
+  },
+  {
+    "word": "patatje oorlog",
+    "teaser": "Fries with mayo, peanut sauce, and onions — war fries",
+    "category": "culture"
+  },
+  {
+    "word": "broodje",
+    "teaser": "A bread roll sandwich — the classic Dutch lunch",
+    "category": "culture"
+  },
+  {
+    "word": "haast",
+    "teaser": "Hurry — the Dutch are always on a schedule",
+    "category": "culture"
+  },
+  {
+    "word": "gierig",
+    "teaser": "Stingy — going Dutch is a real thing",
+    "category": "culture"
+  },
+  {
+    "word": "schaamte",
+    "teaser": "Shame — the Dutch value of not standing out too much",
+    "category": "culture"
+  },
+  {
+    "word": "trots",
+    "teaser": "Pride — quietly proud of their achievements",
+    "category": "culture"
+  },
+  {
+    "word": "vrijheid",
+    "teaser": "Freedom — a deeply held Dutch value",
+    "category": "culture"
+  },
+  {
+    "word": "gelijkheid",
+    "teaser": "Equality — the Dutch strive for an equal society",
+    "category": "culture"
+  },
+  {
+    "word": "solidariteit",
+    "teaser": "Solidarity — standing together in tough times",
+    "category": "culture"
+  },
+  {
+    "word": "overlegcultuur",
+    "teaser": "Consultation culture — consensus is king in the Netherlands",
+    "category": "culture"
+  },
+  {
+    "word": "spreekwoord",
+    "teaser": "Proverb — the Dutch have one for every situation",
+    "category": "culture"
+  },
+  {
+    "word": "volksfeest",
+    "teaser": "People's festival — a celebration for the whole community",
+    "category": "culture"
+  },
+  {
+    "word": "kermis",
+    "teaser": "Fair or carnival — traveling amusement parks in every town",
+    "category": "culture"
+  },
+  {
+    "word": "rommelmarkt",
+    "teaser": "Flea market — treasure hunting for secondhand bargains",
+    "category": "culture"
+  },
+  {
+    "word": "vrijmarkt",
+    "teaser": "Free market — everyone sells their stuff on King's Day",
+    "category": "culture"
+  },
+  {
+    "word": "studentenvereniging",
+    "teaser": "Student association — social clubs central to university life",
+    "category": "culture"
+  },
+  {
+    "word": "ontgroening",
+    "teaser": "Hazing — the controversial initiation for student clubs",
+    "category": "culture"
+  },
+  {
+    "word": "gezondheid",
+    "teaser": "Health, or bless you — said after a sneeze",
+    "category": "culture"
+  },
+  {
+    "word": "eetsmakelijk",
+    "teaser": "Enjoy your meal — said before eating",
+    "category": "culture"
+  },
+  {
+    "word": "proost",
+    "teaser": "Cheers — raise your glass and make eye contact",
+    "category": "culture"
+  },
+  {
+    "word": "welkom",
+    "teaser": "Welcome — a warm Dutch greeting",
+    "category": "culture"
+  },
+  {
+    "word": "excuses",
+    "teaser": "Sorry — the Dutch apologize with style",
+    "category": "culture"
+  },
+  {
+    "word": "pardon",
+    "teaser": "Excuse me — politely getting past someone",
+    "category": "culture"
+  },
+  {
+    "word": "beleefd",
+    "teaser": "Polite — good manners are valued in the Netherlands",
+    "category": "culture"
+  },
+  {
+    "word": "eerlijk",
+    "teaser": "Honest — the Dutch prize honesty above politeness",
+    "category": "culture"
+  },
+  {
+    "word": "sober",
+    "teaser": "Understated and restrained — a Dutch design aesthetic",
+    "category": "culture"
+  },
+  {
+    "word": "degelijk",
+    "teaser": "Solid, reliable, no-nonsense — a Dutch compliment",
+    "category": "culture"
+  },
+  {
+    "word": "oer-Hollands",
+    "teaser": "Quintessentially Dutch — as Dutch as it gets",
+    "category": "culture"
+  },
+  {
+    "word": "volksaard",
+    "teaser": "National character — the essence of being Dutch",
+    "category": "culture"
+  },
+  {
+    "word": "inburgering",
+    "teaser": "Civic integration — the process of becoming Dutch",
+    "category": "culture"
+  },
+  {
+    "word": "koopjesdag",
+    "teaser": "Bargain day — when the Dutch hunt for deals",
+    "category": "culture"
+  },
+  {
+    "word": "kringloopwinkel",
+    "teaser": "Thrift store — recycling and reusing, very Dutch",
+    "category": "culture"
+  },
+  {
+    "word": "terras",
+    "teaser": "Outdoor patio — cafes spill onto sidewalks when the sun appears",
+    "category": "culture"
+  },
+  {
+    "word": "terrasweer",
+    "teaser": "Terrace weather — warm enough to sit outside",
+    "category": "culture"
+  },
+  {
+    "word": "bruin café",
+    "teaser": "A traditional brown pub with dark wood interiors",
+    "category": "culture"
+  },
+  {
+    "word": "elfstedentocht",
+    "teaser": "The legendary eleven-cities ice skating race in Friesland",
+    "category": "culture"
+  },
+  {
+    "word": "waterbeheer",
+    "teaser": "Water management — the Dutch expertise that keeps them dry",
+    "category": "culture"
+  },
+  {
+    "word": "dijkgraaf",
+    "teaser": "A water board president — a uniquely Dutch government role",
+    "category": "culture"
+  },
+  {
+    "word": "waterschap",
+    "teaser": "Water board — one of the oldest democratic institutions",
+    "category": "culture"
+  },
+  {
+    "word": "ambtenaar",
+    "teaser": "Civil servant — the backbone of Dutch bureaucracy",
+    "category": "culture"
+  },
+  {
+    "word": "VOC-mentaliteit",
+    "teaser": "An entrepreneurial trading spirit from the Golden Age",
+    "category": "culture"
+  },
+  {
+    "word": "koopman",
+    "teaser": "Merchant — the Dutch have always been traders",
+    "category": "culture"
+  },
+  {
+    "word": "wat leuk",
+    "teaser": "How nice! — the standard Dutch reaction of delight",
+    "category": "expressions"
+  },
+  {
+    "word": "laat maar",
+    "teaser": "Never mind, forget about it, let it go",
+    "category": "expressions"
+  },
+  {
+    "word": "het valt mee",
+    "teaser": "It's not as bad as expected — mild Dutch optimism",
+    "category": "expressions"
+  },
+  {
+    "word": "het valt tegen",
+    "teaser": "It's worse than expected — Dutch disappointment expressed mildly",
+    "category": "expressions"
+  },
+  {
+    "word": "nou ja",
+    "teaser": "Well then — a filler that buys thinking time",
+    "category": "expressions"
+  },
+  {
+    "word": "zeg maar",
+    "teaser": "So to speak, like — a very common filler phrase",
+    "category": "expressions"
+  },
+  {
+    "word": "toch",
+    "teaser": "Right? Anyway — an untranslatable emphasis word",
+    "category": "expressions"
+  },
+  {
+    "word": "hoor",
+    "teaser": "A softening word added at the end of sentences",
+    "category": "expressions"
+  },
+  {
+    "word": "even",
+    "teaser": "Just, for a moment — the essential Dutch softener",
+    "category": "expressions"
+  },
+  {
+    "word": "eventjes",
+    "teaser": "Just a little moment — the cuter version of even",
+    "category": "expressions"
+  },
+  {
+    "word": "heel",
+    "teaser": "Very — intensifying anything you want to say",
+    "category": "expressions"
+  },
+  {
+    "word": "eigenlijk",
+    "teaser": "Actually, really — adding nuance to your point",
+    "category": "expressions"
+  },
+  {
+    "word": "gewoon",
+    "teaser": "Just, simply, normally — the most Dutch word ever",
+    "category": "expressions"
+  },
+  {
+    "word": "zo",
+    "teaser": "So, like this, there — used in dozens of ways",
+    "category": "expressions"
+  },
+  {
+    "word": "prima",
+    "teaser": "Fine, great, excellent — the Dutch seal of approval",
+    "category": "expressions"
+  },
+  {
+    "word": "top",
+    "teaser": "Great, awesome — a quick positive reply",
+    "category": "expressions"
+  },
+  {
+    "word": "super",
+    "teaser": "Super — Dutch enthusiasm at its peak",
+    "category": "expressions"
+  },
+  {
+    "word": "leuk",
+    "teaser": "Fun, nice, cool — a universally positive word",
+    "category": "expressions"
+  },
+  {
+    "word": "gaaf",
+    "teaser": "Cool, awesome — youthful Dutch slang for impressive",
+    "category": "expressions"
+  },
+  {
+    "word": "vet",
+    "teaser": "Cool or fat — slang for something awesome",
+    "category": "expressions"
+  },
+  {
+    "word": "chill",
+    "teaser": "Relaxed, cool — borrowed from English, used constantly",
+    "category": "expressions"
+  },
+  {
+    "word": "tof",
+    "teaser": "Great, cool — a classic Dutch compliment",
+    "category": "expressions"
+  },
+  {
+    "word": "maf",
+    "teaser": "Crazy or weird — in a light-hearted way",
+    "category": "expressions"
+  },
+  {
+    "word": "gek",
+    "teaser": "Crazy — as in that's crazy! or are you nuts?",
+    "category": "expressions"
+  },
+  {
+    "word": "stom",
+    "teaser": "Stupid or annoying — expressing mild frustration",
+    "category": "expressions"
+  },
+  {
+    "word": "jammer",
+    "teaser": "Too bad, what a pity — expressing Dutch sympathy",
+    "category": "expressions"
+  },
+  {
+    "word": "helaas",
+    "teaser": "Unfortunately — delivering bad news gently",
+    "category": "expressions"
+  },
+  {
+    "word": "gelukkig",
+    "teaser": "Fortunately, or happy — looking on the bright side",
+    "category": "expressions"
+  },
+  {
+    "word": "inderdaad",
+    "teaser": "Indeed — confirming something with emphasis",
+    "category": "expressions"
+  },
+  {
+    "word": "natuurlijk",
+    "teaser": "Of course, naturally — it goes without saying",
+    "category": "expressions"
+  },
+  {
+    "word": "misschien",
+    "teaser": "Maybe, perhaps — keeping options open",
+    "category": "expressions"
+  },
+  {
+    "word": "waarschijnlijk",
+    "teaser": "Probably — a cautious Dutch prediction",
+    "category": "expressions"
+  },
+  {
+    "word": "zeker",
+    "teaser": "Certainly, sure — expressing confidence",
+    "category": "expressions"
+  },
+  {
+    "word": "precies",
+    "teaser": "Exactly, precisely — agreeing emphatically",
+    "category": "expressions"
+  },
+  {
+    "word": "absoluut",
+    "teaser": "Absolutely — no doubt about it",
+    "category": "expressions"
+  },
+  {
+    "word": "totaal",
+    "teaser": "Totally — completely and utterly",
+    "category": "expressions"
+  },
+  {
+    "word": "echt",
+    "teaser": "Really, truly — are you being serious?",
+    "category": "expressions"
+  },
+  {
+    "word": "serieus",
+    "teaser": "Seriously? — expressing disbelief",
+    "category": "expressions"
+  },
+  {
+    "word": "volgens mij",
+    "teaser": "In my opinion, I think — hedging your statement",
+    "category": "expressions"
+  },
+  {
+    "word": "het geeft niet",
+    "teaser": "It doesn't matter — don't worry about it",
+    "category": "expressions"
+  },
+  {
+    "word": "geen probleem",
+    "teaser": "No problem — easy going Dutch reassurance",
+    "category": "expressions"
+  },
+  {
+    "word": "tot zo",
+    "teaser": "See you soon — a casual goodbye",
+    "category": "expressions"
+  },
+  {
+    "word": "tot straks",
+    "teaser": "See you later — when you'll meet again today",
+    "category": "expressions"
+  },
+  {
+    "word": "doei",
+    "teaser": "Bye — a cheerful, casual farewell",
+    "category": "expressions"
+  },
+  {
+    "word": "mazzel",
+    "teaser": "Bye or good luck — Amsterdam slang from Yiddish",
+    "category": "expressions"
+  },
+  {
+    "word": "succes",
+    "teaser": "Good luck — said before exams, interviews, and challenges",
+    "category": "expressions"
+  },
+  {
+    "word": "sterkte",
+    "teaser": "Stay strong — said during difficult times",
+    "category": "expressions"
+  },
+  {
+    "word": "beterschap",
+    "teaser": "Get well soon — wishing someone a speedy recovery",
+    "category": "expressions"
+  },
+  {
+    "word": "slaap lekker",
+    "teaser": "Sleep well — a cozy bedtime wish",
+    "category": "expressions"
+  },
+  {
+    "word": "eet smakelijk",
+    "teaser": "Enjoy your meal — said before digging in",
+    "category": "expressions"
+  },
+  {
+    "word": "veel plezier",
+    "teaser": "Have fun — wishing someone a good time",
+    "category": "expressions"
+  },
+  {
+    "word": "veel succes",
+    "teaser": "Good luck — extra emphasis on wishing success",
+    "category": "expressions"
+  },
+  {
+    "word": "goede reis",
+    "teaser": "Have a good trip — a travel farewell",
+    "category": "expressions"
+  },
+  {
+    "word": "hartelijk dank",
+    "teaser": "Heartfelt thanks — a formal way to say thank you",
+    "category": "expressions"
+  },
+  {
+    "word": "graag gedaan",
+    "teaser": "You're welcome — my pleasure",
+    "category": "expressions"
+  },
+  {
+    "word": "geen dank",
+    "teaser": "Don't mention it — no thanks needed",
+    "category": "expressions"
+  },
+  {
+    "word": "sorry",
+    "teaser": "Sorry — borrowed from English, used frequently",
+    "category": "expressions"
+  },
+  {
+    "word": "het spijt me",
+    "teaser": "I'm sorry — a more sincere apology",
+    "category": "expressions"
+  },
+  {
+    "word": "oeps",
+    "teaser": "Oops — a small mistake happened",
+    "category": "expressions"
+  },
+  {
+    "word": "jeetje",
+    "teaser": "Gosh, geez — a mild exclamation of surprise",
+    "category": "expressions"
+  },
+  {
+    "word": "gossiemijne",
+    "teaser": "Oh my goodness — an old-fashioned Dutch exclamation",
+    "category": "expressions"
+  },
+  {
+    "word": "wauw",
+    "teaser": "Wow — expressing amazement Dutch style",
+    "category": "expressions"
+  },
+  {
+    "word": "potverdrie",
+    "teaser": "Darn it — a polite Dutch curse word",
+    "category": "expressions"
+  },
+  {
+    "word": "verdomme",
+    "teaser": "Damn it — a stronger Dutch curse",
+    "category": "expressions"
+  },
+  {
+    "word": "het zit erop",
+    "teaser": "It's done, it's over — wrapping things up",
+    "category": "expressions"
+  },
+  {
+    "word": "dat klopt",
+    "teaser": "That's correct — confirming a fact",
+    "category": "expressions"
+  },
+  {
+    "word": "klopt",
+    "teaser": "Correct — the short version of agreement",
+    "category": "expressions"
+  },
+  {
+    "word": "dat kan",
+    "teaser": "That's possible — the Dutch being open-minded",
+    "category": "expressions"
+  },
+  {
+    "word": "dat kan niet",
+    "teaser": "That's not possible — setting a firm boundary",
+    "category": "expressions"
+  },
+  {
+    "word": "maakt niet uit",
+    "teaser": "Doesn't matter — being easy-going about things",
+    "category": "expressions"
+  },
+  {
+    "word": "ik heb er zin in",
+    "teaser": "I'm looking forward to it — excited anticipation",
+    "category": "expressions"
+  },
+  {
+    "word": "ik heb geen zin",
+    "teaser": "I don't feel like it — honest Dutch refusal",
+    "category": "expressions"
+  },
+  {
+    "word": "gezellig hoor",
+    "teaser": "How cozy! — the ultimate Dutch compliment",
+    "category": "expressions"
+  },
+  {
+    "word": "lekker weertje",
+    "teaser": "Nice weather — a rare Dutch celebration of sunshine",
+    "category": "expressions"
+  },
+  {
+    "word": "typisch Nederlands",
+    "teaser": "Typically Dutch — said with pride or irony",
+    "category": "expressions"
+  },
+  {
+    "word": "dat is balen",
+    "teaser": "That's a bummer — expressing frustration",
+    "category": "expressions"
+  },
+  {
+    "word": "wat jammer",
+    "teaser": "What a shame — sympathetic disappointment",
+    "category": "expressions"
+  },
+  {
+    "word": "schei uit",
+    "teaser": "Stop it, quit it — telling someone to cut it out",
+    "category": "expressions"
+  },
+  {
+    "word": "hou op",
+    "teaser": "Stop it — a direct Dutch command",
+    "category": "expressions"
+  },
+  {
+    "word": "rustig aan",
+    "teaser": "Take it easy, calm down — soothing words",
+    "category": "expressions"
+  },
+  {
+    "word": "kom op",
+    "teaser": "Come on — encouragement or mild impatience",
+    "category": "expressions"
+  },
+  {
+    "word": "schiet op",
+    "teaser": "Hurry up — Dutch impatience in two words",
+    "category": "expressions"
+  },
+  {
+    "word": "nu even niet",
+    "teaser": "Not right now — a polite brush-off",
+    "category": "expressions"
+  },
+  {
+    "word": "ik snap het",
+    "teaser": "I understand, I get it — showing comprehension",
+    "category": "expressions"
+  },
+  {
+    "word": "ik begrijp het",
+    "teaser": "I understand — the formal version",
+    "category": "expressions"
+  },
+  {
+    "word": "weet ik veel",
+    "teaser": "How should I know — shrugging off a question",
+    "category": "expressions"
+  },
+  {
+    "word": "geen idee",
+    "teaser": "No idea — honest ignorance",
+    "category": "expressions"
+  },
+  {
+    "word": "ik weet het niet",
+    "teaser": "I don't know — straightforward uncertainty",
+    "category": "expressions"
+  },
+  {
+    "word": "op je gezondheid",
+    "teaser": "To your health — a toast before drinking",
+    "category": "expressions"
+  },
+  {
+    "word": "smakelijk",
+    "teaser": "Tasty, or enjoy your meal — short and sweet",
+    "category": "expressions"
+  },
+  {
+    "word": "lekker bezig",
+    "teaser": "Doing well, keep it up — an encouraging phrase",
+    "category": "expressions"
+  },
+  {
+    "word": "hartstikke",
+    "teaser": "Very, extremely — an emphatic intensifier",
+    "category": "expressions"
+  },
+  {
+    "word": "ontzettend",
+    "teaser": "Tremendously, terribly — strong emphasis on anything",
+    "category": "expressions"
+  },
+  {
+    "word": "verschrikkelijk",
+    "teaser": "Terrible, awful — or used as extreme emphasis",
+    "category": "expressions"
+  },
+  {
+    "word": "waanzinnig",
+    "teaser": "Insane, crazy — used as a superlative compliment",
+    "category": "expressions"
+  },
+  {
+    "word": "belachelijk",
+    "teaser": "Ridiculous — expressing outrage or disbelief",
+    "category": "expressions"
+  },
+  {
+    "word": "ongelofelijk",
+    "teaser": "Unbelievable — something too amazing or awful to believe",
+    "category": "expressions"
+  },
+  {
+    "word": "fantastisch",
+    "teaser": "Fantastic — enthusiastic Dutch approval",
+    "category": "expressions"
+  },
+  {
+    "word": "geweldig",
+    "teaser": "Wonderful, great — high Dutch praise",
+    "category": "expressions"
+  },
+  {
+    "word": "prachtig",
+    "teaser": "Gorgeous, magnificent — admiring beauty",
+    "category": "expressions"
+  },
+  {
+    "word": "schitterend",
+    "teaser": "Dazzling, brilliant — the highest visual compliment",
+    "category": "expressions"
+  },
+  {
+    "word": "uitstekend",
+    "teaser": "Excellent, outstanding — formal approval",
+    "category": "expressions"
+  },
+  {
+    "word": "vreselijk",
+    "teaser": "Dreadful — or emphatically great, depending on context",
+    "category": "expressions"
+  },
+  {
+    "word": "gezellig samen",
+    "teaser": "Cozy together — enjoying company and warmth",
+    "category": "expressions"
+  },
+  {
+    "word": "dat is andere koek",
+    "teaser": "That's another cookie — meaning a different matter entirely",
+    "category": "expressions"
+  },
+  {
+    "word": "met de deur in huis vallen",
+    "teaser": "To fall through the door — getting straight to the point",
+    "category": "expressions"
+  },
+  {
+    "word": "iets door de vingers zien",
+    "teaser": "Seeing through the fingers — turning a blind eye",
+    "category": "expressions"
+  },
+  {
+    "word": "de kat uit de boom kijken",
+    "teaser": "Watching the cat out of the tree — waiting to see",
+    "category": "expressions"
+  },
+  {
+    "word": "het regent pijpenstelen",
+    "teaser": "It's raining pipe stems — it's pouring rain",
+    "category": "expressions"
+  },
+  {
+    "word": "een appeltje voor de dorst",
+    "teaser": "An apple for thirst — saving for a rainy day",
+    "category": "expressions"
+  },
+  {
+    "word": "de kogel is door de kerk",
+    "teaser": "The bullet is through the church — the decision is made",
+    "category": "expressions"
+  },
+  {
+    "word": "het puntje op de i",
+    "teaser": "The dot on the i — the finishing touch",
+    "category": "expressions"
+  },
+  {
+    "word": "op de fiets",
+    "teaser": "On the bike — the Dutch default mode of transport",
+    "category": "expressions"
+  },
+  {
+    "word": "helemaal",
+    "teaser": "Completely, totally — full Dutch emphasis",
+    "category": "expressions"
+  },
+  {
+    "word": "best wel",
+    "teaser": "Pretty much, quite — a hedged agreement",
+    "category": "expressions"
+  },
+  {
+    "word": "blijkbaar",
+    "teaser": "Apparently, evidently — it seems that way",
+    "category": "expressions"
+  },
+  {
+    "word": "trouwens",
+    "teaser": "By the way — changing the subject smoothly",
+    "category": "expressions"
+  },
+  {
+    "word": "overigens",
+    "teaser": "Incidentally, moreover — adding extra information",
+    "category": "expressions"
+  },
+  {
+    "word": "tenminste",
+    "teaser": "At least — looking for the silver lining",
+    "category": "expressions"
+  },
+  {
+    "word": "eerlijk gezegd",
+    "teaser": "Honestly, to be frank — the Dutch being their direct selves",
+    "category": "expressions"
+  },
+  {
+    "word": "nou en",
+    "teaser": "So what? — dismissive but common",
+    "category": "expressions"
+  },
+  {
+    "word": "Sinterklaas",
+    "teaser": "The original Santa — arrives by steamboat from Spain",
+    "category": "seasonal"
+  },
+  {
+    "word": "Zwarte Piet",
+    "teaser": "Sinterklaas' controversial helpers — a national debate",
+    "category": "seasonal"
+  },
+  {
+    "word": "pakjesavond",
+    "teaser": "Gift evening — December 5th, the Dutch Christmas",
+    "category": "seasonal"
+  },
+  {
+    "word": "sinterklaasgedicht",
+    "teaser": "A funny poem read aloud when giving Sinterklaas gifts",
+    "category": "seasonal"
+  },
+  {
+    "word": "surprise",
+    "teaser": "A creative handmade wrapping for Sinterklaas presents",
+    "category": "seasonal"
+  },
+  {
+    "word": "schoen zetten",
+    "teaser": "Putting your shoe by the fireplace for Sinterklaas treats",
+    "category": "seasonal"
+  },
+  {
+    "word": "stoomboot",
+    "teaser": "The steamboat Sinterklaas arrives on from Spain",
+    "category": "seasonal"
+  },
+  {
+    "word": "Koningsdag",
+    "teaser": "King's Day — a massive orange street party on April 27",
+    "category": "seasonal"
+  },
+  {
+    "word": "oranjegekte",
+    "teaser": "Orange madness — the frenzy of wearing orange on King's Day",
+    "category": "seasonal"
+  },
+  {
+    "word": "bevrijdingsdag",
+    "teaser": "Liberation Day — May 5, celebrating the end of WWII",
+    "category": "seasonal"
+  },
+  {
+    "word": "dodenherdenking",
+    "teaser": "Remembrance Day — May 4, two minutes of national silence",
+    "category": "seasonal"
+  },
+  {
+    "word": "Kerst",
+    "teaser": "Christmas — celebrated on both the 25th and 26th",
+    "category": "seasonal"
+  },
+  {
+    "word": "kerstboom",
+    "teaser": "Christmas tree — decorated with lights and ornaments",
+    "category": "seasonal"
+  },
+  {
+    "word": "kerstdiner",
+    "teaser": "Christmas dinner — an elaborate festive meal",
+    "category": "seasonal"
+  },
+  {
+    "word": "gourmetten",
+    "teaser": "Tabletop grilling — the ultimate Dutch Christmas dinner",
+    "category": "seasonal"
+  },
+  {
+    "word": "Oud en Nieuw",
+    "teaser": "New Year's Eve and Day — fireworks and oliebollen",
+    "category": "seasonal"
+  },
+  {
+    "word": "vuurwerk",
+    "teaser": "Fireworks — massive displays on New Year's Eve",
+    "category": "seasonal"
+  },
+  {
+    "word": "nieuwjaarsduik",
+    "teaser": "New Year's dive — plunging into the freezing North Sea",
+    "category": "seasonal"
+  },
+  {
+    "word": "Pasen",
+    "teaser": "Easter — egg hunts and two days of celebration",
+    "category": "seasonal"
+  },
+  {
+    "word": "paasei",
+    "teaser": "Easter egg — hidden in the garden for kids",
+    "category": "seasonal"
+  },
+  {
+    "word": "Pinksteren",
+    "teaser": "Whitsun — a two-day holiday in late spring",
+    "category": "seasonal"
+  },
+  {
+    "word": "Hemelvaart",
+    "teaser": "Ascension Day — always a Thursday, so Friday is off too",
+    "category": "seasonal"
+  },
+  {
+    "word": "Prinsjesdag",
+    "teaser": "Prince's Day — the king rides in a golden coach",
+    "category": "seasonal"
+  },
+  {
+    "word": "carnaval",
+    "teaser": "Carnival — three days of partying in the south",
+    "category": "seasonal"
+  },
+  {
+    "word": "vastenavond",
+    "teaser": "Shrove Tuesday — the peak of carnival celebrations",
+    "category": "seasonal"
+  },
+  {
+    "word": "lente",
+    "teaser": "Spring — when tulip fields burst into color",
+    "category": "seasonal"
+  },
+  {
+    "word": "zomer",
+    "teaser": "Summer — terrace season and outdoor festivals",
+    "category": "seasonal"
+  },
+  {
+    "word": "herfst",
+    "teaser": "Autumn — golden leaves and cozy indoor evenings",
+    "category": "seasonal"
+  },
+  {
+    "word": "winter",
+    "teaser": "Winter — dark days, warm drinks, and skating hopes",
+    "category": "seasonal"
+  },
+  {
+    "word": "voorjaar",
+    "teaser": "Early spring — the first crocuses push through",
+    "category": "seasonal"
+  },
+  {
+    "word": "najaar",
+    "teaser": "Late autumn — darker days and falling leaves",
+    "category": "seasonal"
+  },
+  {
+    "word": "bollen",
+    "teaser": "Flower bulbs — planted in autumn, blooming in spring",
+    "category": "seasonal"
+  },
+  {
+    "word": "Keukenhof",
+    "teaser": "The world-famous tulip garden, open only in spring",
+    "category": "seasonal"
+  },
+  {
+    "word": "bloemencorso",
+    "teaser": "Flower parade — elaborate floats covered in flowers",
+    "category": "seasonal"
+  },
+  {
+    "word": "ijsbaan",
+    "teaser": "Ice rink — where the Dutch skate when canals don't freeze",
+    "category": "seasonal"
+  },
+  {
+    "word": "glühwein",
+    "teaser": "Mulled wine — warming up at winter markets",
+    "category": "seasonal"
+  },
+  {
+    "word": "kerstmarkt",
+    "teaser": "Christmas market — festive stalls with crafts and treats",
+    "category": "seasonal"
+  },
+  {
+    "word": "sneeuw",
+    "teaser": "Snow — rare but magical when it falls",
+    "category": "seasonal"
+  },
+  {
+    "word": "ijs",
+    "teaser": "Ice or ice cream — enjoyed in winter and summer",
+    "category": "seasonal"
+  },
+  {
+    "word": "vorst",
+    "teaser": "Frost — when temperatures drop below zero",
+    "category": "seasonal"
+  },
+  {
+    "word": "dooi",
+    "teaser": "Thaw — when the ice melts, dreams of elfstedentocht fade",
+    "category": "seasonal"
+  },
+  {
+    "word": "lentekriebels",
+    "teaser": "Spring fever — that restless feeling when spring arrives",
+    "category": "seasonal"
+  },
+  {
+    "word": "zomertijd",
+    "teaser": "Summer time — clocks spring forward in March",
+    "category": "seasonal"
+  },
+  {
+    "word": "wintertijd",
+    "teaser": "Winter time — clocks fall back in October",
+    "category": "seasonal"
+  },
+  {
+    "word": "hittegolf",
+    "teaser": "Heat wave — five days above 25, three above 30 degrees",
+    "category": "seasonal"
+  },
+  {
+    "word": "buitenzwemmen",
+    "teaser": "Swimming outdoors — when the weather finally cooperates",
+    "category": "seasonal"
+  },
+  {
+    "word": "barbecue",
+    "teaser": "Barbecue — the Dutch fire up the grill in summer",
+    "category": "seasonal"
+  },
+  {
+    "word": "festival",
+    "teaser": "Festival — outdoor music events bloom in Dutch summers",
+    "category": "seasonal"
+  },
+  {
+    "word": "kamperen",
+    "teaser": "Camping — a beloved Dutch summer vacation tradition",
+    "category": "seasonal"
+  },
+  {
+    "word": "vakantiepark",
+    "teaser": "Holiday park — Center Parcs and Landal are Dutch inventions",
+    "category": "seasonal"
+  },
+  {
+    "word": "strandweer",
+    "teaser": "Beach weather — rare enough to cancel all plans",
+    "category": "seasonal"
+  },
+  {
+    "word": "terrasje pakken",
+    "teaser": "Grabbing a terrace seat — what Dutch do when sun appears",
+    "category": "seasonal"
+  },
+  {
+    "word": "voorjaarsmoeheid",
+    "teaser": "Spring fatigue — feeling tired as the seasons change",
+    "category": "seasonal"
+  },
+  {
+    "word": "herfstvakantie",
+    "teaser": "Autumn break — a week off school in October",
+    "category": "seasonal"
+  },
+  {
+    "word": "kerstvakantie",
+    "teaser": "Christmas holiday — two weeks of festive family time",
+    "category": "seasonal"
+  },
+  {
+    "word": "meivakantie",
+    "teaser": "May holiday — a spring break for Dutch schools",
+    "category": "seasonal"
+  },
+  {
+    "word": "zomervakantie",
+    "teaser": "Summer holiday — six weeks of freedom for kids",
+    "category": "seasonal"
+  },
+  {
+    "word": "voorjaarsvakantie",
+    "teaser": "Spring break — a week off in February",
+    "category": "seasonal"
+  },
+  {
+    "word": "Driekoningen",
+    "teaser": "Epiphany — January 6, children go door-to-door singing",
+    "category": "seasonal"
+  },
+  {
+    "word": "Sint-Maarten",
+    "teaser": "St. Martin's Day — kids sing with lanterns for candy",
+    "category": "seasonal"
+  },
+  {
+    "word": "Oudejaarsconference",
+    "teaser": "A comedy show reviewing the year, watched on New Year's Eve",
+    "category": "seasonal"
+  },
+  {
+    "word": "ansichtkaart",
+    "teaser": "Postcard — the Dutch send cards from every vacation",
+    "category": "seasonal"
+  },
+  {
+    "word": "bloembol",
+    "teaser": "Flower bulb — the export product that colors the world",
+    "category": "seasonal"
+  },
+  {
+    "word": "oogstfeest",
+    "teaser": "Harvest festival — celebrating the autumn bounty",
+    "category": "seasonal"
+  },
+  {
+    "word": "Lichtjesavond",
+    "teaser": "Lights evening — candles illuminate historic city centers",
+    "category": "seasonal"
+  },
+  {
+    "word": "krokus",
+    "teaser": "Crocus — the first flower to herald Dutch spring",
+    "category": "seasonal"
+  },
+  {
+    "word": "tulpenroute",
+    "teaser": "Tulip route — scenic drives through flowering fields",
+    "category": "seasonal"
+  },
+  {
+    "word": "strandtent",
+    "teaser": "Beach bar — seasonal pop-up restaurants by the sea",
+    "category": "seasonal"
+  },
+  {
+    "word": "blote-voetenpad",
+    "teaser": "Barefoot path — a nature trail walked shoeless in summer",
+    "category": "seasonal"
+  },
+  {
+    "word": "intocht",
+    "teaser": "Arrival parade — when Sinterklaas comes to your town",
+    "category": "seasonal"
+  },
+  {
+    "word": "kerstpakket",
+    "teaser": "Christmas package — a gift from your employer each December",
+    "category": "seasonal"
+  },
+  {
+    "word": "glij baan",
+    "teaser": "Slide or icy path — kids make them on frozen puddles",
+    "category": "seasonal"
+  },
+  {
+    "word": "ijspret",
+    "teaser": "Ice fun — the joy when canals and lakes finally freeze",
+    "category": "seasonal"
+  },
+  {
+    "word": "hagelbui",
+    "teaser": "Hailstorm — sudden icy pellets from Dutch skies",
+    "category": "seasonal"
+  },
+  {
+    "word": "onweer",
+    "teaser": "Thunderstorm — dramatic summer storms over flat land",
+    "category": "seasonal"
+  },
+  {
+    "word": "regenboog",
+    "teaser": "Rainbow — a beautiful arc after Dutch rain showers",
+    "category": "seasonal"
+  },
+  {
+    "word": "mist",
+    "teaser": "Fog — thick morning mist over the polders",
+    "category": "seasonal"
+  },
+  {
+    "word": "dauw",
+    "teaser": "Dew — glistening droplets on morning grass",
+    "category": "seasonal"
+  },
+  {
+    "word": "Noordzee",
+    "teaser": "The North Sea — the cold coastline of the Netherlands",
+    "category": "nature"
+  },
+  {
+    "word": "strand",
+    "teaser": "Beach — wide sandy beaches along the Dutch coast",
+    "category": "nature"
+  },
+  {
+    "word": "duin",
+    "teaser": "Dune — sandy hills protecting the coast from the sea",
+    "category": "nature"
+  },
+  {
+    "word": "zee",
+    "teaser": "Sea — the vast water that defines the Dutch western border",
+    "category": "nature"
+  },
+  {
+    "word": "rivier",
+    "teaser": "River — the Rhine, Meuse, and more flow through NL",
+    "category": "nature"
+  },
+  {
+    "word": "meer",
+    "teaser": "Lake — many were once arms of the sea",
+    "category": "nature"
+  },
+  {
+    "word": "sloot",
+    "teaser": "Ditch — narrow waterways crisscrossing every polder",
+    "category": "nature"
+  },
+  {
+    "word": "kanaal",
+    "teaser": "Canal — engineered waterways for transport and drainage",
+    "category": "nature"
+  },
+  {
+    "word": "wad",
+    "teaser": "Tidal flat — the unique mudflats of the Wadden Sea",
+    "category": "nature"
+  },
+  {
+    "word": "wadlopen",
+    "teaser": "Mudflat walking — hiking across the sea floor at low tide",
+    "category": "nature"
+  },
+  {
+    "word": "Waddenzee",
+    "teaser": "The Wadden Sea — a UNESCO World Heritage tidal area",
+    "category": "nature"
+  },
+  {
+    "word": "eiland",
+    "teaser": "Island — the Wadden Islands are popular holiday destinations",
+    "category": "nature"
+  },
+  {
+    "word": "bos",
+    "teaser": "Forest — the Veluwe has the largest woodlands",
+    "category": "nature"
+  },
+  {
+    "word": "heide",
+    "teaser": "Heathland — purple heather blooming on sandy soil",
+    "category": "nature"
+  },
+  {
+    "word": "veld",
+    "teaser": "Field — flat agricultural land stretching to the horizon",
+    "category": "nature"
+  },
+  {
+    "word": "wei",
+    "teaser": "Meadow — green pastures where cows graze peacefully",
+    "category": "nature"
+  },
+  {
+    "word": "dijk",
+    "teaser": "Dike — the engineered walls holding back the sea",
+    "category": "nature"
+  },
+  {
+    "word": "dam",
+    "teaser": "Dam — the barrier that gave Amsterdam its name",
+    "category": "nature"
+  },
+  {
+    "word": "sluis",
+    "teaser": "Lock — controlling water levels in canals and rivers",
+    "category": "nature"
+  },
+  {
+    "word": "haven",
+    "teaser": "Harbor — Rotterdam has the largest port in Europe",
+    "category": "nature"
+  },
+  {
+    "word": "kust",
+    "teaser": "Coast — the Dutch coastline stretches for hundreds of kilometers",
+    "category": "nature"
+  },
+  {
+    "word": "getijde",
+    "teaser": "Tide — the daily rise and fall of the sea",
+    "category": "nature"
+  },
+  {
+    "word": "eb",
+    "teaser": "Low tide — when the sea retreats from the shore",
+    "category": "nature"
+  },
+  {
+    "word": "vloed",
+    "teaser": "High tide — when the water returns in full force",
+    "category": "nature"
+  },
+  {
+    "word": "stroom",
+    "teaser": "Current — the flow of water in rivers and seas",
+    "category": "nature"
+  },
+  {
+    "word": "klei",
+    "teaser": "Clay — the heavy soil found in Dutch river areas",
+    "category": "nature"
+  },
+  {
+    "word": "zand",
+    "teaser": "Sand — the foundation of dunes and beaches",
+    "category": "nature"
+  },
+  {
+    "word": "veen",
+    "teaser": "Peat — boggy soil that sinks and shapes the landscape",
+    "category": "nature"
+  },
+  {
+    "word": "moeras",
+    "teaser": "Swamp or marsh — wetlands teeming with wildlife",
+    "category": "nature"
+  },
+  {
+    "word": "riet",
+    "teaser": "Reed — tall grasses growing along Dutch waterways",
+    "category": "nature"
+  },
+  {
+    "word": "boom",
+    "teaser": "Tree — from elm-lined canals to forest giants",
+    "category": "nature"
+  },
+  {
+    "word": "bloem",
+    "teaser": "Flower — the Netherlands is the world's florist",
+    "category": "nature"
+  },
+  {
+    "word": "gras",
+    "teaser": "Grass — endless green fields in every direction",
+    "category": "nature"
+  },
+  {
+    "word": "eik",
+    "teaser": "Oak — a sturdy tree found in Dutch forests",
+    "category": "nature"
+  },
+  {
+    "word": "beuk",
+    "teaser": "Beech — stately trees lining old Dutch lanes",
+    "category": "nature"
+  },
+  {
+    "word": "wilg",
+    "teaser": "Willow — graceful trees drooping over Dutch waterways",
+    "category": "nature"
+  },
+  {
+    "word": "berk",
+    "teaser": "Birch — white-barked trees in heathland areas",
+    "category": "nature"
+  },
+  {
+    "word": "koe",
+    "teaser": "Cow — grazing in green meadows, an iconic Dutch sight",
+    "category": "nature"
+  },
+  {
+    "word": "paard",
+    "teaser": "Horse — from Frisian horses to riding schools",
+    "category": "nature"
+  },
+  {
+    "word": "schaap",
+    "teaser": "Sheep — dotting the dikes and heathlands",
+    "category": "nature"
+  },
+  {
+    "word": "varken",
+    "teaser": "Pig — the Netherlands is a major pork producer",
+    "category": "nature"
+  },
+  {
+    "word": "kip",
+    "teaser": "Chicken — free-range farms across the countryside",
+    "category": "nature"
+  },
+  {
+    "word": "eend",
+    "teaser": "Duck — paddling in every canal and pond",
+    "category": "nature"
+  },
+  {
+    "word": "zwaan",
+    "teaser": "Swan — elegant white birds on Dutch waterways",
+    "category": "nature"
+  },
+  {
+    "word": "gans",
+    "teaser": "Goose — migratory flocks filling autumn skies",
+    "category": "nature"
+  },
+  {
+    "word": "meeuw",
+    "teaser": "Seagull — the noisy companion at every Dutch beach",
+    "category": "nature"
+  },
+  {
+    "word": "ooievaar",
+    "teaser": "Stork — nesting on rooftops, a symbol of spring",
+    "category": "nature"
+  },
+  {
+    "word": "reiger",
+    "teaser": "Heron — standing motionless in shallow waters",
+    "category": "nature"
+  },
+  {
+    "word": "fuut",
+    "teaser": "Great crested grebe — an elegant waterbird with a fancy collar",
+    "category": "nature"
+  },
+  {
+    "word": "grutto",
+    "teaser": "Godwit — the national bird of the Netherlands",
+    "category": "nature"
+  },
+  {
+    "word": "kievit",
+    "teaser": "Lapwing — its acrobatic flight marks Dutch spring fields",
+    "category": "nature"
+  },
+  {
+    "word": "spreeuw",
+    "teaser": "Starling — forming mesmerizing murmurations at dusk",
+    "category": "nature"
+  },
+  {
+    "word": "mus",
+    "teaser": "Sparrow — the small brown bird in every Dutch garden",
+    "category": "nature"
+  },
+  {
+    "word": "roodborstje",
+    "teaser": "Robin — a cheerful bird with a bright red breast",
+    "category": "nature"
+  },
+  {
+    "word": "vos",
+    "teaser": "Fox — increasingly spotted in Dutch cities at night",
+    "category": "nature"
+  },
+  {
+    "word": "konijn",
+    "teaser": "Rabbit — hopping through dunes and gardens",
+    "category": "nature"
+  },
+  {
+    "word": "egel",
+    "teaser": "Hedgehog — a prickly garden visitor at twilight",
+    "category": "nature"
+  },
+  {
+    "word": "haas",
+    "teaser": "Hare — dashing across flat farmland",
+    "category": "nature"
+  },
+  {
+    "word": "mol",
+    "teaser": "Mole — leaving molehills in manicured Dutch lawns",
+    "category": "nature"
+  },
+  {
+    "word": "ree",
+    "teaser": "Roe deer — glimpsed at dawn in forest edges",
+    "category": "nature"
+  },
+  {
+    "word": "zeehond",
+    "teaser": "Seal — sunbathing on sandbanks in the Wadden Sea",
+    "category": "nature"
+  },
+  {
+    "word": "bruinvis",
+    "teaser": "Harbor porpoise — small cetaceans in the North Sea",
+    "category": "nature"
+  },
+  {
+    "word": "krab",
+    "teaser": "Crab — scuttling along the Dutch coastline",
+    "category": "nature"
+  },
+  {
+    "word": "garnaal",
+    "teaser": "Shrimp — tiny North Sea shrimp are a delicacy",
+    "category": "nature"
+  },
+  {
+    "word": "mossel",
+    "teaser": "Mussel — harvested from Zeeland's waters",
+    "category": "nature"
+  },
+  {
+    "word": "oester",
+    "teaser": "Oyster — a luxury from the Dutch province of Zeeland",
+    "category": "nature"
+  },
+  {
+    "word": "paling",
+    "teaser": "Eel — smoked eel is a traditional Dutch specialty",
+    "category": "nature"
+  },
+  {
+    "word": "snoek",
+    "teaser": "Pike — a fierce freshwater predator in Dutch lakes",
+    "category": "nature"
+  },
+  {
+    "word": "kikker",
+    "teaser": "Frog — croaking in ponds and ditches at night",
+    "category": "nature"
+  },
+  {
+    "word": "pad",
+    "teaser": "Toad — a warty amphibian crossing roads in spring",
+    "category": "nature"
+  },
+  {
+    "word": "slang",
+    "teaser": "Snake — the adder is the only venomous Dutch snake",
+    "category": "nature"
+  },
+  {
+    "word": "vlinder",
+    "teaser": "Butterfly — colorful wings fluttering through meadows",
+    "category": "nature"
+  },
+  {
+    "word": "bij",
+    "teaser": "Bee — essential pollinators in flower fields",
+    "category": "nature"
+  },
+  {
+    "word": "mug",
+    "teaser": "Mosquito — the unwanted guest on summer evenings",
+    "category": "nature"
+  },
+  {
+    "word": "spin",
+    "teaser": "Spider — weaving webs in Dutch gardens and homes",
+    "category": "nature"
+  },
+  {
+    "word": "lieveheersbeestje",
+    "teaser": "Ladybug — a lucky little beetle with red spotted wings",
+    "category": "nature"
+  },
+  {
+    "word": "regenworm",
+    "teaser": "Earthworm — enriching Dutch garden soil underground",
+    "category": "nature"
+  },
+  {
+    "word": "Veluwe",
+    "teaser": "A forested national park with deer and wild boar",
+    "category": "nature"
+  },
+  {
+    "word": "Biesbosch",
+    "teaser": "A freshwater tidal wetland and national park",
+    "category": "nature"
+  },
+  {
+    "word": "IJsselmeer",
+    "teaser": "A large freshwater lake, once the Zuiderzee",
+    "category": "nature"
+  },
+  {
+    "word": "Rijn",
+    "teaser": "The Rhine — a major European river flowing through NL",
+    "category": "nature"
+  },
+  {
+    "word": "Maas",
+    "teaser": "The Meuse — another great river of the Netherlands",
+    "category": "nature"
+  },
+  {
+    "word": "Schelde",
+    "teaser": "The Scheldt — a river connecting Belgium and the Dutch delta",
+    "category": "nature"
+  },
+  {
+    "word": "delta",
+    "teaser": "River delta — where Dutch rivers meet the North Sea",
+    "category": "nature"
+  },
+  {
+    "word": "Afsluitdijk",
+    "teaser": "The enclosure dike — a 32 km barrier taming the sea",
+    "category": "nature"
+  },
+  {
+    "word": "landschap",
+    "teaser": "Landscape — the flat, open Dutch scenery",
+    "category": "nature"
+  },
+  {
+    "word": "weiland",
+    "teaser": "Pastureland — green fields with grazing cattle",
+    "category": "nature"
+  },
+  {
+    "word": "akker",
+    "teaser": "Arable field — crops growing on flat farmland",
+    "category": "nature"
+  },
+  {
+    "word": "turfsteken",
+    "teaser": "Peat cutting — the historical practice that shaped Dutch bogs",
+    "category": "nature"
+  },
+  {
+    "word": "waterpeil",
+    "teaser": "Water level — constantly monitored in the low-lying Netherlands",
+    "category": "nature"
+  },
+  {
+    "word": "overstroming",
+    "teaser": "Flood — the constant threat that shaped Dutch engineering",
+    "category": "nature"
+  },
+  {
+    "word": "storm",
+    "teaser": "Storm — fierce winds howling across the flat land",
+    "category": "nature"
+  },
+  {
+    "word": "wolk",
+    "teaser": "Cloud — dramatic Dutch skies inspired the Masters' paintings",
+    "category": "nature"
+  },
+  {
+    "word": "lucht",
+    "teaser": "Sky or air — the vast Dutch sky is a painter's canvas",
+    "category": "nature"
+  },
+  {
+    "word": "zonsondergang",
+    "teaser": "Sunset — spectacular over the flat Dutch horizon",
+    "category": "nature"
+  },
+  {
+    "word": "zonsopgang",
+    "teaser": "Sunrise — early light breaking over polders and windmills",
+    "category": "nature"
+  },
+  {
+    "word": "horizon",
+    "teaser": "Horizon — visible in all directions in flat Netherlands",
+    "category": "nature"
+  },
+  {
+    "word": "platteland",
+    "teaser": "Countryside — rural areas with farms, fields, and villages",
+    "category": "nature"
+  },
+  {
+    "word": "groen",
+    "teaser": "Green — the color of the Dutch landscape year-round",
+    "category": "nature"
+  },
+  {
+    "word": "hebben",
+    "teaser": "To have — one of the most essential Dutch verbs",
+    "category": "everyday"
+  },
+  {
+    "word": "zijn",
+    "teaser": "To be — the fundamental verb of existence",
+    "category": "everyday"
+  },
+  {
+    "word": "brug",
+    "teaser": "Bridge — thousands cross Dutch canals and rivers",
+    "category": "everyday"
+  },
+  {
+    "word": "hoek",
+    "teaser": "Corner — every street corner has a story",
+    "category": "everyday"
+  },
+  {
+    "word": "plein",
+    "teaser": "Square — the central gathering place in Dutch towns",
+    "category": "everyday"
+  },
+  {
+    "word": "weg",
+    "teaser": "Road or away — depends on how you use it",
+    "category": "everyday"
+  },
+  {
+    "word": "fietssleutel",
+    "teaser": "Bike key — losing it is a Dutch nightmare",
+    "category": "everyday"
+  },
+  {
+    "word": "paraplu",
+    "teaser": "Umbrella — essential gear in the Netherlands",
+    "category": "everyday"
+  },
+  {
+    "word": "jas",
+    "teaser": "Coat — layers are the Dutch fashion strategy",
+    "category": "everyday"
+  },
+  {
+    "word": "muts",
+    "teaser": "Beanie or cap — keeping warm on windy days",
+    "category": "everyday"
+  },
+  {
+    "word": "sjaal",
+    "teaser": "Scarf — wrapped tight against the Dutch wind",
+    "category": "everyday"
+  },
+  {
+    "word": "handschoenen",
+    "teaser": "Gloves — necessary for winter cycling",
+    "category": "everyday"
+  },
+  {
+    "word": "laars",
+    "teaser": "Boot — rubber boots for rainy Dutch weather",
+    "category": "everyday"
+  },
+  {
+    "word": "broek",
+    "teaser": "Trousers — a basic wardrobe item",
+    "category": "everyday"
+  },
+  {
+    "word": "overhemd",
+    "teaser": "Shirt — for work or formal occasions",
+    "category": "everyday"
+  },
+  {
+    "word": "jurk",
+    "teaser": "Dress — from casual to elegant",
+    "category": "everyday"
+  },
+  {
+    "word": "trui",
+    "teaser": "Sweater — cozy knitwear for cold days",
+    "category": "everyday"
+  },
+  {
+    "word": "sokken",
+    "teaser": "Socks — keep your feet warm on the bike",
+    "category": "everyday"
+  },
+  {
+    "word": "bril",
+    "teaser": "Glasses — for seeing or for sunglasses",
+    "category": "everyday"
+  },
+  {
+    "word": "horloge",
+    "teaser": "Watch — checking the time to stay punctual",
+    "category": "everyday"
+  },
+  {
+    "word": "portemonnee",
+    "teaser": "Wallet — where you keep your pinpas and cash",
+    "category": "everyday"
+  },
+  {
+    "word": "rugzak",
+    "teaser": "Backpack — the cyclist's carry-all of choice",
+    "category": "everyday"
+  },
+  {
+    "word": "kamer",
+    "teaser": "Room — a space in your house or apartment",
+    "category": "everyday"
+  },
+  {
+    "word": "keuken",
+    "teaser": "Kitchen — where stamppot and pannenkoeken are made",
+    "category": "everyday"
+  },
+  {
+    "word": "badkamer",
+    "teaser": "Bathroom — often surprisingly small in Dutch houses",
+    "category": "everyday"
+  },
+  {
+    "word": "slaapkamer",
+    "teaser": "Bedroom — a private retreat for sleeping",
+    "category": "everyday"
+  },
+  {
+    "word": "woonkamer",
+    "teaser": "Living room — the heart of a Dutch home",
+    "category": "everyday"
+  },
+  {
+    "word": "zolder",
+    "teaser": "Attic — extra storage in tall Dutch houses",
+    "category": "everyday"
+  },
+  {
+    "word": "kelder",
+    "teaser": "Basement or cellar — tricky in a low-lying country",
+    "category": "everyday"
+  },
+  {
+    "word": "balkon",
+    "teaser": "Balcony — a prized feature in Dutch apartments",
+    "category": "everyday"
+  },
+  {
+    "word": "verwarming",
+    "teaser": "Heating — turned on reluctantly by thrifty Dutch",
+    "category": "everyday"
+  },
+  {
+    "word": "douche",
+    "teaser": "Shower — a quick daily Dutch routine",
+    "category": "everyday"
+  },
+  {
+    "word": "toilet",
+    "teaser": "Toilet — sometimes you still pay to use one",
+    "category": "everyday"
+  },
+  {
+    "word": "spiegel",
+    "teaser": "Mirror — checking your look before heading out",
+    "category": "everyday"
+  },
+  {
+    "word": "lamp",
+    "teaser": "Lamp — warm lighting for cozy Dutch evenings",
+    "category": "everyday"
+  },
+  {
+    "word": "televisie",
+    "teaser": "Television — for watching the NOS news and football",
+    "category": "everyday"
+  },
+  {
+    "word": "computer",
+    "teaser": "Computer — the Dutch are highly tech-savvy",
+    "category": "everyday"
+  },
+  {
+    "word": "internet",
+    "teaser": "Internet — Dutch broadband is among the fastest",
+    "category": "everyday"
+  },
+  {
+    "word": "e-mail",
+    "teaser": "Email — the standard for Dutch business communication",
+    "category": "everyday"
+  },
+  {
+    "word": "vuilnis",
+    "teaser": "Garbage — Dutch recycling rules are strict",
+    "category": "everyday"
+  },
+  {
+    "word": "afval",
+    "teaser": "Waste — carefully separated and recycled",
+    "category": "everyday"
+  },
+  {
+    "word": "schoon",
+    "teaser": "Clean — the Dutch keep things tidy",
+    "category": "everyday"
+  },
+  {
+    "word": "vies",
+    "teaser": "Dirty or gross — expressing mild disgust",
+    "category": "everyday"
+  },
+  {
+    "word": "druk",
+    "teaser": "Busy — the standard Dutch state of being",
+    "category": "everyday"
+  },
+  {
+    "word": "rustig",
+    "teaser": "Calm, quiet, peaceful — the ideal Dutch setting",
+    "category": "everyday"
+  },
+  {
+    "word": "moe",
+    "teaser": "Tired — after a long day of work and cycling",
+    "category": "everyday"
+  },
+  {
+    "word": "blij",
+    "teaser": "Happy, glad — a sunny disposition",
+    "category": "everyday"
+  },
+  {
+    "word": "boos",
+    "teaser": "Angry — even the Dutch get mad sometimes",
+    "category": "everyday"
+  },
+  {
+    "word": "verdrietig",
+    "teaser": "Sad — expressing genuine sorrow",
+    "category": "everyday"
+  },
+  {
+    "word": "bang",
+    "teaser": "Afraid or scared — facing Dutch fears",
+    "category": "everyday"
+  },
+  {
+    "word": "zeker weten",
+    "teaser": "To know for sure — being absolutely certain",
+    "category": "everyday"
+  },
+  {
+    "word": "licht",
+    "teaser": "Light — both the noun and adjective",
+    "category": "everyday"
+  },
+  {
+    "word": "donker",
+    "teaser": "Dark — the long Dutch winter evenings",
+    "category": "everyday"
+  },
+  {
+    "word": "snel",
+    "teaser": "Fast, quick — the Dutch pace of life",
+    "category": "everyday"
+  },
+  {
+    "word": "langzaam",
+    "teaser": "Slow — sometimes life needs a slower speed",
+    "category": "everyday"
+  },
+  {
+    "word": "dichtbij",
+    "teaser": "Nearby, close — everything is close in compact NL",
+    "category": "everyday"
+  },
+  {
+    "word": "ver",
+    "teaser": "Far — nothing is really far in the Netherlands",
+    "category": "everyday"
+  },
+  {
+    "word": "links",
+    "teaser": "Left — as in direction or politics",
+    "category": "everyday"
+  },
+  {
+    "word": "rechts",
+    "teaser": "Right — the other direction or political leaning",
+    "category": "everyday"
+  },
+  {
+    "word": "rechtdoor",
+    "teaser": "Straight ahead — basic Dutch direction giving",
+    "category": "everyday"
+  },
+  {
+    "word": "boven",
+    "teaser": "Above, upstairs — going up the steep Dutch stairs",
+    "category": "everyday"
+  },
+  {
+    "word": "beneden",
+    "teaser": "Below, downstairs — coming back down",
+    "category": "everyday"
+  },
+  {
+    "word": "binnen",
+    "teaser": "Inside — where you escape the Dutch rain",
+    "category": "everyday"
+  },
+  {
+    "word": "buiten",
+    "teaser": "Outside — where the Dutch go when the sun appears",
+    "category": "everyday"
+  },
+  {
+    "word": "hier",
+    "teaser": "Here — pointing to this spot",
+    "category": "everyday"
+  },
+  {
+    "word": "daar",
+    "teaser": "There — pointing to that spot over there",
+    "category": "everyday"
+  },
+  {
+    "word": "waar",
+    "teaser": "Where — the question word for location",
+    "category": "everyday"
+  },
+  {
+    "word": "wanneer",
+    "teaser": "When — asking about time in Dutch",
+    "category": "everyday"
+  },
+  {
+    "word": "wie",
+    "teaser": "Who — asking about a person",
+    "category": "everyday"
+  },
+  {
+    "word": "wat",
+    "teaser": "What — the versatile question word",
+    "category": "everyday"
+  },
+  {
+    "word": "waarom",
+    "teaser": "Why — the Dutch love asking this",
+    "category": "everyday"
+  },
+  {
+    "word": "hoe",
+    "teaser": "How — finding out the way to do things",
+    "category": "everyday"
+  },
+  {
+    "word": "hoeveel",
+    "teaser": "How much or how many — essential for shopping",
+    "category": "everyday"
+  },
+  {
+    "word": "welke",
+    "teaser": "Which — making choices and selections",
+    "category": "everyday"
+  },
+  {
+    "word": "iets",
+    "teaser": "Something — a vague but useful word",
+    "category": "everyday"
+  },
+  {
+    "word": "niets",
+    "teaser": "Nothing — there is nothing here",
+    "category": "everyday"
+  },
+  {
+    "word": "alles",
+    "teaser": "Everything — all of it, the whole lot",
+    "category": "everyday"
+  },
+  {
+    "word": "iedereen",
+    "teaser": "Everyone — the whole group included",
+    "category": "everyday"
+  },
+  {
+    "word": "niemand",
+    "teaser": "Nobody — not a single person",
+    "category": "everyday"
+  },
+  {
+    "word": "altijd",
+    "teaser": "Always — without exception, every time",
+    "category": "everyday"
+  },
+  {
+    "word": "nooit",
+    "teaser": "Never — not once, under no circumstances",
+    "category": "everyday"
+  },
+  {
+    "word": "soms",
+    "teaser": "Sometimes — on occasion, now and then",
+    "category": "everyday"
+  },
+  {
+    "word": "vaak",
+    "teaser": "Often — it happens frequently",
+    "category": "everyday"
+  },
+  {
+    "word": "samen",
+    "teaser": "Together — doing things as a group",
+    "category": "everyday"
+  },
+  {
+    "word": "alleen",
+    "teaser": "Alone or only — by yourself or just this",
+    "category": "everyday"
+  },
+  {
+    "word": "nog",
+    "teaser": "Still or yet — a versatile time word",
+    "category": "everyday"
+  },
+  {
+    "word": "al",
+    "teaser": "Already — it has happened sooner than expected",
+    "category": "everyday"
+  },
+  {
+    "word": "ook",
+    "teaser": "Also, too — including this as well",
+    "category": "everyday"
+  },
+  {
+    "word": "maar",
+    "teaser": "But — the small word that changes everything",
+    "category": "everyday"
+  },
+  {
+    "word": "en",
+    "teaser": "And — connecting words and ideas",
+    "category": "everyday"
+  },
+  {
+    "word": "of",
+    "teaser": "Or — presenting alternatives and choices",
+    "category": "everyday"
+  },
+  {
+    "word": "omdat",
+    "teaser": "Because — giving reasons the Dutch way",
+    "category": "everyday"
+  },
+  {
+    "word": "dus",
+    "teaser": "So, therefore — drawing a conclusion",
+    "category": "everyday"
+  },
+  {
+    "word": "heel erg",
+    "teaser": "Very much — emphasizing intensity in Dutch",
+    "category": "everyday"
+  },
+  {
+    "word": "een beetje",
+    "teaser": "A little bit — softening a statement",
+    "category": "everyday"
+  },
+  {
+    "word": "genoeg",
+    "teaser": "Enough — knowing when you have plenty",
+    "category": "everyday"
+  },
+  {
+    "word": "te veel",
+    "teaser": "Too much — crossing the line of excess",
+    "category": "everyday"
+  },
+  {
+    "word": "te weinig",
+    "teaser": "Too little — not quite enough of something",
+    "category": "everyday"
+  },
+  {
+    "word": "nummer",
+    "teaser": "Number — from phone numbers to house numbers",
+    "category": "everyday"
+  },
+  {
+    "word": "prijs",
+    "teaser": "Price — how much does it cost?",
+    "category": "everyday"
+  },
+  {
+    "word": "naam",
+    "teaser": "Name — how do you introduce yourself",
+    "category": "everyday"
+  },
+  {
+    "word": "taal",
+    "teaser": "Language — Dutch is spoken by 25 million people",
+    "category": "everyday"
+  },
+  {
+    "word": "woord",
+    "teaser": "Word — the building block of every language",
+    "category": "everyday"
+  },
+  {
+    "word": "zin",
+    "teaser": "Sentence, or desire — I have a sentence or I feel like",
+    "category": "everyday"
+  },
+  {
+    "word": "probleem",
+    "teaser": "Problem — something that needs solving",
+    "category": "everyday"
+  },
+  {
+    "word": "oplossing",
+    "teaser": "Solution — the Dutch are practical problem-solvers",
+    "category": "everyday"
+  },
+  {
+    "word": "vraag",
+    "teaser": "Question — asking is how you learn",
+    "category": "everyday"
+  },
+  {
+    "word": "antwoord",
+    "teaser": "Answer — the response you are looking for",
+    "category": "everyday"
+  },
+  {
+    "word": "idee",
+    "teaser": "Idea — a spark of creative thinking",
+    "category": "everyday"
+  },
+  {
+    "word": "plan",
+    "teaser": "Plan — the Dutch always have one",
+    "category": "everyday"
+  },
+  {
+    "word": "afspraak maken",
+    "teaser": "Making an appointment — essential in organized Dutch life",
+    "category": "everyday"
+  },
+  {
+    "word": "uitnodigen",
+    "teaser": "To invite — but check their agenda first",
+    "category": "everyday"
+  },
+  {
+    "word": "bezoek",
+    "teaser": "Visit — guests are always welcome with coffee",
+    "category": "everyday"
+  },
+  {
+    "word": "verjaardagskalender",
+    "teaser": "Birthday calendar — hanging in every Dutch bathroom",
+    "category": "culture"
+  },
+  {
+    "word": "haakwerk",
+    "teaser": "Crochet work — a traditional Dutch handcraft still popular",
+    "category": "culture"
+  },
+  {
+    "word": "koningshuis",
+    "teaser": "The royal house — the Oranjes are beloved",
+    "category": "culture"
+  },
+  {
+    "word": "koning",
+    "teaser": "King — Willem-Alexander reigns since 2013",
+    "category": "culture"
+  },
+  {
+    "word": "koningin",
+    "teaser": "Queen — Maxima is adored across the country",
+    "category": "culture"
+  },
+  {
+    "word": "Tweede Kamer",
+    "teaser": "The House of Representatives — where Dutch laws are debated",
+    "category": "culture"
+  },
+  {
+    "word": "coalitie",
+    "teaser": "Coalition — Dutch governments always need multiple parties",
+    "category": "culture"
+  },
+  {
+    "word": "compromis",
+    "teaser": "Compromise — the foundation of Dutch politics",
+    "category": "culture"
+  },
+  {
+    "word": "debat",
+    "teaser": "Debate — the Dutch love a good argument",
+    "category": "culture"
+  },
+  {
+    "word": "praatje",
+    "teaser": "Small talk — a brief chat with neighbors or colleagues",
+    "category": "culture"
+  },
+  {
+    "word": "kletsen",
+    "teaser": "To chat or gossip — talking about nothing and everything",
+    "category": "culture"
+  },
+  {
+    "word": "roddelen",
+    "teaser": "To gossip — sharing stories about others",
+    "category": "culture"
+  },
+  {
+    "word": "babbelen",
+    "teaser": "To babble or chat — a leisurely conversation",
+    "category": "culture"
+  },
+  {
+    "word": "feestje",
+    "teaser": "A party — always in someone's home with snacks",
+    "category": "culture"
+  },
+  {
+    "word": "kaartje sturen",
+    "teaser": "Sending a card — the Dutch send cards for everything",
+    "category": "culture"
+  },
+  {
+    "word": "handjes schudden",
+    "teaser": "Shaking hands — the Dutch greeting in formal settings",
+    "category": "culture"
+  },
+  {
+    "word": "kringverjaardag",
+    "teaser": "Circle birthday — sitting in a circle congratulating everyone",
+    "category": "culture"
+  },
+  {
+    "word": "afbellen",
+    "teaser": "To cancel by phone — Dutch directness in declining plans",
+    "category": "culture"
+  },
+  {
+    "word": "gordijnen open",
+    "teaser": "Open curtains — the Dutch tradition of not hiding from view",
+    "category": "culture"
+  },
+  {
+    "word": "Zwarte Koffie",
+    "teaser": "Black coffee — the Dutch drink it strong and plain",
+    "category": "culture"
+  },
+  {
+    "word": "nuchterheid",
+    "teaser": "Sobriety, level-headedness — the Dutch pride themselves on it",
+    "category": "culture"
+  },
+  {
+    "word": "eigenwijsheid",
+    "teaser": "Stubbornness or headstrong attitude — a Dutch trait",
+    "category": "culture"
+  },
+  {
+    "word": "ondernemerschap",
+    "teaser": "Entrepreneurship — the Dutch trading spirit lives on",
+    "category": "culture"
+  },
+  {
+    "word": "zzp'er",
+    "teaser": "Freelancer or self-employed — a growing Dutch workforce trend",
+    "category": "culture"
+  },
+  {
+    "word": "parttime",
+    "teaser": "Part-time work — the Netherlands is the part-time capital",
+    "category": "culture"
+  },
+  {
+    "word": "papadag",
+    "teaser": "Daddy day — fathers taking a day off for childcare",
+    "category": "culture"
+  },
+  {
+    "word": "oppas",
+    "teaser": "Babysitter — needed when both parents go out",
+    "category": "culture"
+  },
+  {
+    "word": "crèche",
+    "teaser": "Daycare — where Dutch toddlers socialize early",
+    "category": "culture"
+  },
+  {
+    "word": "peuterspeelzaal",
+    "teaser": "Toddler playgroup — early social development for little ones",
+    "category": "culture"
+  },
+  {
+    "word": "basisschool",
+    "teaser": "Primary school — Dutch kids start at age four",
+    "category": "culture"
+  },
+  {
+    "word": "zwemdiploma",
+    "teaser": "Swimming diploma — a rite of passage for Dutch children",
+    "category": "culture"
+  },
+  {
+    "word": "schoolreisje",
+    "teaser": "School trip — a fun excursion for Dutch kids",
+    "category": "culture"
+  },
+  {
+    "word": "huiswerk",
+    "teaser": "Homework — less stressful than in most countries",
+    "category": "culture"
+  },
+  {
+    "word": "rapportcijfer",
+    "teaser": "Report card grade — Dutch schools use 1-10 scale",
+    "category": "culture"
+  },
+  {
+    "word": "afstudeerborrel",
+    "teaser": "Graduation drinks — celebrating with friends after finishing school",
+    "category": "culture"
+  },
+  {
+    "word": "vlag uithangen",
+    "teaser": "Hanging the flag — celebrating a child passing their exams",
+    "category": "culture"
+  },
+  {
+    "word": "schooltas ophangen",
+    "teaser": "Hanging your school bag — tradition when passing final exams",
+    "category": "culture"
+  },
+  {
+    "word": "uitwisseling",
+    "teaser": "Exchange — Dutch students often study abroad",
+    "category": "culture"
+  },
+  {
+    "word": "blokken",
+    "teaser": "To cram for exams — intense studying before tests",
+    "category": "culture"
+  },
+  {
+    "word": "spreekbeurt",
+    "teaser": "Oral presentation — Dutch kids give these from a young age",
+    "category": "culture"
+  },
+  {
+    "word": "werkstuk",
+    "teaser": "School project or essay — a staple of Dutch education",
+    "category": "culture"
+  },
+  {
+    "word": "huisartsbezoek",
+    "teaser": "GP visit — the starting point for all health concerns",
+    "category": "culture"
+  },
+  {
+    "word": "normaal doen",
+    "teaser": "Acting normal — the unwritten Dutch social commandment",
+    "category": "culture"
+  },
+  {
+    "word": "stamgast",
+    "teaser": "A regular at a bar or cafe — loyalty rewarded",
+    "category": "culture"
+  },
+  {
+    "word": "gesprekspartner",
+    "teaser": "Conversation partner — Dutch meetings always include dialogue",
+    "category": "culture"
+  },
+  {
+    "word": "inspraak",
+    "teaser": "Having a say — the Dutch right to voice opinions",
+    "category": "culture"
+  },
+  {
+    "word": "referendum",
+    "teaser": "Referendum — direct democracy in action",
+    "category": "culture"
+  },
+  {
+    "word": "ik",
+    "teaser": "I — the smallest but most important Dutch word",
+    "category": "everyday"
+  },
+  {
+    "word": "jij",
+    "teaser": "You (informal) — for friends, family, and peers",
+    "category": "everyday"
+  },
+  {
+    "word": "u",
+    "teaser": "You (formal) — showing respect to elders and officials",
+    "category": "everyday"
+  },
+  {
+    "word": "wij",
+    "teaser": "We — togetherness is a Dutch value",
+    "category": "everyday"
+  },
+  {
+    "word": "zij",
+    "teaser": "They or she — context reveals the meaning",
+    "category": "everyday"
+  },
+  {
+    "word": "het",
+    "teaser": "It or the — the neutral article and pronoun",
+    "category": "everyday"
+  },
+  {
+    "word": "deze",
+    "teaser": "This — pointing to something specific",
+    "category": "everyday"
+  },
+  {
+    "word": "fijn",
+    "teaser": "Fine, nice, pleasant — a warm positive word",
+    "category": "everyday"
+  },
+  {
+    "word": "levendig",
+    "teaser": "Lively, vibrant — describing a bustling Dutch street",
+    "category": "everyday"
+  },
+  {
+    "word": "gezelligheid is key",
+    "teaser": "Coziness is essential — the Dutch life motto",
+    "category": "expressions"
+  },
+  {
+    "word": "niet zeuren",
+    "teaser": "Stop whining — a blunt Dutch response to complaints",
+    "category": "expressions"
+  },
+  {
+    "word": "zo is dat",
+    "teaser": "That's how it is — accepting reality matter-of-factly",
+    "category": "expressions"
+  },
+  {
+    "word": "het is wat het is",
+    "teaser": "It is what it is — stoic Dutch acceptance",
+    "category": "expressions"
+  },
+  {
+    "word": "lekker belangrijk",
+    "teaser": "As if it matters — dismissing something sarcastically",
+    "category": "expressions"
+  },
+  {
+    "word": "hè hè",
+    "teaser": "Finally, at last — relief when something is done",
+    "category": "expressions"
+  },
+  {
+    "word": "oh ja",
+    "teaser": "Oh yes — remembering or agreeing with something",
+    "category": "expressions"
+  },
+  {
+    "word": "tja",
+    "teaser": "Well, yeah — a resigned or thoughtful filler",
+    "category": "expressions"
+  },
+  {
+    "word": "tsja",
+    "teaser": "Well then — philosophical acceptance of circumstances",
+    "category": "expressions"
+  },
+  {
+    "word": "oké",
+    "teaser": "Okay — universal agreement borrowed into Dutch",
+    "category": "expressions"
+  },
+  {
+    "word": "ach",
+    "teaser": "Oh well — gentle resignation or dismissal",
+    "category": "expressions"
+  },
+  {
+    "word": "nou zeg",
+    "teaser": "Well I never — expressing mild outrage or surprise",
+    "category": "expressions"
+  },
+  {
+    "word": "zeg",
+    "teaser": "Hey, say — getting someone's attention directly",
+    "category": "expressions"
+  },
+  {
+    "word": "hè",
+    "teaser": "Right? Huh? — seeking confirmation at sentence end",
+    "category": "expressions"
+  },
+  {
+    "word": "toe maar",
+    "teaser": "Go ahead then — granting permission with mild surprise",
+    "category": "expressions"
+  },
+  {
+    "word": "doe maar",
+    "teaser": "Go ahead, just do it — casual Dutch permission",
+    "category": "expressions"
+  },
+  {
+    "word": "daar ga je weer",
+    "teaser": "There you go again — mild exasperation at repetition",
+    "category": "expressions"
+  },
+  {
+    "word": "dat zit wel goed",
+    "teaser": "That will be fine — Dutch reassurance and confidence",
+    "category": "expressions"
+  },
+  {
+    "word": "mwah",
+    "teaser": "Meh, so-so — expressing a lukewarm Dutch opinion",
+    "category": "expressions"
+  },
+  {
+    "word": "boeien",
+    "teaser": "Who cares — slang for not being interested at all",
+    "category": "expressions"
+  },
+  {
+    "word": "opzouten",
+    "teaser": "Get lost — a rude way to tell someone to leave",
+    "category": "expressions"
+  },
+  {
+    "word": "geintje",
+    "teaser": "Just kidding — it was only a joke",
+    "category": "expressions"
+  },
+  {
+    "word": "grapje",
+    "teaser": "A little joke — not meant to be taken seriously",
+    "category": "expressions"
+  },
+  {
+    "word": "ik meen het",
+    "teaser": "I mean it — dead serious, not joking around",
+    "category": "expressions"
+  },
+  {
+    "word": "op een gegeven moment",
+    "teaser": "At some point — a vague Dutch time reference",
+    "category": "expressions"
+  },
+  {
+    "word": "aan de andere kant",
+    "teaser": "On the other hand — presenting the counterargument",
+    "category": "expressions"
+  },
+  {
+    "word": "dat scheelt",
+    "teaser": "That helps, that makes a difference — silver lining thinking",
+    "category": "expressions"
+  },
+  {
+    "word": "het loopt los",
+    "teaser": "It will work out — optimistic Dutch reassurance",
+    "category": "expressions"
+  },
+  {
+    "word": "afwachten",
+    "teaser": "Wait and see — the cautious Dutch approach",
+    "category": "expressions"
+  },
+  {
+    "word": "uitkijken",
+    "teaser": "Watch out, be careful — a warning to pay attention",
+    "category": "expressions"
+  },
+  {
+    "word": "abonnement",
+    "teaser": "Subscription — for trains, gyms, and streaming services",
+    "category": "useful"
+  },
+  {
+    "word": "lidmaatschap",
+    "teaser": "Membership — joining a Dutch club or association",
+    "category": "useful"
+  },
+  {
+    "word": "inloggen",
+    "teaser": "To log in — to websites and Dutch government portals",
+    "category": "useful"
+  },
+  {
+    "word": "wachtwoord",
+    "teaser": "Password — needed for DigiD and everything digital",
+    "category": "useful"
+  },
+  {
+    "word": "klacht",
+    "teaser": "Complaint — the Dutch exercise their right to complain",
+    "category": "useful"
+  },
+  {
+    "word": "garantie",
+    "teaser": "Warranty — consumer protection the Dutch take seriously",
+    "category": "useful"
+  },
+  {
+    "word": "ruilen",
+    "teaser": "To exchange or return — bringing purchases back to the store",
+    "category": "useful"
+  },
+  {
+    "word": "bezorging",
+    "teaser": "Delivery — same-day delivery is normal in the Netherlands",
+    "category": "useful"
+  },
+  {
+    "word": "retourneren",
+    "teaser": "To return an item — free returns are expected",
+    "category": "useful"
+  },
+  {
+    "word": "openingstijden",
+    "teaser": "Opening hours — shops close earlier than you might expect",
+    "category": "useful"
+  },
+  {
+    "word": "gesloten",
+    "teaser": "Closed — check before you go on Sundays",
+    "category": "useful"
+  },
+  {
+    "word": "open",
+    "teaser": "Open — welcome, come on in",
+    "category": "useful"
+  },
+  {
+    "word": "ingang",
+    "teaser": "Entrance — the way in to buildings and stations",
+    "category": "useful"
+  },
+  {
+    "word": "uitgang",
+    "teaser": "Exit — the way out, clearly marked everywhere",
+    "category": "useful"
+  },
+  {
+    "word": "nooduitgang",
+    "teaser": "Emergency exit — always know where it is",
+    "category": "useful"
+  },
+  {
+    "word": "lift",
+    "teaser": "Elevator — helpful in buildings without steep Dutch stairs",
+    "category": "useful"
+  },
+  {
+    "word": "roltrap",
+    "teaser": "Escalator — stand on the right, walk on the left",
+    "category": "useful"
+  },
+  {
+    "word": "loket",
+    "teaser": "Counter or service window — for tickets and information",
+    "category": "useful"
+  },
+  {
+    "word": "wachtkamer",
+    "teaser": "Waiting room — at the doctor or train station",
+    "category": "useful"
+  },
+  {
+    "word": "spreekuur",
+    "teaser": "Consultation hours — when the doctor sees patients",
+    "category": "useful"
+  },
+  {
+    "word": "verwijzing",
+    "teaser": "Referral — needed to see a specialist in NL",
+    "category": "useful"
+  },
+  {
+    "word": "eigen risico",
+    "teaser": "Deductible — the amount you pay before insurance kicks in",
+    "category": "useful"
+  },
+  {
+    "word": "toeslag",
+    "teaser": "Allowance or surcharge — government benefits for low incomes",
+    "category": "useful"
+  },
+  {
+    "word": "huurtoeslag",
+    "teaser": "Rent allowance — government help with housing costs",
+    "category": "useful"
+  },
+  {
+    "word": "zorgtoeslag",
+    "teaser": "Healthcare allowance — help paying health insurance premiums",
+    "category": "useful"
+  },
+  {
+    "word": "kinderbijslag",
+    "teaser": "Child benefit — quarterly payment per child from the government",
+    "category": "useful"
+  },
+  {
+    "word": "studiefinanciering",
+    "teaser": "Student finance — government support for university students",
+    "category": "useful"
+  },
+  {
+    "word": "leenfiets",
+    "teaser": "Rental bike — OV-fiets available at every train station",
+    "category": "useful"
+  },
+  {
+    "word": "bakfiets",
+    "teaser": "Cargo bike — the Dutch family SUV for transporting kids",
+    "category": "useful"
+  },
+  {
+    "word": "elektrische fiets",
+    "teaser": "E-bike — increasingly popular for Dutch commuters",
+    "category": "useful"
+  },
+  {
+    "word": "bromfiets",
+    "teaser": "Moped — buzzing through Dutch streets",
+    "category": "useful"
+  },
+  {
+    "word": "scooter",
+    "teaser": "Scooter — a faster alternative to cycling",
+    "category": "useful"
+  },
+  {
+    "word": "pont",
+    "teaser": "Ferry — free ferries cross Amsterdam's IJ river",
+    "category": "useful"
+  },
+  {
+    "word": "veerboot",
+    "teaser": "Ferry boat — connecting to the Wadden Islands",
+    "category": "useful"
+  },
+  {
+    "word": "taxi",
+    "teaser": "Taxi — available but expensive compared to public transport",
+    "category": "useful"
+  },
+  {
+    "word": "rijden",
+    "teaser": "To drive or ride — getting from A to B",
+    "category": "useful"
+  },
+  {
+    "word": "navigatie",
+    "teaser": "Navigation — GPS guidance through Dutch streets",
+    "category": "useful"
+  },
+  {
+    "word": "wegwerkzaamheden",
+    "teaser": "Road works — always somewhere on Dutch highways",
+    "category": "useful"
+  },
+  {
+    "word": "omleiding",
+    "teaser": "Detour — an alternate route around construction",
+    "category": "useful"
+  },
+  {
+    "word": "enkelstrook",
+    "teaser": "Single lane — reduced traffic flow during road works",
+    "category": "useful"
+  },
+  {
+    "word": "matras",
+    "teaser": "Mattress — Dutch beds often have split mattresses for couples",
+    "category": "useful"
+  },
+  {
+    "word": "wasmachine",
+    "teaser": "Washing machine — a necessity in every Dutch household",
+    "category": "useful"
+  },
+  {
+    "word": "stofzuiger",
+    "teaser": "Vacuum cleaner — keeping Dutch floors spotless",
+    "category": "useful"
+  },
+  {
+    "word": "vaatwasser",
+    "teaser": "Dishwasher — a modern convenience in Dutch kitchens",
+    "category": "useful"
+  },
+  {
+    "word": "koelkast",
+    "teaser": "Refrigerator — keeping your kaas and melk fresh",
+    "category": "useful"
+  },
+  {
+    "word": "magnetron",
+    "teaser": "Microwave — quick reheating for busy Dutch evenings",
+    "category": "useful"
+  },
+  {
+    "word": "strijkijzer",
+    "teaser": "Iron — pressing shirts for the office",
+    "category": "useful"
+  },
+  {
+    "word": "fietspomp",
+    "teaser": "Bike pump — an essential tool in every Dutch household",
+    "category": "useful"
+  },
+  {
+    "word": "gereedschap",
+    "teaser": "Tools — for DIY home repairs, a Dutch pastime",
+    "category": "useful"
+  },
+  {
+    "word": "bouwmarkt",
+    "teaser": "Hardware store — the Dutch love Gamma and Praxis",
+    "category": "useful"
+  },
+  {
+    "word": "tuincentrum",
+    "teaser": "Garden center — plants, pots, and outdoor furniture",
+    "category": "useful"
+  },
+  {
+    "word": "dierenarts",
+    "teaser": "Veterinarian — caring for Dutch pets",
+    "category": "useful"
+  },
+  {
+    "word": "dierentuin",
+    "teaser": "Zoo — Artis in Amsterdam is the oldest in the Netherlands",
+    "category": "useful"
+  },
+  {
+    "word": "speeltuin",
+    "teaser": "Playground — every Dutch neighborhood has one",
+    "category": "useful"
+  },
+  {
+    "word": "kwartje",
+    "teaser": "A quarter — old coin, still used in expressions",
+    "category": "useful"
+  },
+  {
+    "word": "cent",
+    "teaser": "Cent — small change, every penny counts",
+    "category": "useful"
+  },
+  {
+    "word": "contant geld",
+    "teaser": "Cash money — becoming rare in the Netherlands",
+    "category": "useful"
+  },
+  {
+    "word": "bitterballen",
+    "teaser": "Deep-fried meat ragout balls served at every borrel",
+    "category": "food"
+  },
+  {
+    "word": "pannenkoek",
+    "teaser": "Dutch pancake — thin, wide, and topped with everything",
+    "category": "food"
+  },
+  {
+    "word": "appelmoes",
+    "teaser": "Applesauce — served alongside savory meals too",
+    "category": "food"
+  },
+  {
+    "word": "knakworst",
+    "teaser": "A small sausage snack popular at events and stands",
+    "category": "food"
+  },
+  {
+    "word": "kroketten",
+    "teaser": "Plural of kroket — crispy ragout rolls from a snack bar",
+    "category": "food"
+  },
+  {
+    "word": "winterzon",
+    "teaser": "Winter sun — rare and treasured in the Low Countries",
+    "category": "seasonal"
+  },
+  {
+    "word": "tulpenveld",
+    "teaser": "Tulip field — a colorful explosion every spring",
+    "category": "seasonal"
+  },
+  {
+    "word": "herfstkleuren",
+    "teaser": "Autumn colors — canals lined with golden leaves",
+    "category": "seasonal"
+  },
+  {
+    "word": "sneeuwpop",
+    "teaser": "Snowman — built in every yard when it finally snows",
+    "category": "seasonal"
+  },
+  {
+    "word": "zomerdag",
+    "teaser": "Summer day — terraces overflow with people enjoying sun",
+    "category": "seasonal"
+  },
+  {
+    "word": "ijzel",
+    "teaser": "Freezing rain — a dreaded Dutch winter phenomenon",
+    "category": "seasonal"
+  },
+  {
+    "word": "kapsalon",
+    "teaser": "Fries topped with shawarma, cheese, and salad — a Rotterdam invention",
+    "category": "food"
+  },
+  {
+    "word": "bamischijf",
+    "teaser": "A deep-fried disc of noodles — Indonesian-Dutch fusion",
+    "category": "food"
+  },
+  {
+    "word": "leverworst",
+    "teaser": "Liverwurst spread — a classic sandwich topping",
+    "category": "food"
+  },
+  {
+    "word": "jus",
+    "teaser": "Gravy — poured generously over meat and potatoes",
+    "category": "food"
+  },
+  {
+    "word": "spruitjes",
+    "teaser": "Brussels sprouts — a divisive Dutch dinner staple",
+    "category": "food"
+  },
+  {
+    "word": "suikerbrood",
+    "teaser": "Sugar bread — a sweet Frisian specialty",
+    "category": "food"
+  },
+  {
+    "word": "anijsmelk",
+    "teaser": "Warm anise milk — a comforting Dutch winter drink",
+    "category": "food"
+  },
+  {
+    "word": "vlaflip",
+    "teaser": "Custard swirled with yogurt and fruit — a retro dessert",
+    "category": "food"
+  },
+  {
+    "word": "chocolademelk",
+    "teaser": "Hot chocolate — the Dutch after-skating reward",
+    "category": "food"
+  },
+  {
+    "word": "frikandel speciaal",
+    "teaser": "Frikandel with mayo, curry, and raw onions",
+    "category": "food"
+  },
+  {
+    "word": "sneeuwstorm",
+    "teaser": "Snowstorm — rare but brings the country to a standstill",
+    "category": "seasonal"
+  },
+  {
+    "word": "driekoningen",
+    "teaser": "Epiphany — children sing door to door for treats",
+    "category": "seasonal"
+  },
+  {
+    "word": "Hemelvaartsdag",
+    "teaser": "Ascension Day — a welcome day off in spring",
+    "category": "seasonal"
+  },
+  {
+    "word": "Pinksterdag",
+    "teaser": "Whit Monday — an extra long weekend in late spring",
+    "category": "seasonal"
+  },
+  {
+    "word": "terrasje pikken",
+    "teaser": "Grabbing a spot on a terrace — the Dutch summer ritual",
+    "category": "seasonal"
+  },
+  {
+    "word": "middernachtzon",
+    "teaser": "Midnight sun — longest days bring light until 10pm",
+    "category": "seasonal"
+  },
+  {
+    "word": "oudejaarsavond",
+    "teaser": "New Year's Eve — oliebollen, vuurwerk, and champagne",
+    "category": "seasonal"
+  },
+  {
+    "word": "boerenkaas",
+    "teaser": "Farmhouse cheese — artisan-made from raw milk",
+    "category": "food"
+  },
+  {
+    "word": "appeltaart",
+    "teaser": "Dutch apple pie — served warm with whipped cream",
+    "category": "food"
+  },
+  {
+    "word": "taai-taai",
+    "teaser": "Chewy anise cookie shaped like a figure",
+    "category": "food"
+  },
+  {
+    "word": "krentenbollen",
+    "teaser": "Currant buns — sweet rolls for breakfast or tea",
+    "category": "food"
+  },
+  {
+    "word": "tompoes",
+    "teaser": "A custard slice with pink icing — a national pastry",
+    "category": "food"
+  },
+  {
+    "word": "kaasstengels",
+    "teaser": "Cheese sticks — a crispy borrel snack",
+    "category": "food"
+  },
+  {
+    "word": "waterijs",
+    "teaser": "Ice lolly — the Dutch summer cool-down",
+    "category": "food"
+  },
+  {
+    "word": "bruine bonen",
+    "teaser": "Brown beans — a traditional Dutch side dish",
+    "category": "food"
+  },
+  {
+    "word": "speculaasmolen",
+    "teaser": "Windmill-shaped speculaas cookie",
+    "category": "food"
+  },
+  {
+    "word": "blokzak",
+    "teaser": "Bag of chocolate chunks for baking or snacking",
+    "category": "food"
+  },
+  {
+    "word": "balkenbrij",
+    "teaser": "Buckwheat and organ meat dish — old-fashioned Dutch fare",
+    "category": "food"
+  },
+  {
+    "word": "dauwtrappen",
+    "teaser": "Walking barefoot in the dew on Ascension Day morning",
+    "category": "seasonal"
+  },
+  {
+    "word": "midzomer",
+    "teaser": "Midsummer — the longest day of the year",
+    "category": "seasonal"
+  },
+  {
+    "word": "schaatsweer",
+    "teaser": "Skating weather — rare freezing days that excite a nation",
+    "category": "seasonal"
+  },
+  {
+    "word": "rolmops",
+    "teaser": "Pickled herring rolled around a gherkin",
+    "category": "food"
+  },
+  {
+    "word": "meifeest",
+    "teaser": "May festival — springtime celebrations across villages",
+    "category": "seasonal"
+  },
+  {
+    "word": "snert",
+    "teaser": "Thick pea soup nickname — so thick a spoon stands up",
+    "category": "food"
+  },
+  {
+    "word": "karnemelk",
+    "teaser": "Buttermilk — a refreshing Dutch dairy drink",
+    "category": "food"
+  }
+]
