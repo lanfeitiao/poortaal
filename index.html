@@ -1952,18 +1952,19 @@ function updateWordStats(word, type) {
   if (stats[w].level === undefined) stats[w].level = 0;
   if (type === 'lookup') stats[w].lookups++;
   if (type === 'practice') stats[w].practices++;
-  if (type === 'review' || type === 'practice') {
+  if (type === 'review' || type === 'practice' || type === 'review_again') {
     // Only count once per day — check if already reviewed today
     const today = new Date().toDateString();
     const lastReview = stats[w].reviews.length > 0 ? stats[w].reviews[stats[w].reviews.length - 1] : 0;
     const lastReviewDay = new Date(lastReview).toDateString();
     const alreadyReviewedToday = lastReview && lastReviewDay === today;
-    
+
     if (!alreadyReviewedToday) {
       stats[w].reviews.push(Date.now());
-      // First practice just records the review — stay at seed (level 0)
-      // Spaced repetition level only increases from the second review day onwards
-      if (stats[w].reviews.length >= 2) {
+      // First practice just records the review — stay at seed (level 0).
+      // Spaced repetition level only increases from the second review day onwards,
+      // and "review_again" (user clicked Opnieuw) never levels up.
+      if (stats[w].reviews.length >= 2 && type !== 'review_again') {
         stats[w].level = Math.min(stats[w].level + 1, 4);
       }
     }
