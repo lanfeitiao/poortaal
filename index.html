@@ -1966,9 +1966,53 @@ function onReviewCardTap() {
   if (again) again.disabled = false;
   if (know) know.disabled = false;
 }
-function gradeAndAdvance(_known) { /* Task 7 */ }
+function gradeAndAdvance(known) {
+  if (!reviewSessionActive || !reviewRevealed) return;
+  const item = reviewQueue[reviewIndex];
+  if (!item) return;
+  const word = item.entry.word;
+  if (known) {
+    reviewResults.know++;
+    updateWordStats(word, 'review');
+  } else {
+    reviewResults.again++;
+    updateWordStats(word, 'review_again');
+  }
+  updateReviewBadge();
+  reviewIndex++;
+  reviewRevealed = false;
+  renderReviewSession();
+}
+
+function renderReviewSummary() {
+  const root = document.getElementById('reviewSessionSection');
+  if (!root) return;
+  const know = reviewResults.know;
+  const again = reviewResults.again;
+  const lines = [];
+  if (know  > 0) lines.push(`<div class="review-summary-stat">🌳 ${know} wist je</div>`);
+  if (again > 0) lines.push(`<div class="review-summary-stat">🥀 ${again} opnieuw</div>`);
+  if (lines.length === 0) lines.push(`<div class="review-summary-stat">Geen woorden beoordeeld</div>`);
+  root.innerHTML = `
+    <div class="review-summary">
+      <div class="review-summary-emoji">🌳</div>
+      <div class="review-summary-title">Klaar!</div>
+      ${lines.join('')}
+      <button class="review-summary-btn" onclick="endReviewSessionToHome()">Tot morgen</button>
+    </div>
+  `;
+}
+
+function endReviewSessionToHome() {
+  reviewSessionActive = false;
+  reviewQueue = [];
+  reviewIndex = 0;
+  reviewResults = { know: 0, again: 0 };
+  reviewRevealed = false;
+  renderReviewHome();
+}
+
 function exitReviewSession() { /* Task 10 */ }
-function renderReviewSummary() { /* Task 7 */ }
 
 function resetReviewSessionIfActive() { /* defined in Task 10 */ }
 
