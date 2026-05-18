@@ -1222,6 +1222,11 @@ main {
       </div>
     </div>
   </div>
+
+  <div id="view-review" class="view">
+    <div id="reviewHomeSection"></div>
+    <div id="reviewSessionSection" style="display:none;"></div>
+  </div>
 </main>
 
 <!-- Bottom navigation -->
@@ -1229,6 +1234,10 @@ main {
   <a href="#home" id="nav-home" class="active">
     <span class="nav-icon">🔍</span>
     Zoeken
+  </a>
+  <a href="#review" id="nav-review">
+    <span class="nav-icon">🌿</span>
+    Herhalen<span class="nav-badge" id="navReviewBadge" hidden>0</span>
   </a>
   <a href="#practice" id="nav-practice">
     <span class="nav-icon">🗣️</span>
@@ -1596,19 +1605,30 @@ function navigateTo(hash) {
   window.location.hash = hash;
 }
 
+function renderReviewHome() { /* defined in Task 3 */ }
+function resetReviewSessionIfActive() { /* defined in Task 10 */ }
+
 function handleRoute() {
   const hash = window.location.hash || '#home';
   const route = hash.split('?')[0];
   const isHome = route === '#home' || route === '' || route === '#';
   const isPractice = route === '#practice';
+  const isReview = route === '#review';
 
   document.getElementById('view-home').classList.toggle('active', isHome);
   document.getElementById('view-practice').classList.toggle('active', isPractice);
+  document.getElementById('view-review').classList.toggle('active', isReview);
   document.getElementById('nav-home').classList.toggle('active', isHome);
   document.getElementById('nav-practice').classList.toggle('active', isPractice);
+  document.getElementById('nav-review').classList.toggle('active', isReview);
 
   if (isPractice) {
     renderPracticeHistoryList();
+  }
+  if (isReview) {
+    renderReviewHome();
+  } else {
+    resetReviewSessionIfActive();
   }
 }
 
