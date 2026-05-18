@@ -2206,7 +2206,27 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Enter') handleAuth();
   });
   handleRoute();
+  window.addEventListener('keydown', onReviewKeydown);
 });
+
+function onReviewKeydown(e) {
+  if (!reviewSessionActive) return;
+  const tag = (document.activeElement && document.activeElement.tagName) || '';
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+  if (reviewIndex >= reviewQueue.length) return;
+  if (e.key === ' ' || e.code === 'Space') {
+    e.preventDefault();
+    onReviewCardTap();
+  } else if (e.key === 'Enter' || e.key === 'ArrowRight') {
+    if (!reviewRevealed) return;
+    e.preventDefault();
+    gradeAndAdvance(true);
+  } else if (e.key === 'ArrowLeft') {
+    if (!reviewRevealed) return;
+    e.preventDefault();
+    gradeAndAdvance(false);
+  }
+}
 
 // --- TTS (Cloudflare Worker proxy → Google Translate) ---
 // iOS Safari requires fetch+blob approach for cross-origin audio
