@@ -2068,9 +2068,29 @@ function endReviewSessionToHome() {
   renderReviewHome();
 }
 
-function exitReviewSession() { /* Task 10 */ }
+function exitReviewSession() {
+  if (!reviewSessionActive) return;
+  if (reviewIndex >= reviewQueue.length) {
+    endReviewSessionToHome();
+    return;
+  }
+  const ok = window.confirm('Sessie stoppen? Je voortgang van deze sessie gaat verloren.');
+  if (!ok) return;
+  endReviewSessionToHome();
+}
 
-function resetReviewSessionIfActive() { /* defined in Task 10 */ }
+function resetReviewSessionIfActive() {
+  if (!reviewSessionActive) return;
+  reviewSessionActive = false;
+  reviewQueue = [];
+  reviewIndex = 0;
+  reviewResults = { know: 0, again: 0 };
+  reviewRevealed = false;
+  const session = document.getElementById('reviewSessionSection');
+  const home = document.getElementById('reviewHomeSection');
+  if (session) session.style.display = 'none';
+  if (home) home.style.display = '';
+}
 
 function handleRoute() {
   updateReviewBadge();
