@@ -1223,6 +1223,144 @@ main {
   color: var(--gray-400);
   margin-top: 0.25rem;
 }
+
+/* --- Review session --- */
+.review-session { display: flex; flex-direction: column; min-height: 70vh; }
+.review-session-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.25rem;
+}
+.review-back-btn {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  color: var(--gray-500);
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  font-family: inherit;
+}
+.review-back-btn:hover { color: var(--gray-700); }
+.review-progress-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--gray-600);
+}
+.review-progress-track {
+  height: 3px;
+  background: #f3f4f6;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.review-progress-fill {
+  height: 100%;
+  background: #ca8a04;
+  transition: width 0.25s ease-out;
+}
+.review-stack {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  height: 320px;
+  margin: 2rem auto;
+}
+.review-card {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  border: 1px solid var(--gray-100);
+  border-radius: 18px;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: pointer;
+  touch-action: pan-y;
+}
+.review-card.back-2 { transform: translateY(14px) scale(0.94); opacity: 0.45; z-index: 1; pointer-events: none; }
+.review-card.back-1 { transform: translateY(7px) scale(0.97); opacity: 0.75; z-index: 2; pointer-events: none; }
+.review-card.front  { transform: rotate(-2deg); z-index: 3; }
+.review-card.front.swipe-anim { transition: transform 0.2s ease-out; }
+.review-stage-pill {
+  display: inline-block;
+  background: #fef9c3;
+  color: #92400e;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  margin-bottom: 1rem;
+}
+.review-stage-pill.fresh { background: #ecfdf5; color: #047857; }
+.review-card-word { font-size: 2rem; font-weight: 700; color: var(--gray-900); }
+.review-card-type { font-size: 0.85rem; color: var(--blue-600); margin-top: 0.25rem; }
+.review-card-hint { font-size: 0.8rem; color: var(--gray-400); margin-top: 1.25rem; }
+.review-card-answer {
+  display: none;
+  margin-top: 1.25rem;
+}
+.review-card-answer.revealed { display: block; animation: fadeUp 0.25s ease-out; }
+.review-card-answer .answer-nl { font-size: 1rem; color: var(--gray-700); }
+.review-card-answer .answer-en { font-size: 0.85rem; color: var(--gray-500); margin-top: 0.25rem; font-style: italic; }
+.review-actions {
+  display: flex;
+  gap: 0.6rem;
+  margin: 1rem 0;
+}
+.review-actions button {
+  flex: 1;
+  padding: 0.85rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  color: #fff;
+  transition: transform 0.15s, opacity 0.2s;
+}
+.review-actions button:disabled { opacity: 0.4; cursor: not-allowed; }
+.review-actions button:not(:disabled):hover { transform: translateY(-1px); }
+.review-btn-again { background: #eab308; }
+.review-btn-know  { background: #22c55e; }
+.review-summary {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  animation: fadeUp 0.3s ease-out;
+}
+.review-summary-emoji { font-size: 3rem; }
+.review-summary-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  margin: 0.5rem 0 1.5rem 0;
+}
+.review-summary-stat {
+  font-size: 1rem;
+  color: var(--gray-700);
+  margin: 0.25rem 0;
+}
+.review-summary-btn {
+  display: block;
+  width: 100%;
+  padding: 0.85rem;
+  background: var(--blue-600);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 1.5rem;
+}
+.review-summary-btn:hover { background: var(--blue-500); }
 </style>
 </head>
 <body>
@@ -1694,6 +1832,11 @@ if (searchHistory.length > 0 && typeof searchHistory[0] === 'string') {
 let currentWord = null;
 let currentWordData = null;
 let practiceMessages = [];
+let reviewQueue = [];
+let reviewIndex = 0;
+let reviewResults = { know: 0, again: 0 };
+let reviewRevealed = false;
+let reviewSessionActive = false;
 let practiceLoading = false;
 let microReviewTimer = null;
 let microReviewInterval = null;
@@ -1743,8 +1886,78 @@ function renderReviewHome() {
 }
 
 function startReviewSession() {
-  // Implemented in Task 5
+  const due = getDueWords();
+  if (due.length === 0) {
+    renderReviewHome();
+    return;
+  }
+  reviewQueue = due;
+  reviewIndex = 0;
+  reviewResults = { know: 0, again: 0 };
+  reviewRevealed = false;
+  reviewSessionActive = true;
+  document.getElementById('reviewHomeSection').style.display = 'none';
+  document.getElementById('reviewSessionSection').style.display = '';
+  renderReviewSession();
 }
+
+function renderReviewSession() {
+  const root = document.getElementById('reviewSessionSection');
+  if (!root) return;
+  if (reviewIndex >= reviewQueue.length) {
+    renderReviewSummary();
+    return;
+  }
+  const item = reviewQueue[reviewIndex];
+  const data = item.entry.wordData || {};
+  const word = item.entry.word;
+  const total = reviewQueue.length;
+  const pct = Math.round((reviewIndex / total) * 100);
+  const pill = item.isWilting
+    ? `<span class="review-stage-pill">🥀 ${Math.max(1, Math.floor(item.overdueBy))}d te laat</span>`
+    : `<span class="review-stage-pill fresh">🌿 vandaag</span>`;
+  const meaningNl = escapeHtml(data.meaning_nl || '');
+  const meaningEn = escapeHtml(data.meaning_en || '');
+  const safeWord = escapeHtml(word);
+  const safeType = escapeHtml(data.type || '');
+  const revealedClass = reviewRevealed ? 'revealed' : '';
+  const actionsDisabled = reviewRevealed ? '' : 'disabled';
+  const back2 = reviewIndex + 2 < total ? '<div class="review-card back-2"></div>' : '';
+  const back1 = reviewIndex + 1 < total ? '<div class="review-card back-1"></div>' : '';
+  root.innerHTML = `
+    <div class="review-session">
+      <div class="review-session-header">
+        <button class="review-back-btn" onclick="exitReviewSession()" aria-label="Terug">←</button>
+        <span class="review-progress-text">${reviewIndex + 1} / ${total}</span>
+        <span style="width:2rem;"></span>
+      </div>
+      <div class="review-progress-track"><div class="review-progress-fill" style="width:${pct}%"></div></div>
+      <div class="review-stack" id="reviewStack">
+        ${back2}
+        ${back1}
+        <div class="review-card front" id="reviewFrontCard" onclick="onReviewCardTap()">
+          ${pill}
+          <div class="review-card-word">${safeWord}</div>
+          ${safeType ? `<div class="review-card-type">${safeType}</div>` : ''}
+          <div class="review-card-hint" id="reviewCardHint" ${reviewRevealed ? 'hidden' : ''}>tik om te onthullen</div>
+          <div class="review-card-answer ${revealedClass}" id="reviewCardAnswer">
+            <div class="answer-nl">${meaningNl}</div>
+            ${meaningEn ? `<div class="answer-en">${meaningEn}</div>` : ''}
+          </div>
+        </div>
+      </div>
+      <div class="review-actions">
+        <button class="review-btn-again" id="reviewBtnAgain" onclick="gradeAndAdvance(false)" ${actionsDisabled}>Opnieuw</button>
+        <button class="review-btn-know"  id="reviewBtnKnow"  onclick="gradeAndAdvance(true)"  ${actionsDisabled}>Wist ik!</button>
+      </div>
+    </div>
+  `;
+}
+
+function onReviewCardTap() { /* Task 6 */ }
+function gradeAndAdvance(_known) { /* Task 7 */ }
+function exitReviewSession() { /* Task 10 */ }
+function renderReviewSummary() { /* Task 7 */ }
 
 function resetReviewSessionIfActive() { /* defined in Task 10 */ }
 
