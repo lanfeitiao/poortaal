@@ -1952,6 +1952,62 @@ function renderReviewSession() {
       </div>
     </div>
   `;
+  attachReviewCardSwipe();
+}
+
+function attachReviewCardSwipe() {
+  const card = document.getElementById('reviewFrontCard');
+  if (!card) return;
+  let startX = 0, startY = 0, dx = 0, dragging = false, decided = false;
+
+  const reset = () => {
+    card.classList.add('swipe-anim');
+    card.style.transform = '';
+    setTimeout(() => card.classList.remove('swipe-anim'), 200);
+  };
+
+  card.addEventListener('pointerdown', e => {
+    if (!reviewRevealed) return;
+    startX = e.clientX;
+    startY = e.clientY;
+    dx = 0;
+    dragging = true;
+    decided = false;
+    card.setPointerCapture(e.pointerId);
+    card.classList.remove('swipe-anim');
+  });
+  card.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    if (!decided && Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 12) {
+      dragging = false;
+      card.style.transform = '';
+      return;
+    }
+    if (Math.abs(dx) > 6) decided = true;
+    const rot = dx / 20;
+    card.style.transform = `translateX(${dx}px) rotate(${rot}deg)`;
+  });
+  const commitOrReset = () => {
+    if (!dragging) return;
+    dragging = false;
+    if (!reviewRevealed) { reset(); return; }
+    const threshold = 80;
+    if (dx > threshold) {
+      card.classList.add('swipe-anim');
+      card.style.transform = `translateX(120%) rotate(20deg)`;
+      setTimeout(() => gradeAndAdvance(true), 200);
+    } else if (dx < -threshold) {
+      card.classList.add('swipe-anim');
+      card.style.transform = `translateX(-120%) rotate(-20deg)`;
+      setTimeout(() => gradeAndAdvance(false), 200);
+    } else {
+      reset();
+    }
+  };
+  card.addEventListener('pointerup', commitOrReset);
+  card.addEventListener('pointercancel', commitOrReset);
 }
 
 function onReviewCardTap() {
