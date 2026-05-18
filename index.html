@@ -805,6 +805,20 @@ main {
 .bottom-nav a.active { color: var(--blue-600); }
 .bottom-nav a:hover { color: var(--blue-500); }
 .bottom-nav a .nav-icon { font-size: 1.3rem; }
+.nav-badge {
+  display: inline-block;
+  background: #ef4444;
+  color: #fff;
+  border-radius: 999px;
+  padding: 1px 6px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  margin-left: 4px;
+  line-height: 1.2;
+  min-width: 16px;
+  text-align: center;
+}
+.nav-badge[hidden] { display: none; }
 
 /* Views */
 .view { display: none; }
@@ -1536,6 +1550,7 @@ async function syncFromCloud() {
     }
 
     renderHistory();
+    updateReviewBadge();
   } catch (e) {
     console.error('Sync error:', e);
   } finally {
@@ -1609,6 +1624,7 @@ function renderReviewHome() { /* defined in Task 3 */ }
 function resetReviewSessionIfActive() { /* defined in Task 10 */ }
 
 function handleRoute() {
+  updateReviewBadge();
   const hash = window.location.hash || '#home';
   const route = hash.split('?')[0];
   const isHome = route === '#home' || route === '' || route === '#';
@@ -1729,6 +1745,7 @@ async function loadDailyWord() {
 document.addEventListener('DOMContentLoaded', () => {
   initAuth();
   renderHistory();
+  updateReviewBadge();
   loadDailyWord();
   document.getElementById('wordInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') lookupWord();
@@ -1854,6 +1871,7 @@ function addToHistory(word, wordData) {
   updateWordStats(w, 'lookup');
   saveHistoryToCloud(w, wordData);
   renderHistory();
+  updateReviewBadge();
 }
 
 function getPlantStage(word) {
@@ -1883,6 +1901,38 @@ function getPlantStage(word) {
     ? (daysLeft > 0 ? `${daysLeft}d tot herhaling` : 'Herhaal vandaag!')
     : 'Oefen om te groeien';
   return { emoji: '🌱', label: 'Zaaisel', key: 'seed', hint: seedHint };
+}
+
+function getDueWords() {
+  const stats = getWordStats();
+  return searchHistory
+    .filter(entry => entry.wordData)
+    .map(entry => {
+      const s = stats[entry.word] || {};
+      const level = s.level || 0;
+      const lastSeen = s.lastSeen || 0;
+      const daysSinceLast = (Date.now() - lastSeen) / 86400000;
+      const nextInterval = getNextInterval(level);
+      const isDue = daysSinceLast >= nextInterval && level < 4;
+      const overdueBy = daysSinceLast - nextInterval;
+      const isWilting = overdueBy > 0;
+      return { entry, stats: s, level, isDue, isWilting, overdueBy };
+    })
+    .filter(x => x.isDue)
+    .sort((a, b) => b.overdueBy - a.overdueBy);
+}
+
+function updateReviewBadge() {
+  const badge = document.getElementById('navReviewBadge');
+  if (!badge) return;
+  const due = getDueWords();
+  if (due.length === 0) {
+    badge.hidden = true;
+    badge.textContent = '0';
+  } else {
+    badge.hidden = false;
+    badge.textContent = String(due.length);
+  }
 }
 
 function renderHistory() {
