@@ -1954,7 +1954,18 @@ function renderReviewSession() {
   `;
 }
 
-function onReviewCardTap() { /* Task 6 */ }
+function onReviewCardTap() {
+  if (reviewRevealed) return;
+  reviewRevealed = true;
+  const answer = document.getElementById('reviewCardAnswer');
+  const hint = document.getElementById('reviewCardHint');
+  if (answer) answer.classList.add('revealed');
+  if (hint) hint.hidden = true;
+  const again = document.getElementById('reviewBtnAgain');
+  const know = document.getElementById('reviewBtnKnow');
+  if (again) again.disabled = false;
+  if (know) know.disabled = false;
+}
 function gradeAndAdvance(_known) { /* Task 7 */ }
 function exitReviewSession() { /* Task 10 */ }
 function renderReviewSummary() { /* Task 7 */ }
