@@ -1140,6 +1140,89 @@ main {
   .daily-word-main h2 { font-size: 1.4rem; }
   .daily-word-main { flex-wrap: wrap; }
 }
+
+/* --- Review tab home --- */
+.review-home { padding: 1rem 0; }
+.review-home h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  margin-bottom: 0.25rem;
+}
+.review-home .review-sub {
+  color: var(--gray-500);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+.review-count-card {
+  background: #fef9c3;
+  border: 1px solid #fde68a;
+  border-left: 4px solid #ca8a04;
+  border-radius: 14px;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  margin-bottom: 1rem;
+  animation: fadeUp 0.3s ease-out;
+}
+.review-count-num {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #92400e;
+  line-height: 1;
+}
+.review-count-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  color: #92400e;
+  text-transform: uppercase;
+  margin-top: 0.5rem;
+  font-weight: 600;
+}
+.review-count-breakdown {
+  font-size: 0.85rem;
+  color: #a16207;
+  margin-top: 0.5rem;
+}
+.review-start-btn {
+  display: block;
+  width: 100%;
+  padding: 0.9rem;
+  background: #ca8a04;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s;
+}
+.review-start-btn:hover { background: #b45309; }
+.review-start-btn:active { transform: scale(0.99); }
+.review-start-meta {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--gray-400);
+  margin-top: 0.5rem;
+}
+.review-empty {
+  text-align: center;
+  padding: 4rem 1rem;
+  color: var(--gray-500);
+  animation: fadeUp 0.3s ease-out;
+}
+.review-empty .review-empty-emoji { font-size: 3rem; }
+.review-empty .review-empty-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--gray-700);
+  margin-top: 0.5rem;
+}
+.review-empty .review-empty-sub {
+  font-size: 0.85rem;
+  color: var(--gray-400);
+  margin-top: 0.25rem;
+}
 </style>
 </head>
 <body>
@@ -1620,7 +1703,49 @@ function navigateTo(hash) {
   window.location.hash = hash;
 }
 
-function renderReviewHome() { /* defined in Task 3 */ }
+function renderReviewHome() {
+  const home = document.getElementById('reviewHomeSection');
+  const session = document.getElementById('reviewSessionSection');
+  if (!home || !session) return;
+  home.style.display = '';
+  session.style.display = 'none';
+
+  const due = getDueWords();
+  if (due.length === 0) {
+    home.innerHTML = `
+      <div class="review-empty">
+        <div class="review-empty-emoji">🌳</div>
+        <div class="review-empty-title">Alles fris voor vandaag</div>
+        <div class="review-empty-sub">Kom morgen terug</div>
+      </div>
+    `;
+    return;
+  }
+  const wilting = due.filter(d => d.isWilting).length;
+  const today = due.length - wilting;
+  const breakdownParts = [];
+  if (wilting > 0) breakdownParts.push(`🥀 ${wilting} verwelkt`);
+  if (today > 0) breakdownParts.push(`🌿 ${today} vandaag`);
+  const breakdown = breakdownParts.join(' · ');
+  home.innerHTML = `
+    <div class="review-home">
+      <h1>Herhalen</h1>
+      <div class="review-sub">${due.length} ${due.length === 1 ? 'woord' : 'woorden'} vandaag</div>
+      <div class="review-count-card">
+        <div class="review-count-num">${due.length}</div>
+        <div class="review-count-label">${due.length === 1 ? 'WOORD VANDAAG' : 'WOORDEN VANDAAG'}</div>
+        <div class="review-count-breakdown">${breakdown}</div>
+      </div>
+      <button class="review-start-btn" onclick="startReviewSession()">▶ Begin herhaling</button>
+      <div class="review-start-meta">automatisch volgende</div>
+    </div>
+  `;
+}
+
+function startReviewSession() {
+  // Implemented in Task 5
+}
+
 function resetReviewSessionIfActive() { /* defined in Task 10 */ }
 
 function handleRoute() {
