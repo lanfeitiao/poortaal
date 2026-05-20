@@ -1914,7 +1914,7 @@ function renderReviewSession() {
   const total = reviewQueue.length;
   const pct = Math.round((reviewIndex / total) * 100);
   const pill = item.isWilting
-    ? `<span class="review-stage-pill">🥀 ${Math.max(1, Math.floor(item.overdueBy))}d te laat</span>`
+    ? `<span class="review-stage-pill">🥀 ${item.overdueDays}d te laat</span>`
     : `<span class="review-stage-pill fresh">🌿 vandaag</span>`;
   const meaningNl = escapeHtml(data.meaning_nl || '');
   const meaningEn = escapeHtml(data.meaning_en || '');
@@ -2350,6 +2350,12 @@ function getNextInterval(level) {
   return intervals[Math.min(level, intervals.length - 1)];
 }
 
+function startOfDay(ts) {
+  const d = new Date(ts);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
 function addToHistory(word, wordData) {
   const w = word.toLowerCase().trim();
   searchHistory = searchHistory.filter(h => h.word !== w);
@@ -2367,49 +2373,49 @@ function addToHistory(word, wordData) {
 function getPlantStage(word) {
   const stats = getWordStats()[word.toLowerCase().trim()];
   if (!stats) return { emoji: '🌱', label: 'Zaaisel', key: 'seed', hint: '' };
-  
+
   const level = stats.level || 0;
-  const daysSinceLast = (Date.now() - stats.lastSeen) / 86400000;
+  const lastSeen = stats.lastSeen || 0;
   const nextInterval = getNextInterval(level);
-  const overdue = daysSinceLast > nextInterval;
-  const daysLeft = Math.max(0, Math.ceil(nextInterval - daysSinceLast));
-  
-  // If overdue: wilting (needs review!)
+  const today = startOfDay(Date.now());
+  const dueDay = startOfDay(lastSeen + nextInterval * 86400000);
+  const overdueDays = Math.max(0, Math.round((today - dueDay) / 86400000));
+  const daysLeft = Math.max(0, Math.round((dueDay - today) / 86400000));
+  const overdue = dueDay < today;
+  const dueTodayHint = 'Herhaal vandaag!';
+
   if (overdue && level < 4) {
-    const overdueDays = Math.floor(daysSinceLast - nextInterval);
     return { emoji: '🥀', label: 'Verwelkt', key: 'wilting', hint: `${overdueDays}d te laat` };
   }
-  
-  // Based on spaced repetition level
   if (level >= 4) return { emoji: '🌳', label: 'Sterk', key: 'strong', hint: 'Goed gedaan!' };
-  if (level >= 3) return { emoji: '🪴', label: 'Groeiend', key: 'growing', hint: `${daysLeft}d tot herhaling` };
-  if (level >= 1) return { emoji: '🌿', label: 'Kiempje', key: 'sprout', hint: `${daysLeft}d tot herhaling` };
-  
-  // Level 0: seed — either just looked up, or practiced once
+  if (level >= 3) return { emoji: '🪴', label: 'Groeiend', key: 'growing', hint: daysLeft === 0 ? dueTodayHint : `${daysLeft}d tot herhaling` };
+  if (level >= 1) return { emoji: '🌿', label: 'Kiempje', key: 'sprout',  hint: daysLeft === 0 ? dueTodayHint : `${daysLeft}d tot herhaling` };
+
   const hasPracticed = stats.practices > 0 || stats.reviews.length > 0;
   const seedHint = hasPracticed
-    ? (daysLeft > 0 ? `${daysLeft}d tot herhaling` : 'Herhaal vandaag!')
+    ? (daysLeft > 0 ? `${daysLeft}d tot herhaling` : dueTodayHint)
     : 'Oefen om te groeien';
   return { emoji: '🌱', label: 'Zaaisel', key: 'seed', hint: seedHint };
 }
 
 function getDueWords() {
   const stats = getWordStats();
+  const today = startOfDay(Date.now());
   return searchHistory
     .filter(entry => entry.wordData)
     .map(entry => {
       const s = stats[entry.word] || {};
       const level = s.level || 0;
       const lastSeen = s.lastSeen || 0;
-      const daysSinceLast = (Date.now() - lastSeen) / 86400000;
       const nextInterval = getNextInterval(level);
-      const isDue = daysSinceLast >= nextInterval && level < 4;
-      const overdueBy = daysSinceLast - nextInterval;
-      const isWilting = overdueBy > 0;
-      return { entry, stats: s, level, isDue, isWilting, overdueBy };
+      const dueDay = startOfDay(lastSeen + nextInterval * 86400000);
+      const isDue = dueDay <= today && level < 4;
+      const isWilting = dueDay < today;
+      const overdueDays = Math.max(0, Math.round((today - dueDay) / 86400000));
+      return { entry, stats: s, level, isDue, isWilting, overdueDays };
     })
     .filter(x => x.isDue)
-    .sort((a, b) => b.overdueBy - a.overdueBy);
+    .sort((a, b) => b.overdueDays - a.overdueDays);
 }
 
 function updateReviewBadge() {
