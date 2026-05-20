@@ -1262,12 +1262,9 @@ main {
   position: relative;
   width: 100%;
   max-width: 360px;
-  height: 320px;
   margin: 2rem auto;
 }
 .review-card {
-  position: absolute;
-  inset: 0;
   background: #fff;
   border: 1px solid var(--gray-100);
   border-radius: 18px;
@@ -1283,9 +1280,11 @@ main {
   cursor: pointer;
   touch-action: pan-y;
 }
-.review-card.back-2 { transform: translateY(14px) scale(0.94); opacity: 0.45; z-index: 1; pointer-events: none; }
-.review-card.back-1 { transform: translateY(7px) scale(0.97); opacity: 0.75; z-index: 2; pointer-events: none; }
-.review-card.front  { transform: rotate(-2deg); z-index: 3; }
+.review-card.back-2,
+.review-card.back-1 { position: absolute; inset: 0; pointer-events: none; }
+.review-card.back-2 { transform: translateY(14px) scale(0.94); opacity: 0.45; z-index: 1; }
+.review-card.back-1 { transform: translateY(7px) scale(0.97); opacity: 0.75; z-index: 2; }
+.review-card.front  { position: relative; min-height: 320px; transform: rotate(-2deg); z-index: 3; }
 .review-card.front.swipe-anim { transition: transform 0.2s ease-out; }
 .review-stage-pill {
   display: inline-block;
