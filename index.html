@@ -1299,7 +1299,8 @@ main {
 .review-stage-pill.fresh { background: #ecfdf5; color: #047857; }
 .review-card-word { font-size: 2rem; font-weight: 700; color: var(--gray-900); }
 .review-card-type { font-size: 0.85rem; color: var(--blue-600); margin-top: 0.25rem; }
-.review-card-hint { font-size: 0.8rem; color: var(--gray-400); margin-top: 1.25rem; }
+.review-tts-btn   { margin-top: 0.75rem; }
+.review-card-hint { font-size: 0.8rem; color: var(--gray-400); margin-top: 1rem; }
 .review-card-answer {
   display: none;
   margin-top: 1.25rem;
@@ -1938,6 +1939,7 @@ function renderReviewSession() {
           ${pill}
           <div class="review-card-word">${safeWord}</div>
           ${safeType ? `<div class="review-card-type">${safeType}</div>` : ''}
+          <button class="tts-btn review-tts-btn" onclick="onReviewTTS(event, this)" onpointerdown="event.stopPropagation()" data-word="${safeWord}" title="Uitspraak beluisteren">🔊</button>
           <div class="review-card-hint" id="reviewCardHint" ${reviewRevealed ? 'hidden' : ''}>tik om te onthullen</div>
           <div class="review-card-answer ${revealedClass}" id="reviewCardAnswer">
             <div class="answer-nl">${meaningNl}</div>
@@ -2007,6 +2009,11 @@ function attachReviewCardSwipe() {
   };
   card.addEventListener('pointerup', commitOrReset);
   card.addEventListener('pointercancel', commitOrReset);
+}
+
+function onReviewTTS(e, btn) {
+  e.stopPropagation();
+  playExTTS(btn, btn.dataset.word || '');
 }
 
 function onReviewCardTap() {
