@@ -2609,7 +2609,7 @@ async function lookupWord() {
 - "meaning_nl": meaning explained in simple Dutch (1-2 sentences)
 - "meaning_en": English translation/meaning
 - "examples": array of 2-3 objects with "nl" (Dutch sentence using the word) and "en" (English translation)
-- "tips": practical usage tips in English (when to use, common mistakes, register)
+- "tips": a concise, genuinely useful explanation in English of how to use the word. Include when to use it, its register, and a common mistake or natural contrast only when these help the learner; never invent a forced, strange, or trivial tip. Whenever the word is a compound of two or three words, explain its components and how their meanings combine. Whenever it has a meaningful prefix or suffix, explain that affix and what it contributes. Omit word-formation details when no clear, learner-useful analysis exists
 - "fun_fact": an interesting etymology or cultural note (in English), or null if nothing notable`;
 
     const raw = await callOpenAI([
