@@ -2609,7 +2609,7 @@ async function lookupWord() {
 - "meaning_nl": meaning explained in simple Dutch (1-2 sentences)
 - "meaning_en": English translation/meaning
 - "examples": array of 2-3 objects with "nl" (Dutch sentence using the word) and "en" (English translation)
-- "tips": a concise, genuinely useful explanation in English of how to use the word. Include when to use it, its register, and a common mistake or natural contrast only when these help the learner; never invent a forced, strange, or trivial tip. Whenever the word is a compound of two or three words, explain its components and how their meanings combine. Whenever it has a meaningful prefix or suffix, explain that affix and what it contributes. Omit word-formation details when no clear, learner-useful analysis exists
+- "tips": one concise, genuinely useful insight in English, or null when there is no non-obvious advice to give. Prioritize information that changes how a learner would form or understand a sentence: irregular grammar or inflection, required articles or prepositions, register, idiomatic usage, a common learner error, or a useful contrast with a similar word. For a transparent compound or a word with a meaningful affix, explain its parts only when doing so helps the learner remember or infer the meaning. Do not restate the definition, examples, or obvious spelling/capitalization rules. Do not manufacture advice merely to fill this field. For example, saying that "Rijksmuseum" is the formal name of a specific museum and must be capitalized is not a useful tip; return null unless there is a more actionable insight
 - "fun_fact": an interesting etymology or cultural note (in English), or null if nothing notable`;
 
     const raw = await callOpenAI([
@@ -2653,6 +2653,13 @@ function renderWordCard(data) {
   const funFactHtml = data.fun_fact
     ? `<div class="fun-fact">💡 ${data.fun_fact}</div>` : '';
 
+  const tipsHtml = data.tips
+    ? `<div class="card">
+      <div class="card-label">Tips</div>
+      <div class="tips-text">${data.tips}</div>
+    </div>`
+    : '';
+
   content.innerHTML = `
     <div class="card" id="wordCard">
       <div class="card-label">Woord</div>
@@ -2673,10 +2680,7 @@ function renderWordCard(data) {
       ${examplesHtml}
     </div>
 
-    <div class="card">
-      <div class="card-label">Tips</div>
-      <div class="tips-text">${data.tips}</div>
-    </div>
+    ${tipsHtml}
 
     <button class="practice-btn" onclick="goToPractice('${data.word.replace(/'/g, "\\'")}')">🎭 Oefenen met "${data.word}"</button>
   `;
