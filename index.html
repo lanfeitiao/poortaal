@@ -2480,7 +2480,7 @@ function deleteHistoryItem(word) {
   localStorage.setItem('poortaal_history', JSON.stringify(searchHistory));
   const cache = getWordCache();
   delete cache[w];
-  localStorage.setItem('poortaal_word_cache', JSON.stringify(cache));
+  localStorage.setItem(WORD_CACHE_KEY, JSON.stringify(cache));
   const stats = getWordStats();
   delete stats[w];
   localStorage.setItem('poortaal_word_stats', JSON.stringify(stats));
@@ -2567,8 +2567,12 @@ function trySuggestion(word) {
 }
 
 // --- Word cache (localStorage) ---
+// Version the cache when the generated content guidelines change so returning
+// learners immediately receive examples based on the latest prompt.
+const WORD_CACHE_KEY = 'poortaal_word_cache_v2';
+
 function getWordCache() {
-  try { return JSON.parse(localStorage.getItem('poortaal_word_cache') || '{}'); } catch { return {}; }
+  try { return JSON.parse(localStorage.getItem(WORD_CACHE_KEY) || '{}'); } catch { return {}; }
 }
 function setWordCache(word, data) {
   const cache = getWordCache();
@@ -2576,7 +2580,7 @@ function setWordCache(word, data) {
   // Keep cache under ~200 entries
   const keys = Object.keys(cache);
   if (keys.length > 200) { delete cache[keys[0]]; }
-  localStorage.setItem('poortaal_word_cache', JSON.stringify(cache));
+  localStorage.setItem(WORD_CACHE_KEY, JSON.stringify(cache));
 }
 function getCachedWord(word) {
   return getWordCache()[word.toLowerCase().trim()] || null;
@@ -2608,7 +2612,7 @@ async function lookupWord() {
 - "type": part of speech in Dutch (e.g. "bijvoeglijk naamwoord", "zelfstandig naamwoord", "werkwoord")
 - "meaning_nl": meaning explained in simple Dutch (1-2 sentences)
 - "meaning_en": English translation/meaning
-- "examples": array of 2-3 objects with "nl" (Dutch sentence using the word) and "en" (English translation)
+- "examples": array of 2-3 objects with "nl" (Dutch sentence using the word) and "en" (English translation). Tailor these examples to a parent who lives in the Netherlands and has a six-year-old child attending a Montessori school. Use natural, practical sentences they could actually say in daily life—for example while talking to teachers or other parents, dropping off or picking up their child, arranging playdates, shopping, travelling locally, visiting the huisarts, or handling household and neighbourhood routines. Prefer first-person, conversational A2-B1 Dutch and vary the situations; do not force school or parenting into an example when the word does not fit that context naturally
 - "tips": one concise, genuinely useful insight in English, or null when there is no non-obvious advice to give. Prioritize information that changes how a learner would form or understand a sentence: irregular grammar or inflection, required articles or prepositions, register, idiomatic usage, a common learner error, or a useful contrast with a similar word. For a transparent compound or a word with a meaningful affix, explain its parts only when doing so helps the learner remember or infer the meaning. Do not restate the definition, examples, or obvious spelling/capitalization rules. Do not manufacture advice merely to fill this field. For example, saying that "Rijksmuseum" is the formal name of a specific museum and must be capitalized is not a useful tip; return null unless there is a more actionable insight
 - "fun_fact": an interesting etymology or cultural note (in English), or null if nothing notable`;
 
