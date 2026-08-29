@@ -2569,7 +2569,7 @@ function trySuggestion(word) {
 // --- Word cache (localStorage) ---
 // Version the cache when the generated content guidelines change so returning
 // learners immediately receive examples based on the latest prompt.
-const WORD_CACHE_KEY = 'poortaal_word_cache_v3';
+const WORD_CACHE_KEY = 'poortaal_word_cache_v4';
 
 function getWordCache() {
   try { return JSON.parse(localStorage.getItem(WORD_CACHE_KEY) || '{}'); } catch { return {}; }
@@ -2613,7 +2613,7 @@ async function lookupWord() {
 - "meaning_nl": meaning explained in simple Dutch (1-2 sentences)
 - "meaning_en": English translation/meaning
 - "examples": array of exactly 2 objects with "nl" (Dutch sentence using the word) and "en" (English translation). Tailor these examples to a parent who lives in the Netherlands and has a six-year-old child attending a Montessori school. Use natural, practical sentences they could actually say in daily life—for example while talking to teachers or other parents, dropping off or picking up their child, arranging playdates, shopping, travelling locally, visiting the huisarts, or handling household and neighbourhood routines. Prefer first-person, conversational A2-B1 Dutch and vary the situations; do not force school or parenting into an example when the word does not fit that context naturally
-- "tips": one concise, genuinely useful insight in English. Always provide this field so the learner consistently sees a Tips card. Prioritize information that changes how a learner would form or understand a sentence: irregular grammar or inflection, required articles or prepositions, register, idiomatic usage, a common learner error, or a useful contrast with a similar word. For a transparent compound or a word with a meaningful affix, explain its parts when doing so helps the learner remember or infer the meaning. Avoid merely restating the definition, examples, or obvious spelling/capitalization rules
+- "tips": one concise, genuinely useful and factually reliable insight in English. Always provide this field so the learner consistently sees a Tips card. Prioritize information that changes how a learner would form or understand a sentence: irregular grammar or inflection, required articles or prepositions, register, idiomatic usage, a common learner error, or a useful contrast with a similar word. For a transparent compound or a word with a meaningful affix, explain its parts only when the analysis is certain and helps the learner remember or infer the meaning. Avoid merely restating the definition, examples, or obvious spelling/capitalization rules. Silently verify every grammatical claim before responding; if you are not confident that a claim is correct, give a simpler, well-established usage tip instead. For verbs, determine separability from the verb's actual conjugation and stress pattern, never merely from its spelling. In particular, Dutch verbs with unstressed prefixes such as be-, ge-, her-, ont-, and ver- are normally inseparable: do not split the prefix and do not add ge- in the past participle. For example, vervangen is inseparable: use "ik vervang" and "ik heb vervangen", never "ik vang ... ver". Do not describe an inseparable verb as separable
 - "fun_fact": an interesting etymology or cultural note (in English), or null if nothing notable`;
 
     const raw = await callOpenAI([
