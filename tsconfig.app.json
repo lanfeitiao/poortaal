@@ -2,9 +2,11 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "preserve",
-    "noEmit": true,
+    "rootDir": "./src",
+    "outDir": "./public",
     "noCheck": true,
+    "removeComments": false,
     "lib": ["ES2022", "DOM", "DOM.Iterable"]
   },
-  "include": ["src/**/*.ts"]
+  "files": ["src/app.ts"]
 }
