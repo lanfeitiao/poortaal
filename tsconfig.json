@@ -1,11 +1,10 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "None",
-    "outFile": "./public/app.js",
+    "module": "preserve",
+    "noEmit": true,
     "noCheck": true,
-    "removeComments": false,
     "lib": ["ES2022", "DOM", "DOM.Iterable"]
   },
-  "files": ["src/main.ts"]
+  "include": ["src/**/*.ts"]
 }
