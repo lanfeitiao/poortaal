@@ -1,0 +1,23 @@
+{
+  "name": "Poortaal",
+  "short_name": "Poortaal",
+  "description": "Dutch Word Explorer",
+  "start_url": "/poortaal/",
+  "display": "standalone",
+  "background_color": "#EFF6FF",
+  "theme_color": "#2563EB",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

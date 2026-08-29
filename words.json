@@ -1,0 +1,2246 @@
+[
+  {
+    "word": "boodschappen",
+    "teaser": "Groceries — the daily shopping run",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "kleren",
+    "teaser": "Clothes — practical and weather-appropriate",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "voetbal",
+    "teaser": "Football — the Dutch invented total football",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "ziekenhuis",
+    "teaser": "Hospital — hopefully you won't need it",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "apotheek",
+    "teaser": "Pharmacy — for prescriptions and health advice",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "markt",
+    "teaser": "Market — fresh produce, cheese, and flowers weekly",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "bibliotheek",
+    "teaser": "Library — a quiet haven for book lovers",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "bioscoop",
+    "teaser": "Cinema — movies in original language with subtitles",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "restaurant",
+    "teaser": "Restaurant — dining out for special occasions",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "café",
+    "teaser": "A pub or bar — the social living room of the Dutch",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "kerk",
+    "teaser": "Church — historic landmarks in every town center",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "museum",
+    "teaser": "Museum — the Dutch have world-class collections",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "fiets",
+    "teaser": "The bicycle — the true king of Dutch transport",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "trein",
+    "teaser": "Train — the NS connects the whole country",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "bus",
+    "teaser": "Bus — public transport for shorter distances",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "tram",
+    "teaser": "Tram — gliding through Amsterdam and Den Haag",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "metro",
+    "teaser": "Metro — underground trains in Amsterdam and Rotterdam",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "station",
+    "teaser": "Station — the hub of Dutch public transport",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "halte",
+    "teaser": "Stop — where you wait for the bus or tram",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "kaartje",
+    "teaser": "Ticket — you need one for travel or events",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "vertraging",
+    "teaser": "Delay — an all-too-common word for train travelers",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "perron",
+    "teaser": "Platform — where you wait for your train",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "spoor",
+    "teaser": "Track — as in which platform number",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "overstappen",
+    "teaser": "To transfer — changing trains or buses",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "fietspad",
+    "teaser": "Bike path — a sacred lane just for cyclists",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "slot",
+    "teaser": "Lock — essential for keeping your bike safe",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "band",
+    "teaser": "Tire — flat tires happen to every Dutch cyclist",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "supermarkt",
+    "teaser": "Supermarket — Albert Heijn, Jumbo, Lidl, and more",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "kassa",
+    "teaser": "Checkout or cash register — where you pay",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "pinnen",
+    "teaser": "To pay by debit card — cash is nearly obsolete",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "contant",
+    "teaser": "Cash — some places still accept it",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "bon",
+    "teaser": "Receipt — proof of purchase",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "korting",
+    "teaser": "Discount — the Dutch love a good deal",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "aanbieding",
+    "teaser": "Special offer — check the weekly flyers",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "gratis",
+    "teaser": "Free — the best price of all",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "duur",
+    "teaser": "Expensive — a common complaint about Dutch prices",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "goedkoop",
+    "teaser": "Cheap — what the thrifty Dutch aim for",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "rekening",
+    "teaser": "Bill or invoice — time to settle up",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "fooi",
+    "teaser": "Tip — not expected but always appreciated",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "paspoort",
+    "teaser": "Passport — your key document for identification",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "rijbewijs",
+    "teaser": "Driver's license — though many Dutch prefer bikes",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "afspraak",
+    "teaser": "Appointment — the Dutch plan everything in advance",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "agenda",
+    "teaser": "Calendar or diary — Dutch social life runs on agendas",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "huisarts",
+    "teaser": "General practitioner — your first stop for health issues",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "recept",
+    "teaser": "Prescription — needed for most medications",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "tandarts",
+    "teaser": "Dentist — not always covered by basic insurance",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "pakketje",
+    "teaser": "Package — online shopping deliveries are constant",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "brievenbus",
+    "teaser": "Mailbox — bright orange, found on every corner",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "postcode",
+    "teaser": "Postal code — the Dutch system is very precise",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "adres",
+    "teaser": "Address — needed for everything official",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "buren",
+    "teaser": "Neighbors — good relations matter in close quarters",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "verhuizen",
+    "teaser": "To move house — a stressful Dutch rite of passage",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "ziek",
+    "teaser": "Sick — call in sick and your employer still pays",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "formulier",
+    "teaser": "Form — bureaucracy requires many of these",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "handtekening",
+    "teaser": "Signature — still needed on official documents",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "kopie",
+    "teaser": "Copy — always keep copies of important documents",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "politie",
+    "teaser": "Police — keeping the streets safe",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "brandweer",
+    "teaser": "Fire department — emergency responders",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "ambulance",
+    "teaser": "Ambulance — call 112 for emergencies",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "noodgeval",
+    "teaser": "Emergency — dial 112 for immediate help",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "bellen",
+    "teaser": "To call — pick up the phone",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "verjaardag",
+    "teaser": "Birthday — you bring your own cake to work",
+    "category": "culture",
+    "level": "A2"
+  },
+  {
+    "word": "gezondheid",
+    "teaser": "Health, or bless you — said after a sneeze",
+    "category": "culture",
+    "level": "A2"
+  },
+  {
+    "word": "eetsmakelijk",
+    "teaser": "Enjoy your meal — said before eating",
+    "category": "culture",
+    "level": "A2"
+  },
+  {
+    "word": "proost",
+    "teaser": "Cheers — raise your glass and make eye contact",
+    "category": "culture",
+    "level": "A2"
+  },
+  {
+    "word": "welkom",
+    "teaser": "Welcome — a warm Dutch greeting",
+    "category": "culture",
+    "level": "A2"
+  },
+  {
+    "word": "excuses",
+    "teaser": "Sorry — the Dutch apologize with style",
+    "category": "culture",
+    "level": "A2"
+  },
+  {
+    "word": "pardon",
+    "teaser": "Excuse me — politely getting past someone",
+    "category": "culture",
+    "level": "A2"
+  },
+  {
+    "word": "beleefd",
+    "teaser": "Polite — good manners are valued in the Netherlands",
+    "category": "culture",
+    "level": "A2"
+  },
+  {
+    "word": "eerlijk",
+    "teaser": "Honest — the Dutch prize honesty above politeness",
+    "category": "culture",
+    "level": "A2"
+  },
+  {
+    "word": "bezoek",
+    "teaser": "Visit — guests are always welcome with coffee",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "uitnodigen",
+    "teaser": "To invite — but check their agenda first",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "feestje",
+    "teaser": "A party — always in someone's home with snacks",
+    "category": "culture",
+    "level": "A2"
+  },
+  {
+    "word": "afbellen",
+    "teaser": "To cancel by phone — Dutch directness in declining plans",
+    "category": "culture",
+    "level": "A2"
+  },
+  {
+    "word": "praatje",
+    "teaser": "Small talk — a brief chat with neighbors or colleagues",
+    "category": "culture",
+    "level": "A2"
+  },
+  {
+    "word": "kletsen",
+    "teaser": "To chat or gossip — talking about nothing and everything",
+    "category": "culture",
+    "level": "A2"
+  },
+  {
+    "word": "grapje",
+    "teaser": "A little joke — not meant to be taken seriously",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "leuk",
+    "teaser": "Fun, nice, cool — a universally positive word",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "jammer",
+    "teaser": "Too bad, what a pity — expressing Dutch sympathy",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "helaas",
+    "teaser": "Unfortunately — delivering bad news gently",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "gelukkig",
+    "teaser": "Fortunately, or happy — looking on the bright side",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "inderdaad",
+    "teaser": "Indeed — confirming something with emphasis",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "natuurlijk",
+    "teaser": "Of course, naturally — it goes without saying",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "misschien",
+    "teaser": "Maybe, perhaps — keeping options open",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "zeker",
+    "teaser": "Certainly, sure — expressing confidence",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "precies",
+    "teaser": "Exactly, precisely — agreeing emphatically",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "echt",
+    "teaser": "Really, truly — are you being serious?",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "serieus",
+    "teaser": "Seriously? — expressing disbelief",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "prima",
+    "teaser": "Fine, great, excellent — the Dutch seal of approval",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "succes",
+    "teaser": "Good luck — said before exams, interviews, and challenges",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "sterkte",
+    "teaser": "Stay strong — said during difficult times",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "beterschap",
+    "teaser": "Get well soon — wishing someone a speedy recovery",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "doei",
+    "teaser": "Bye — a cheerful, casual farewell",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "slaap lekker",
+    "teaser": "Sleep well — a cozy bedtime wish",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "eet smakelijk",
+    "teaser": "Enjoy your meal — said before digging in",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "veel plezier",
+    "teaser": "Have fun — wishing someone a good time",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "goede reis",
+    "teaser": "Have a good trip — a travel farewell",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "hartelijk dank",
+    "teaser": "Heartfelt thanks — a formal way to say thank you",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "graag gedaan",
+    "teaser": "You're welcome — my pleasure",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "het spijt me",
+    "teaser": "I'm sorry — a more sincere apology",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "oeps",
+    "teaser": "Oops — a small mistake happened",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "wauw",
+    "teaser": "Wow — expressing amazement Dutch style",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "dat klopt",
+    "teaser": "That's correct — confirming a fact",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "maakt niet uit",
+    "teaser": "Doesn't matter — being easy-going about things",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "rustig aan",
+    "teaser": "Take it easy, calm down — soothing words",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "kom op",
+    "teaser": "Come on — encouragement or mild impatience",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "schiet op",
+    "teaser": "Hurry up — Dutch impatience in two words",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "ik snap het",
+    "teaser": "I understand, I get it — showing comprehension",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "ik begrijp het",
+    "teaser": "I understand — the formal version",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "geen idee",
+    "teaser": "No idea — honest ignorance",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "ik weet het niet",
+    "teaser": "I don't know — straightforward uncertainty",
+    "category": "expressions",
+    "level": "A2"
+  },
+  {
+    "word": "paraplu",
+    "teaser": "Umbrella — essential gear in the Netherlands",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "muts",
+    "teaser": "Beanie or cap — keeping warm on windy days",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "sjaal",
+    "teaser": "Scarf — wrapped tight against the Dutch wind",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "handschoenen",
+    "teaser": "Gloves — necessary for winter cycling",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "laars",
+    "teaser": "Boot — rubber boots for rainy Dutch weather",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "overhemd",
+    "teaser": "Shirt — for work or formal occasions",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "jurk",
+    "teaser": "Dress — from casual to elegant",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "trui",
+    "teaser": "Sweater — cozy knitwear for cold days",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "horloge",
+    "teaser": "Watch — checking the time to stay punctual",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "portemonnee",
+    "teaser": "Wallet — where you keep your pinpas and cash",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "rugzak",
+    "teaser": "Backpack — the cyclist's carry-all of choice",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "verdrietig",
+    "teaser": "Sad — expressing genuine sorrow",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "blij",
+    "teaser": "Happy — feeling good about something",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "boos",
+    "teaser": "Angry — upset with someone or something",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "moe",
+    "teaser": "Tired — ready for a rest or some sleep",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "honger",
+    "teaser": "Hunger — the feeling that you need food",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "dorst",
+    "teaser": "Thirst — the feeling that you need a drink",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "thuis",
+    "teaser": "At home — where you live and relax",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "werk",
+    "teaser": "Work — your job or the tasks you do",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "school",
+    "teaser": "School — where you go to learn",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "winkel",
+    "teaser": "Shop — a place where you buy things",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "dokter",
+    "teaser": "Doctor — someone who helps when you are ill",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "kamer",
+    "teaser": "Room — one part of a home or building",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "keuken",
+    "teaser": "Kitchen — the room where you cook",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "badkamer",
+    "teaser": "Bathroom — the room with a shower or bath",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "slaapkamer",
+    "teaser": "Bedroom — the room where you sleep",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "tafel",
+    "teaser": "Table — furniture used for eating or working",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "stoel",
+    "teaser": "Chair — a seat for one person",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "deur",
+    "teaser": "Door — what you open to enter a room",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "raam",
+    "teaser": "Window — glass that lets light into a room",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "sleutel",
+    "teaser": "Key — used to open a door or lock",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "telefoon",
+    "teaser": "Phone — used to call, message, and go online",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "computer",
+    "teaser": "Computer — used for work, study, and communication",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "oplader",
+    "teaser": "Charger — gives your phone or computer power",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "internet",
+    "teaser": "Internet — the online network you use every day",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "wachtwoord",
+    "teaser": "Password — needed for DigiD and everything digital",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "abonnement",
+    "teaser": "Subscription — for trains, gyms, and streaming services",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "klacht",
+    "teaser": "Complaint — the Dutch exercise their right to complain",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "garantie",
+    "teaser": "Warranty — consumer protection the Dutch take seriously",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "ruilen",
+    "teaser": "To exchange or return — bringing purchases back to the store",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "openingstijden",
+    "teaser": "Opening hours — shops close earlier than you might expect",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "nooduitgang",
+    "teaser": "Emergency exit — always know where it is",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "roltrap",
+    "teaser": "Escalator — stand on the right, walk on the left",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "loket",
+    "teaser": "Counter or service window — for tickets and information",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "wachtkamer",
+    "teaser": "Waiting room — at the doctor or train station",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "speeltuin",
+    "teaser": "Playground — every Dutch neighborhood has one",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "taxi",
+    "teaser": "Taxi — available but expensive compared to public transport",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "parkeren",
+    "teaser": "To park — expensive in most Dutch cities",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "stoplicht",
+    "teaser": "Traffic light — red, orange, green",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "zebrapad",
+    "teaser": "Crosswalk — pedestrians have the right of way",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "voetganger",
+    "teaser": "Pedestrian — sometimes the safest way to travel",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "luchthaven",
+    "teaser": "Airport — Schiphol is a major European hub",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "vlucht",
+    "teaser": "Flight — the Dutch fly frequently for holidays",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "bagage",
+    "teaser": "Luggage — pack light for budget airlines",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "matras",
+    "teaser": "Mattress — Dutch beds often have split mattresses for couples",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "wasmachine",
+    "teaser": "Washing machine — a necessity in every Dutch household",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "stofzuiger",
+    "teaser": "Vacuum cleaner — keeping Dutch floors spotless",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "vaatwasser",
+    "teaser": "Dishwasher — a modern convenience in Dutch kitchens",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "koelkast",
+    "teaser": "Refrigerator — keeping your kaas and melk fresh",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "magnetron",
+    "teaser": "Microwave — quick reheating for busy Dutch evenings",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "gereedschap",
+    "teaser": "Tools — for DIY home repairs, a Dutch pastime",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "bouwmarkt",
+    "teaser": "Hardware store — the Dutch love Gamma and Praxis",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "tuincentrum",
+    "teaser": "Garden center — plants, pots, and outdoor furniture",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "dierenarts",
+    "teaser": "Veterinarian — caring for Dutch pets",
+    "category": "useful",
+    "level": "A2"
+  },
+  {
+    "word": "ontbijt",
+    "teaser": "Breakfast — typically bread with toppings",
+    "category": "food",
+    "level": "A2"
+  },
+  {
+    "word": "avondeten",
+    "teaser": "Dinner — the main evening meal for families",
+    "category": "food",
+    "level": "A2"
+  },
+  {
+    "word": "boterham",
+    "teaser": "An open-faced sandwich — the Dutch lunch standard",
+    "category": "food",
+    "level": "A2"
+  },
+  {
+    "word": "broodje",
+    "teaser": "A bread roll sandwich — the classic Dutch lunch",
+    "category": "culture",
+    "level": "A2"
+  },
+  {
+    "word": "kaas",
+    "teaser": "Cheese — the Netherlands is a cheese superpower",
+    "category": "food",
+    "level": "A2"
+  },
+  {
+    "word": "taart",
+    "teaser": "A celebratory cake for birthdays and occasions",
+    "category": "food",
+    "level": "A2"
+  },
+  {
+    "word": "appeltaart",
+    "teaser": "Dutch apple pie — served warm with whipped cream",
+    "category": "food",
+    "level": "A2"
+  },
+  {
+    "word": "koffie",
+    "teaser": "Coffee — a common hot drink",
+    "category": "food",
+    "level": "A2"
+  },
+  {
+    "word": "thee",
+    "teaser": "Tea — a hot drink made with water and leaves",
+    "category": "food",
+    "level": "A2"
+  },
+  {
+    "word": "water",
+    "teaser": "Water — the drink you need every day",
+    "category": "food",
+    "level": "A2"
+  },
+  {
+    "word": "melk",
+    "teaser": "Milk — a common drink and cooking ingredient",
+    "category": "food",
+    "level": "A2"
+  },
+  {
+    "word": "bestek",
+    "teaser": "Cutlery — knife, fork, and spoon together",
+    "category": "food",
+    "level": "A2"
+  },
+  {
+    "word": "hongerig",
+    "teaser": "Hungry — needing or wanting food",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "dorstig",
+    "teaser": "Thirsty — needing or wanting a drink",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "lekker",
+    "teaser": "The most versatile word in Dutch — tasty, nice, great",
+    "category": "everyday",
+    "level": "A2"
+  },
+  {
+    "word": "inschrijven",
+    "teaser": "To register — first thing when moving to NL",
+    "category": "useful",
+    "level": "B1"
+  },
+  {
+    "word": "openbaar vervoer",
+    "teaser": "Public transport — buses, trains, trams, and metros",
+    "category": "useful",
+    "level": "B1"
+  },
+  {
+    "word": "bankrekening",
+    "teaser": "Bank account — one of the first things to open in NL",
+    "category": "useful",
+    "level": "B1"
+  },
+  {
+    "word": "ontvangen",
+    "teaser": "To receive — getting mail and deliveries",
+    "category": "useful",
+    "level": "B1"
+  },
+  {
+    "word": "bestellen",
+    "teaser": "To order — online shopping or at a restaurant",
+    "category": "useful",
+    "level": "B1"
+  },
+  {
+    "word": "bezorgen",
+    "teaser": "To deliver — packages to your front door",
+    "category": "useful",
+    "level": "B1"
+  },
+  {
+    "word": "afspreken",
+    "teaser": "To arrange to meet — making plans with friends",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "aanmelden",
+    "teaser": "To register or sign up — required for almost everything",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "opruimen",
+    "teaser": "To tidy up — the Dutch love for orderliness",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "uitzoeken",
+    "teaser": "To figure out or sort through options",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "ophalen",
+    "teaser": "To pick up — packages, kids, or friends",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "aankomen",
+    "teaser": "To arrive, or to gain weight — context matters",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "meenemen",
+    "teaser": "To bring along — people or things",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "terugkomen",
+    "teaser": "To come back or return later",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "uitleggen",
+    "teaser": "To explain — teachers and friends do this a lot",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "opvallen",
+    "teaser": "To stand out or be noticeable",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "meevallen",
+    "teaser": "To turn out better than expected — a relief",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "tegenvallen",
+    "teaser": "To be disappointing — worse than you hoped",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "doorgaan",
+    "teaser": "To continue, or to go ahead as planned",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "afzeggen",
+    "teaser": "To cancel plans — happens more than you'd think",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "bespreken",
+    "teaser": "To discuss — the Dutch discuss everything",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "voorstellen",
+    "teaser": "To introduce someone, or to propose an idea",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "ondertussen",
+    "teaser": "Meanwhile — connecting events in a story",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "inmiddels",
+    "teaser": "By now or in the meantime — marks time passing",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "uiteindelijk",
+    "teaser": "Eventually or in the end — wrapping up a story",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "onderhouden",
+    "teaser": "To maintain — a house, garden, or relationship",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "afwassen",
+    "teaser": "To do the dishes — a daily Dutch chore",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "stofzuigen",
+    "teaser": "To vacuum — part of the weekly cleaning routine",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "uitpakken",
+    "teaser": "To unpack — suitcases, presents, or groceries",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "inpakken",
+    "teaser": "To pack or wrap — gifts, bags, or lunch",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "opschieten",
+    "teaser": "To hurry up — Dutch directness at its finest",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "opletten",
+    "teaser": "To pay attention — what teachers always say",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "uitrusten",
+    "teaser": "To rest or recover — well-deserved after work",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "opwarmen",
+    "teaser": "To warm up — food, or yourself on a cold day",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "aantrekken",
+    "teaser": "To put on clothes, or to attract attention",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "uittrekken",
+    "teaser": "To take off clothes, or to pull something out",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "omgaan met",
+    "teaser": "To deal with — situations, people, or problems",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "rekening houden met",
+    "teaser": "To take into account — considerate planning",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "opzoeken",
+    "teaser": "To look up information or visit someone",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "aanpassen",
+    "teaser": "To adapt or adjust — crucial for expat life",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "vergeten",
+    "teaser": "To forget — it happens to the best of us",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "herinneren",
+    "teaser": "To remember or remind someone about something",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "verwachten",
+    "teaser": "To expect — managing expectations is very Dutch",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "beslissen",
+    "teaser": "To decide — after thorough overleg of course",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "vergelijken",
+    "teaser": "To compare — prices, options, or products",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "proberen",
+    "teaser": "To try or attempt — give it a shot",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "uitproberen",
+    "teaser": "To try out — testing something new",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "veranderen",
+    "teaser": "To change — yourself, plans, or the world",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "verbeteren",
+    "teaser": "To improve or correct — always striving for better",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "vervangen",
+    "teaser": "To replace — broken items or temporary workers",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "verdienen",
+    "teaser": "To earn or deserve — money or a treat",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "bezighouden",
+    "teaser": "To keep busy — the Dutch value productivity",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "meedoen",
+    "teaser": "To participate or join in — don't just watch",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "afhangen van",
+    "teaser": "To depend on — it depends, a very Dutch answer",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "overwegen",
+    "teaser": "To consider — thinking it through carefully",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "voorkomen",
+    "teaser": "To prevent, or to seem — a tricky double meaning",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "beschrijven",
+    "teaser": "To describe — putting things into words",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "ontmoeten",
+    "teaser": "To meet someone — for the first time or by chance",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "bezoeken",
+    "teaser": "To visit — friends, museums, or cities",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "oefenen",
+    "teaser": "To practice — the key to learning Dutch",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "ervaring",
+    "teaser": "Experience — what you gain from trying new things",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "gelegenheid",
+    "teaser": "Opportunity or occasion — seize the moment",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "behoefte",
+    "teaser": "Need or desire — what you require or long for",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "gedrag",
+    "teaser": "Behavior — how someone acts in public or private",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "sfeer",
+    "teaser": "Atmosphere or vibe — what makes a place gezellig",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "indruk",
+    "teaser": "Impression — first impressions count",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "mening",
+    "teaser": "Opinion — the Dutch always have one",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "voordeel",
+    "teaser": "Advantage — weighing pros and cons",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "nadeel",
+    "teaser": "Disadvantage — the other side of the coin",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "verschil",
+    "teaser": "Difference — what sets things apart",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "overeenkomst",
+    "teaser": "Agreement or similarity — what things share",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "gewoonlijk",
+    "teaser": "Usually — describing regular habits",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "tegenwoordig",
+    "teaser": "Nowadays — comparing then and now",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "nauwelijks",
+    "teaser": "Hardly or barely — just by a whisker",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "noodzakelijk",
+    "teaser": "Necessary — when something must be done",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "beschikbaar",
+    "teaser": "Available — for appointments, products, or people",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "verantwoordelijk",
+    "teaser": "Responsible — taking ownership of tasks",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "gemakkelijk",
+    "teaser": "Easy or comfortable — the opposite of moeilijk",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "moeilijk",
+    "teaser": "Difficult — learning Dutch can be this sometimes",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "gevaarlijk",
+    "teaser": "Dangerous — watch out on those bike paths",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "onmogelijk",
+    "teaser": "Impossible — or so you think until you try",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "tevreden",
+    "teaser": "Satisfied or content — a state worth striving for",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "teleurgesteld",
+    "teaser": "Disappointed — when expectations aren't met",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "verbaasd",
+    "teaser": "Surprised or amazed — didn't see that coming",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "bezorgd",
+    "teaser": "Worried or concerned — about someone or something",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "jaloers",
+    "teaser": "Jealous — the green-eyed monster",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "nieuwsgierig",
+    "teaser": "Curious — wanting to know more",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "verlegen",
+    "teaser": "Shy or embarrassed — not every Dutchie is direct",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "geïrriteerd",
+    "teaser": "Irritated — when small annoyances pile up",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "opgelucht",
+    "teaser": "Relieved — when worry finally lifts",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "enthousiast",
+    "teaser": "Enthusiastic — showing excitement for something",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "voorzichtig",
+    "teaser": "Careful — take it slow and steady",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "ondanks",
+    "teaser": "Despite — something happened anyway",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "bovendien",
+    "teaser": "Moreover or besides — adding another point",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "daardoor",
+    "teaser": "Because of that — explaining cause and effect",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "zodra",
+    "teaser": "As soon as — timing matters in Dutch plans",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "voordat",
+    "teaser": "Before — sequencing events in time",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "nadat",
+    "teaser": "After — what comes next in the story",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "hoewel",
+    "teaser": "Although — introducing a contrast or exception",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "tenzij",
+    "teaser": "Unless — adding a condition to your statement",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "zolang",
+    "teaser": "As long as — setting boundaries or conditions",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "waardoor",
+    "teaser": "Through which — explaining how something happened",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "vervolgens",
+    "teaser": "Subsequently or then — what happened next",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "opmerking",
+    "teaser": "Remark or comment — an observation worth sharing",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "beoordeling",
+    "teaser": "Assessment or review — evaluating quality",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "voorwaarde",
+    "teaser": "Condition or requirement — what needs to be met",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "bijdrage",
+    "teaser": "Contribution — your part in a shared effort",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "toestemming",
+    "teaser": "Permission — asking before you act",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "uitnodiging",
+    "teaser": "Invitation — to a party, event, or dinner",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "herinnering",
+    "teaser": "Memory or reminder — don't forget",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "waarschuwing",
+    "teaser": "Warning — heads up about potential danger",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "bevestiging",
+    "teaser": "Confirmation — yes, it's happening",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "aanbeveling",
+    "teaser": "Recommendation — a trusted suggestion",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "verklaring",
+    "teaser": "Explanation or declaration — making things clear",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "ontwikkeling",
+    "teaser": "Development — how things progress over time",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "behandeling",
+    "teaser": "Treatment — medical or how someone is handled",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "vervoer",
+    "teaser": "Transport — getting from A to B in the Netherlands",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "onderdeel",
+    "teaser": "Part or component — a piece of the whole",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "omgeving",
+    "teaser": "Surroundings or environment — where you are",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "gebeurtenis",
+    "teaser": "Event or occurrence — something that happened",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "gevolg",
+    "teaser": "Consequence or result — what follows from an action",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "oorzaak",
+    "teaser": "Cause — the reason behind something",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "verband",
+    "teaser": "Connection or bandage — context decides the meaning",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "toestand",
+    "teaser": "State or condition — describing how things are",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "invloed",
+    "teaser": "Influence — the power to shape outcomes",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "waarde",
+    "teaser": "Value — what something is worth, literally or figuratively",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "aandacht",
+    "teaser": "Attention — give it or pay it",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "vertrouwen",
+    "teaser": "Trust or confidence — the foundation of relationships",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "voorkeur",
+    "teaser": "Preference — what you'd rather have or do",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "bezwaar",
+    "teaser": "Objection — raising a concern formally",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "schade",
+    "teaser": "Damage — from weather, accidents, or bad luck",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "hulp",
+    "teaser": "Help or assistance — everyone needs it sometimes",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "inspanning",
+    "teaser": "Effort — the energy you put into something",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "geduld",
+    "teaser": "Patience — a virtue, especially in bureaucracy",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "gewoonte",
+    "teaser": "Habit — the things you do without thinking",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "ontspanning",
+    "teaser": "Relaxation — well-earned after a long week",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "uitdaging",
+    "teaser": "Challenge — something that tests your abilities",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "bereiken",
+    "teaser": "To reach or achieve — goals or destinations",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "vermijden",
+    "teaser": "To avoid — steering clear of trouble",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "verzamelen",
+    "teaser": "To collect or gather — stamps, people, or courage",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "voorbereiden",
+    "teaser": "To prepare — getting ready for what's ahead",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "aanbieden",
+    "teaser": "To offer — your help, a drink, or a deal",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "begeleiden",
+    "teaser": "To guide or accompany — showing someone the way",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "opmerken",
+    "teaser": "To notice or remark upon something",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "verbinden",
+    "teaser": "To connect or link — people, ideas, or phone calls",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "samenwerken",
+    "teaser": "To collaborate — working together towards a goal",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "beperken",
+    "teaser": "To limit or restrict — setting boundaries",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "uitbreiden",
+    "teaser": "To expand or extend — making something bigger",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "beschermen",
+    "teaser": "To protect — keeping safe from harm",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "afvragen",
+    "teaser": "To wonder — asking yourself a question",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "vertalen",
+    "teaser": "To translate — bridging language gaps",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "opnemen",
+    "teaser": "To record, pick up the phone, or absorb",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "inleveren",
+    "teaser": "To hand in or submit — assignments or documents",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "afsluiten",
+    "teaser": "To close off, lock, or conclude something",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "vooruitgang",
+    "teaser": "Progress — moving forward step by step",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "achteraf",
+    "teaser": "In hindsight — looking back on what happened",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "daadwerkelijk",
+    "teaser": "Actually or really — confirming something is true",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "bijzonder",
+    "teaser": "Special or remarkable — standing out positively",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "gerecht",
+    "teaser": "A dish or course — what's on the menu tonight",
+    "category": "food",
+    "level": "B1"
+  },
+  {
+    "word": "voorgerecht",
+    "teaser": "Starter or appetizer — the opening act of dinner",
+    "category": "food",
+    "level": "B1"
+  },
+  {
+    "word": "nagerecht",
+    "teaser": "Dessert — the sweet reward at the end",
+    "category": "food",
+    "level": "B1"
+  },
+  {
+    "word": "hoofdgerecht",
+    "teaser": "Main course — the star of the meal",
+    "category": "food",
+    "level": "B1"
+  },
+  {
+    "word": "veganistisch",
+    "teaser": "Vegan — a growing movement in Dutch cuisine",
+    "category": "food",
+    "level": "B1"
+  },
+  {
+    "word": "biologisch",
+    "teaser": "Organic — the label-conscious Dutch love this",
+    "category": "food",
+    "level": "B1"
+  },
+  {
+    "word": "hartig",
+    "teaser": "Savory — the opposite of sweet in Dutch food",
+    "category": "food",
+    "level": "B1"
+  },
+  {
+    "word": "eetlust",
+    "teaser": "Appetite — the hunger that drives you to the table",
+    "category": "food",
+    "level": "B1"
+  },
+  {
+    "word": "tussendoortje",
+    "teaser": "Snack between meals — a little something to tide you over",
+    "category": "food",
+    "level": "B1"
+  },
+  {
+    "word": "verplicht",
+    "teaser": "Mandatory or obligatory — no choice about it",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "verdwijnen",
+    "teaser": "To disappear — gone without a trace",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "verschijnen",
+    "teaser": "To appear or be published — showing up on the scene",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "toekomst",
+    "teaser": "Future — what lies ahead",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "verleden",
+    "teaser": "Past — what came before now",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "belang",
+    "teaser": "Interest or importance — what matters most",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "doel",
+    "teaser": "Goal or purpose — what you're working towards",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "kans",
+    "teaser": "Chance or opportunity — grab it while you can",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "risico",
+    "teaser": "Risk — the chance things go wrong",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "kennismaken",
+    "teaser": "To get acquainted — meeting someone properly for the first time",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "opknappen",
+    "teaser": "To fix up or renovate — making something look new again",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "waarderen",
+    "teaser": "To appreciate — valuing what you have",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "opvallend",
+    "teaser": "Striking or notable — something that catches the eye",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "onverwacht",
+    "teaser": "Unexpected — a surprise you didn't see coming",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "twijfel",
+    "teaser": "Doubt — uncertainty about the right choice",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "samenvatting",
+    "teaser": "Summary — the key points in brief",
+    "category": "everyday",
+    "level": "B1"
+  },
+  {
+    "word": "woordenschat",
+    "teaser": "Vocabulary — the collection of words you know",
+    "category": "everyday",
+    "level": "B1"
+  }
+]
