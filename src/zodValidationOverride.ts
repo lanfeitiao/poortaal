@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+declare const InvalidWordExplanationError: new (message: string) => Error;
+
 const nonEmptyString = z.string().refine(value => value.trim().length > 0, {
   message: 'Expected a non-empty string',
 });
@@ -28,7 +30,7 @@ function formatIssues(error: z.ZodError): string {
 (globalThis as any).validateWordExplanation = (value: unknown) => {
   const result = WordExplanationSchema.safeParse(value);
   if (!result.success) {
-    throw new (globalThis as any).InvalidWordExplanationError(
+    throw new InvalidWordExplanationError(
       `Invalid word explanation: ${formatIssues(result.error)}`,
     );
   }
