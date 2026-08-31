@@ -635,10 +635,100 @@ function initSwipeHandlers(list) { const items = list.querySelectorAll('.swipe-c
 function showToast(msg) { const existing = document.querySelector('.toast'); if (existing) existing.remove(); const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 4000); }
 async function callOpenAI(messages, temperature = 0.7) { const res = await fetch(`${API_BASE}/openai`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'gpt-4o-mini', messages, temperature }) }); if (!res.ok) { showToast('Er ging iets mis'); throw new Error('API error'); } const data = await res.json(); return data.choices[0].message.content; }
 function trySuggestion(word) { document.getElementById('wordInput').value = word; const panel = document.getElementById('historyPanel'); if (panel.classList.contains('open')) toggleHistory(); lookupWord(); }
+
+// --- Word explanation validation ---
+type WordExample = { nl: string; en: string };
+type WordExplanation = {
+  word: string;
+  type: string;
+  meaning_nl: string;
+  meaning_en: string;
+  examples: [WordExample, WordExample];
+  tips: string;
+  fun_fact: string | null;
+};
+
+class InvalidWordExplanationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'InvalidWordExplanationError';
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function requireNonEmptyString(data: Record<string, unknown>, field: string): string {
+  const value = data[field];
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new InvalidWordExplanationError(`Invalid or missing field: ${field}`);
+  }
+  return value;
+}
+
+function validateWordExplanation(value: unknown): WordExplanation {
+  if (!isRecord(value)) {
+    throw new InvalidWordExplanationError('Word explanation must be an object');
+  }
+
+  if (!Array.isArray(value.examples) || value.examples.length !== 2) {
+    throw new InvalidWordExplanationError('examples must contain exactly 2 items');
+  }
+
+  const examples = value.examples.map((example, index) => {
+    if (!isRecord(example)) {
+      throw new InvalidWordExplanationError(`examples[${index}] must be an object`);
+    }
+    return {
+      nl: requireNonEmptyString(example, 'nl'),
+      en: requireNonEmptyString(example, 'en'),
+    };
+  }) as [WordExample, WordExample];
+
+  const funFact = value.fun_fact;
+  if (funFact !== null && typeof funFact !== 'string') {
+    throw new InvalidWordExplanationError('fun_fact must be a string or null');
+  }
+
+  return {
+    word: requireNonEmptyString(value, 'word'),
+    type: requireNonEmptyString(value, 'type'),
+    meaning_nl: requireNonEmptyString(value, 'meaning_nl'),
+    meaning_en: requireNonEmptyString(value, 'meaning_en'),
+    examples,
+    tips: requireNonEmptyString(value, 'tips'),
+    fun_fact: funFact,
+  };
+}
+
+function parseWordExplanation(raw: string): WordExplanation {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw new InvalidWordExplanationError('AI response was not valid JSON');
+  }
+  return validateWordExplanation(parsed);
+}
+
 const WORD_CACHE_KEY = 'poortaal_word_cache_v4';
 function getWordCache() { try { return JSON.parse(localStorage.getItem(WORD_CACHE_KEY) || '{}'); } catch { return {}; } }
 function setWordCache(word, data) { const cache = getWordCache(); cache[word.toLowerCase().trim()] = data; const keys = Object.keys(cache); if (keys.length > 200) delete cache[keys[0]]; localStorage.setItem(WORD_CACHE_KEY, JSON.stringify(cache)); }
-function getCachedWord(word) { return getWordCache()[word.toLowerCase().trim()] || null; }
+function getCachedWord(word) {
+  const key = word.toLowerCase().trim();
+  const cache = getWordCache();
+  const cached = cache[key];
+  if (!cached) return null;
+  try {
+    return validateWordExplanation(cached);
+  } catch (error) {
+    delete cache[key];
+    localStorage.setItem(WORD_CACHE_KEY, JSON.stringify(cache));
+    console.warn(`Removed invalid cached word explanation for "${key}"`, error);
+    return null;
+  }
+}
 
 async function lookupWord() {
   const input = document.getElementById('wordInput'); const word = input.value.trim(); if (!word) return; const cached = getCachedWord(word); if (cached) { currentWord = word; currentWordData = cached; addToHistory(word, cached); renderWordCard(cached); return; }
@@ -652,10 +742,10 @@ async function lookupWord() {
 - "examples": array of exactly 2 objects with "nl" (Dutch sentence using the word) and "en" (English translation). Tailor these examples to a parent who lives in the Netherlands and has a six-year-old child attending a Montessori school. Use natural, practical sentences they could actually say in daily life—for example while talking to teachers or other parents, dropping off or picking up their child, arranging playdates, shopping, travelling locally, visiting the huisarts, or handling household and neighbourhood routines. Prefer first-person, conversational A2-B1 Dutch and vary the situations; do not force school or parenting into an example when the word does not fit that context naturally
 - "tips": one concise, genuinely useful and factually reliable insight in English. Always provide this field so the learner consistently sees a Tips card. Prioritize information that changes how a learner would form or understand a sentence: irregular grammar or inflection, required articles or prepositions, register, idiomatic usage, a common learner error, or a useful contrast with a similar word. For a transparent compound or a word with a meaningful affix, explain its parts only when the analysis is certain and helps the learner remember or infer the meaning. Avoid merely restating the definition, examples, or obvious spelling/capitalization rules. Silently verify every grammatical claim before responding; if you are not confident that a claim is correct, give a simpler, well-established usage tip instead. For verbs, determine separability from the verb's actual conjugation and stress pattern, never merely from its spelling. In particular, Dutch verbs with unstressed prefixes such as be-, ge-, her-, ont-, and ver- are normally inseparable: do not split the prefix and do not add ge- in the past participle. For example, vervangen is inseparable: use "ik vervang" and "ik heb vervangen", never "ik vang ... ver". Do not describe an inseparable verb as separable
 - "fun_fact": an interesting etymology or cultural note (in English), or null if nothing notable`;
-    const raw = await callOpenAI([{ role: 'system', content: systemPrompt }, { role: 'user', content: word }]); let cleaned = raw.trim(); if (cleaned.startsWith('```')) cleaned = cleaned.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, ''); const data = JSON.parse(cleaned); currentWord = word; currentWordData = data; setWordCache(word, data); addToHistory(word, data); renderWordCard(data);
-  } catch (e) { content.innerHTML = e.message !== 'API error' ? '<div class="empty-state"><div class="icon">😅</div><p>Kon het woord niet verwerken. Probeer het opnieuw.</p></div>' : '<div class="empty-state"><div class="icon">⚠️</div><p>Er ging iets mis. Probeer het opnieuw.</p></div>'; } finally { btn.disabled = false; }
+    const raw = await callOpenAI([{ role: 'system', content: systemPrompt }, { role: 'user', content: word }]); let cleaned = raw.trim(); if (cleaned.startsWith('```')) cleaned = cleaned.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, ''); const data = parseWordExplanation(cleaned); currentWord = word; currentWordData = data; setWordCache(word, data); addToHistory(word, data); renderWordCard(data);
+  } catch (e) { if (e instanceof InvalidWordExplanationError) console.warn('Rejected invalid AI word explanation', e); content.innerHTML = e.message !== 'API error' ? '<div class="empty-state"><div class="icon">😅</div><p>Kon het woord niet verwerken. Probeer het opnieuw.</p></div>' : '<div class="empty-state"><div class="icon">⚠️</div><p>Er ging iets mis. Probeer het opnieuw.</p></div>'; } finally { btn.disabled = false; }
 }
-function renderWordCard(data) {
+function renderWordCard(data: WordExplanation) {
   const content = document.getElementById('content'); const examplesHtml = (data.examples || []).slice(0, 2).map(ex => { const safeNl = ex.nl.replace(/'/g, "\\'").replace(/"/g, '&quot;'); return `<div class="example-item"><div class="example-nl">"${ex.nl}" <button class="ex-tts-btn" onclick="playExTTS(this, '${safeNl}')" title="Uitspraak">🔊</button></div><div class="example-en">${ex.en}</div></div>`; }).join(''); const funFactHtml = data.fun_fact ? `<div class="fun-fact">💡 ${data.fun_fact}</div>` : ''; const tipsHtml = `<div class="card"><div class="card-label">Tips</div><div class="tips-text">${data.tips || 'No additional usage tip is available for this word.'}</div></div>`;
   content.innerHTML = `<div class="card" id="wordCard"><div class="card-label">Woord</div><div class="word-header"><h1>${data.word}</h1><span class="word-type">${data.type}</span><button class="tts-btn" id="ttsBtn" onclick="playTTS('${data.word.replace(/'/g, "\\'")}')" title="Uitspraak beluisteren">🔊</button></div><div class="meaning"><div class="meaning-nl">${data.meaning_nl}</div><div class="meaning-en">${data.meaning_en}</div></div>${funFactHtml}</div><div class="card"><div class="card-label">Voorbeelden</div>${examplesHtml}</div>${tipsHtml}<button class="practice-btn" onclick="goToPractice('${data.word.replace(/'/g, "\\'")}')">🎭 Oefenen met "${data.word}"</button>`;
 }
@@ -674,7 +764,7 @@ Your job:
 2. In subsequent messages: Stay in character for the scenario. Respond naturally in Dutch.
 3. After the student uses the word: Give brief, encouraging feedback on their usage (correct/incorrect, natural/unnatural). Then either continue the conversation or wrap up.
 4. Keep messages short (2-3 sentences max).
-5. Mix Dutch and English — primarily Dutch with English support in parentheses when needed.
+5. Mix Dutch and English — primarily Dutch with English support (parentheses) when needed.
 6. Be warm, encouraging, and fun!` }];
   try { const response = await callOpenAI(practiceMessages); practiceMessages.push({ role: 'assistant', content: response }); msgs.innerHTML = `<div class="chat-msg tutor">${formatChat(response)}</div>`; document.getElementById('chatInput').focus(); } catch { msgs.innerHTML = '<div class="chat-msg system">Kon het scenario niet starten. Probeer opnieuw.</div>'; }
 }
