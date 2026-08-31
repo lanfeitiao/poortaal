@@ -340,7 +340,7 @@ function renderReviewHome() {
         <div class="review-count-label">${due.length === 1 ? 'WOORD VANDAAG' : 'WOORDEN VANDAAG'}</div>
         <div class="review-count-breakdown">${breakdown}</div>
       </div>
-      <button class="review-start-btn" onclick="startReviewSession()">▶ Begin herhaling</button>
+      <button class="review-start-btn" data-action="start-review">▶ Begin herhaling</button>
       <div class="review-start-meta">automatisch volgende</div>
     </div>
   `;
@@ -388,7 +388,7 @@ function renderReviewSession() {
   root.innerHTML = `
     <div class="review-session">
       <div class="review-session-header">
-        <button class="review-back-btn" onclick="exitReviewSession()" aria-label="Terug">←</button>
+        <button class="review-back-btn" data-action="exit-review" aria-label="Terug">←</button>
         <span class="review-progress-text">${reviewIndex + 1} / ${total}</span>
         <span style="width:2rem;"></span>
       </div>
@@ -396,11 +396,11 @@ function renderReviewSession() {
       <div class="review-stack" id="reviewStack">
         ${back2}
         ${back1}
-        <div class="review-card front" id="reviewFrontCard" onclick="onReviewCardTap()">
+        <div class="review-card front" id="reviewFrontCard" data-action="review-card-tap">
           ${pill}
           <div class="review-card-word">${safeWord}</div>
           ${safeType ? `<div class="review-card-type">${safeType}</div>` : ''}
-          <button class="tts-btn review-tts-btn" onclick="onReviewTTS(event, this)" onpointerdown="event.stopPropagation()" data-word="${safeWord}" title="Uitspraak beluisteren">🔊</button>
+          <button class="tts-btn review-tts-btn" data-action="review-tts" data-word="${safeWord.replace(/"/g, '&quot;')}" title="Uitspraak beluisteren">🔊</button>
           <div class="review-card-hint" id="reviewCardHint" ${reviewRevealed ? 'hidden' : ''}>tik om te onthullen</div>
           <div class="review-card-answer ${revealedClass}" id="reviewCardAnswer">
             <div class="answer-nl">${meaningNl}</div>
@@ -409,8 +409,8 @@ function renderReviewSession() {
         </div>
       </div>
       <div class="review-actions">
-        <button class="review-btn-again" id="reviewBtnAgain" onclick="gradeAndAdvance(false)" ${actionsDisabled}>Opnieuw</button>
-        <button class="review-btn-know" id="reviewBtnKnow" onclick="gradeAndAdvance(true)" ${actionsDisabled}>Wist ik!</button>
+        <button class="review-btn-again" id="reviewBtnAgain" data-action="grade-review" data-known="false" ${actionsDisabled}>Opnieuw</button>
+        <button class="review-btn-know" id="reviewBtnKnow" data-action="grade-review" data-known="true" ${actionsDisabled}>Wist ik!</button>
       </div>
     </div>
   `;
@@ -510,7 +510,7 @@ function renderReviewSummary() {
       <div class="review-summary-emoji">🌳</div>
       <div class="review-summary-title">Klaar!</div>
       ${lines.join('')}
-      <button class="review-summary-btn" onclick="endReviewSessionToHome()">Tot morgen</button>
+      <button class="review-summary-btn" data-action="end-review">Tot morgen</button>
     </div>
   `;
 }
@@ -572,7 +572,7 @@ function updateStreak() {
 }
 function renderDailyWord(word) {
   const container = document.getElementById('dailyWordContainer'); const streak = getStreak(); const streakCount = streak.count || 0;
-  container.innerHTML = `<div class="daily-word-card"><div class="daily-word-top"><div class="daily-word-label">Woord van de Dag</div><div class="streak-badge">\u{1F333} Dag ${streakCount}</div></div><div class="daily-word-main"><h2>${escapeHtml(word.word)}</h2><span class="word-type">${escapeHtml(word.category)}</span></div><div class="daily-word-teaser">${escapeHtml(word.teaser)}</div><button class="daily-word-cta" onclick="exploreDailyWord()">Ontdek dit woord</button></div>`;
+  container.innerHTML = `<div class="daily-word-card"><div class="daily-word-top"><div class="daily-word-label">Woord van de Dag</div><div class="streak-badge">\u{1F333} Dag ${streakCount}</div></div><div class="daily-word-main"><h2>${escapeHtml(word.word)}</h2><span class="word-type">${escapeHtml(word.category)}</span></div><div class="daily-word-teaser">${escapeHtml(word.teaser)}</div><button class="daily-word-cta" data-action="explore-daily-word">Ontdek dit woord</button></div>`;
 }
 function exploreDailyWord() {
   if (!currentDailyWord) return; const streak = updateStreak(); const badge = document.querySelector('.streak-badge'); if (badge) badge.textContent = '\u{1F333} Dag ' + streak.count; document.getElementById('wordInput').value = currentDailyWord.word; lookupWord();
@@ -625,7 +625,7 @@ function updateReviewBadge() { const badge = document.getElementById('navReviewB
 function renderHistory() {
   const list = document.getElementById('historyList'); const summaryEl = document.getElementById('historySummary'); if (searchHistory.length === 0) { list.innerHTML = '<div class="history-empty">Nog geen woorden opgezocht</div>'; summaryEl.innerHTML = ''; return; }
   const counts = { strong: 0, growing: 0, sprout: 0, seed: 0, wilting: 0 };
-  const rows = searchHistory.map(entry => { const safe = escapeHtml(entry.word); const plant = getPlantStage(entry.word); counts[plant.key]++; const isWilting = plant.key === 'wilting'; const onclick = isWilting && entry.wordData ? `startMicroReview('${safe.replace(/'/g, "&#39;")}')` : `trySuggestion('${safe.replace(/'/g, "&#39;")}')`; return `<li><div class="swipe-delete" onclick="deleteHistoryItem('${safe.replace(/'/g, "&#39;")}')">Verwijder</div><div class="swipe-content" data-word="${safe.replace(/"/g, '&quot;')}" onclick="${onclick}"><span class="history-word">${safe}</span><span class="plant-stage" title="${plant.hint || ''}"><span class="plant-emoji">${plant.emoji}</span><span class="plant-label">${plant.hint || plant.label}</span></span></div></li>`; });
+  const rows = searchHistory.map(entry => { const safe = escapeHtml(entry.word); const safeAttr = safe.replace(/"/g, '&quot;'); const plant = getPlantStage(entry.word); counts[plant.key]++; const isWilting = plant.key === 'wilting' && Boolean(entry.wordData); return `<li><div class="swipe-delete" data-action="delete-history" data-word="${safeAttr}">Verwijder</div><div class="swipe-content" data-action="history-word" data-word="${safeAttr}" data-review="${isWilting}"><span class="history-word">${safe}</span><span class="plant-stage" title="${plant.hint || ''}"><span class="plant-emoji">${plant.emoji}</span><span class="plant-label">${plant.hint || plant.label}</span></span></div></li>`; });
   list.innerHTML = rows.join(''); initSwipeHandlers(list); const parts = []; if (counts.strong) parts.push(`🌳 ${counts.strong} sterk`); if (counts.growing) parts.push(`🪴 ${counts.growing} groeiend`); if (counts.sprout) parts.push(`🌿 ${counts.sprout} kiempjes`); if (counts.seed) parts.push(`🌱 ${counts.seed} zaaisel`); if (counts.wilting) parts.push(`🥀 ${counts.wilting} verwelkt`); summaryEl.innerHTML = parts.join(' · ');
 }
 function deleteHistoryItem(word) { const w = word.toLowerCase().trim(); searchHistory = searchHistory.filter(h => h.word !== w); localStorage.setItem('poortaal_history', JSON.stringify(searchHistory)); const cache = getWordCache(); delete cache[w]; localStorage.setItem(WORD_CACHE_KEY, JSON.stringify(cache)); const stats = getWordStats(); delete stats[w]; localStorage.setItem('poortaal_word_stats', JSON.stringify(stats)); if (currentUser) { supabaseClient.from('user_history').delete().eq('user_id', currentUser.id).eq('word', w).then(() => {}); supabaseClient.from('user_words').delete().eq('user_id', currentUser.id).eq('word', w).then(() => {}); } renderHistory(); }
@@ -746,13 +746,13 @@ async function lookupWord() {
   } catch (e) { if (e instanceof InvalidWordExplanationError) console.warn('Rejected invalid AI word explanation', e); content.innerHTML = e.message !== 'API error' ? '<div class="empty-state"><div class="icon">😅</div><p>Kon het woord niet verwerken. Probeer het opnieuw.</p></div>' : '<div class="empty-state"><div class="icon">⚠️</div><p>Er ging iets mis. Probeer het opnieuw.</p></div>'; } finally { btn.disabled = false; }
 }
 function renderWordCard(data: WordExplanation) {
-  const content = document.getElementById('content'); const examplesHtml = (data.examples || []).slice(0, 2).map(ex => { const safeNl = ex.nl.replace(/'/g, "\\'").replace(/"/g, '&quot;'); return `<div class="example-item"><div class="example-nl">"${ex.nl}" <button class="ex-tts-btn" onclick="playExTTS(this, '${safeNl}')" title="Uitspraak">🔊</button></div><div class="example-en">${ex.en}</div></div>`; }).join(''); const funFactHtml = data.fun_fact ? `<div class="fun-fact">💡 ${data.fun_fact}</div>` : ''; const tipsHtml = `<div class="card"><div class="card-label">Tips</div><div class="tips-text">${data.tips || 'No additional usage tip is available for this word.'}</div></div>`;
-  content.innerHTML = `<div class="card" id="wordCard"><div class="card-label">Woord</div><div class="word-header"><h1>${data.word}</h1><span class="word-type">${data.type}</span><button class="tts-btn" id="ttsBtn" onclick="playTTS('${data.word.replace(/'/g, "\\'")}')" title="Uitspraak beluisteren">🔊</button></div><div class="meaning"><div class="meaning-nl">${data.meaning_nl}</div><div class="meaning-en">${data.meaning_en}</div></div>${funFactHtml}</div><div class="card"><div class="card-label">Voorbeelden</div>${examplesHtml}</div>${tipsHtml}<button class="practice-btn" onclick="goToPractice('${data.word.replace(/'/g, "\\'")}')">🎭 Oefenen met "${data.word}"</button>`;
+  const content = document.getElementById('content'); const examplesHtml = (data.examples || []).slice(0, 2).map(ex => { const safeNl = escapeHtml(ex.nl).replace(/"/g, '&quot;'); return `<div class="example-item"><div class="example-nl">"${ex.nl}" <button class="ex-tts-btn" data-action="play-example-tts" data-text="${safeNl}" title="Uitspraak">🔊</button></div><div class="example-en">${ex.en}</div></div>`; }).join(''); const funFactHtml = data.fun_fact ? `<div class="fun-fact">💡 ${data.fun_fact}</div>` : ''; const tipsHtml = `<div class="card"><div class="card-label">Tips</div><div class="tips-text">${data.tips || 'No additional usage tip is available for this word.'}</div></div>`; const safeWordAttr = escapeHtml(data.word).replace(/"/g, '&quot;');
+  content.innerHTML = `<div class="card" id="wordCard"><div class="card-label">Woord</div><div class="word-header"><h1>${data.word}</h1><span class="word-type">${data.type}</span><button class="tts-btn" id="ttsBtn" data-action="play-word-tts" data-word="${safeWordAttr}" title="Uitspraak beluisteren">🔊</button></div><div class="meaning"><div class="meaning-nl">${data.meaning_nl}</div><div class="meaning-en">${data.meaning_en}</div></div>${funFactHtml}</div><div class="card"><div class="card-label">Voorbeelden</div>${examplesHtml}</div>${tipsHtml}<button class="practice-btn" data-action="practice-word" data-word="${safeWordAttr}">🎭 Oefenen met "${data.word}"</button>`;
 }
 
 // --- Practice ---
 function goToPractice(word) { navigateTo('#practice'); setTimeout(() => startPracticeForWord(word), 50); }
-function renderPracticeHistoryList() { const list = document.getElementById('practiceHistoryList'); const wordsWithData = searchHistory.filter(h => h.wordData); if (wordsWithData.length === 0) { list.innerHTML = '<div class="history-empty" style="padding:2rem 0;">Zoek eerst een woord op om mee te oefenen</div>'; return; } list.innerHTML = wordsWithData.map(entry => { const safe = escapeHtml(entry.word); const typeHint = entry.wordData?.type ? escapeHtml(entry.wordData.type) : ''; return `<li onclick="startPracticeForWord('${safe.replace(/'/g, "&#39;")}')"><span class="word-label">${safe}</span><span class="word-type-hint">${typeHint}</span></li>`; }).join(''); }
+function renderPracticeHistoryList() { const list = document.getElementById('practiceHistoryList'); const wordsWithData = searchHistory.filter(h => h.wordData); if (wordsWithData.length === 0) { list.innerHTML = '<div class="history-empty" style="padding:2rem 0;">Zoek eerst een woord op om mee te oefenen</div>'; return; } list.innerHTML = wordsWithData.map(entry => { const safe = escapeHtml(entry.word); const safeAttr = safe.replace(/"/g, '&quot;'); const typeHint = entry.wordData?.type ? escapeHtml(entry.wordData.type) : ''; return `<li data-action="start-practice-word" data-word="${safeAttr}"><span class="word-label">${safe}</span><span class="word-type-hint">${typeHint}</span></li>`; }).join(''); }
 function startPracticeWithInput() { const input = document.getElementById('practiceWordInput'); const word = input.value.trim(); if (!word) return; input.value = ''; startPracticeForWord(word); }
 function showPracticePicker() { if (voiceActive) stopVoiceSession(); const practicedWord = document.getElementById('practiceChatWord')?.textContent?.toLowerCase()?.trim(); const userSentMessages = practiceMessages.filter(m => m.role === 'user').length; if (practicedWord && userSentMessages > 0) { updateWordStats(practicedWord, 'practice'); renderHistory(); } document.getElementById('practicePickerSection').style.display = ''; document.getElementById('practiceChatSection').style.display = 'none'; switchPracticeMode('text'); practiceMessages = []; }
 async function startPracticeForWord(word) {
@@ -773,8 +773,8 @@ function escapeHtml(s) { const d = document.createElement('div'); d.textContent 
 function formatChat(text) { return escapeHtml(text).replace(/\n/g, '<br>'); }
 
 // --- Micro review ---
-function startMicroReview(word) { const entry = searchHistory.find(h => h.word === word); if (!entry || !entry.wordData) { trySuggestion(word); return; } const panel = document.getElementById('historyPanel'); if (panel.classList.contains('open')) toggleHistory(); const data = entry.wordData; document.getElementById('reviewWord').textContent = data.word; document.getElementById('reviewType').textContent = data.type || ''; document.getElementById('reviewNl').textContent = data.meaning_nl || ''; document.getElementById('reviewEn').textContent = data.meaning_en || ''; document.getElementById('reviewAnswer').classList.remove('revealed'); document.getElementById('reviewActions').innerHTML = '<button class="review-btn-reveal" onclick="revealAnswer()">Onthullen</button>'; document.getElementById('microReviewOverlay').classList.add('open'); let remaining = 30; const bar = document.getElementById('reviewTimerBar'); const text = document.getElementById('reviewTimerText'); bar.style.width = '100%'; text.textContent = '30s'; if (microReviewInterval) clearInterval(microReviewInterval); microReviewInterval = setInterval(() => { remaining -= 0.1; if (remaining <= 0) { remaining = 0; clearInterval(microReviewInterval); revealAnswer(); } bar.style.width = ((remaining / 30) * 100) + '%'; text.textContent = Math.ceil(remaining) + 's'; }, 100); }
-function revealAnswer() { if (microReviewInterval) { clearInterval(microReviewInterval); microReviewInterval = null; } document.getElementById('reviewAnswer').classList.add('revealed'); document.getElementById('reviewActions').innerHTML = '<button class="review-btn-know" onclick="finishReview(true)">Wist ik!</button><button class="review-btn-again" onclick="finishReview(false)">Opnieuw</button><button class="review-btn-close" onclick="closeMicroReview()">Sluiten</button>'; }
+function startMicroReview(word) { const entry = searchHistory.find(h => h.word === word); if (!entry || !entry.wordData) { trySuggestion(word); return; } const panel = document.getElementById('historyPanel'); if (panel.classList.contains('open')) toggleHistory(); const data = entry.wordData; document.getElementById('reviewWord').textContent = data.word; document.getElementById('reviewType').textContent = data.type || ''; document.getElementById('reviewNl').textContent = data.meaning_nl || ''; document.getElementById('reviewEn').textContent = data.meaning_en || ''; document.getElementById('reviewAnswer').classList.remove('revealed'); document.getElementById('reviewActions').innerHTML = '<button class="review-btn-reveal" data-action="micro-reveal">Onthullen</button>'; document.getElementById('microReviewOverlay').classList.add('open'); let remaining = 30; const bar = document.getElementById('reviewTimerBar'); const text = document.getElementById('reviewTimerText'); bar.style.width = '100%'; text.textContent = '30s'; if (microReviewInterval) clearInterval(microReviewInterval); microReviewInterval = setInterval(() => { remaining -= 0.1; if (remaining <= 0) { remaining = 0; clearInterval(microReviewInterval); revealAnswer(); } bar.style.width = ((remaining / 30) * 100) + '%'; text.textContent = Math.ceil(remaining) + 's'; }, 100); }
+function revealAnswer() { if (microReviewInterval) { clearInterval(microReviewInterval); microReviewInterval = null; } document.getElementById('reviewAnswer').classList.add('revealed'); document.getElementById('reviewActions').innerHTML = '<button class="review-btn-know" data-action="micro-finish" data-known="true">Wist ik!</button><button class="review-btn-again" data-action="micro-finish" data-known="false">Opnieuw</button><button class="review-btn-close" data-action="micro-close">Sluiten</button>'; }
 function finishReview(knew) { const word = document.getElementById('reviewWord').textContent.toLowerCase(); const idx = searchHistory.findIndex(h => h.word === word); if (idx !== -1) { searchHistory[idx].timestamp = Date.now(); localStorage.setItem('poortaal_history', JSON.stringify(searchHistory)); } updateWordStats(word, 'practice'); closeMicroReview(); if (!knew) trySuggestion(word); renderHistory(); }
 function closeMicroReview() { if (microReviewInterval) { clearInterval(microReviewInterval); microReviewInterval = null; } document.getElementById('microReviewOverlay').classList.remove('open'); }
 
