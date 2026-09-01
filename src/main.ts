@@ -1,34 +1,32 @@
-type LegacyPoortaalWindow = Window & typeof globalThis & {
-  doLogout: () => void | Promise<void>;
-  openAuthModal: () => void;
-  closeAuthModal: () => void;
-  signInWithGoogle: () => void | Promise<void>;
-  toggleHistory: () => void;
-  lookupWord: () => void | Promise<void>;
-  trySuggestion: (word: string) => void;
-  startPracticeWithInput: () => void;
-  showPracticePicker: () => void;
-  switchPracticeMode: (mode: 'text' | 'voice') => void;
-  sendChat: () => void | Promise<void>;
-  toggleVoiceSession: () => void | Promise<void>;
-  startReviewSession: () => void;
-  exitReviewSession: () => void;
-  onReviewCardTap: () => void;
-  gradeAndAdvance: (known: boolean) => void;
-  endReviewSessionToHome: () => void;
-  exploreDailyWord: () => void;
-  deleteHistoryItem: (word: string) => void;
-  startMicroReview: (word: string) => void;
-  playTTS: (word: string) => void | Promise<void>;
-  playExTTS: (button: HTMLElement, text: string) => void | Promise<void>;
-  goToPractice: (word: string) => void;
-  startPracticeForWord: (word: string) => void | Promise<void>;
-  revealAnswer: () => void;
-  finishReview: (known: boolean) => void;
-  closeMicroReview: () => void;
-};
-
-const app = window as LegacyPoortaalWindow;
+import {
+  closeAuthModal,
+  closeMicroReview,
+  deleteHistoryItem,
+  doLogout,
+  endReviewSessionToHome,
+  exitReviewSession,
+  exploreDailyWord,
+  finishReview,
+  goToPractice,
+  gradeAndAdvance,
+  lookupWord,
+  onReviewCardTap,
+  openAuthModal,
+  playExTTS,
+  playTTS,
+  revealAnswer,
+  sendChat,
+  showPracticePicker,
+  signInWithGoogle,
+  startMicroReview,
+  startPracticeForWord,
+  startPracticeWithInput,
+  startReviewSession,
+  switchPracticeMode,
+  toggleHistory,
+  toggleVoiceSession,
+  trySuggestion,
+} from './app';
 
 function onClick(id: string, handler: () => void | Promise<void>) {
   document.getElementById(id)?.addEventListener('click', () => {
@@ -48,86 +46,86 @@ function handleActionClick(event: MouseEvent) {
 
   switch (target.dataset.action) {
     case 'start-review':
-      app.startReviewSession();
+      startReviewSession();
       break;
     case 'exit-review':
-      app.exitReviewSession();
+      exitReviewSession();
       break;
     case 'review-card-tap':
-      app.onReviewCardTap();
+      onReviewCardTap();
       break;
     case 'review-tts':
       event.stopPropagation();
-      void app.playExTTS(target, word || '');
+      void playExTTS(target, word || '');
       break;
     case 'grade-review':
-      app.gradeAndAdvance(booleanData(target.dataset.known));
+      gradeAndAdvance(booleanData(target.dataset.known));
       break;
     case 'end-review':
-      app.endReviewSessionToHome();
+      endReviewSessionToHome();
       break;
     case 'explore-daily-word':
-      app.exploreDailyWord();
+      exploreDailyWord();
       break;
     case 'delete-history':
-      if (word) app.deleteHistoryItem(word);
+      if (word) deleteHistoryItem(word);
       break;
     case 'history-word':
       if (!word) break;
-      if (target.dataset.review === 'true') app.startMicroReview(word);
-      else app.trySuggestion(word);
+      if (target.dataset.review === 'true') startMicroReview(word);
+      else trySuggestion(word);
       break;
     case 'play-word-tts':
-      if (word) void app.playTTS(word);
+      if (word) void playTTS(word);
       break;
     case 'play-example-tts':
-      void app.playExTTS(target, target.dataset.text || '');
+      void playExTTS(target, target.dataset.text || '');
       break;
     case 'practice-word':
-      if (word) app.goToPractice(word);
+      if (word) goToPractice(word);
       break;
     case 'start-practice-word':
-      if (word) void app.startPracticeForWord(word);
+      if (word) void startPracticeForWord(word);
       break;
     case 'micro-reveal':
-      app.revealAnswer();
+      revealAnswer();
       break;
     case 'micro-finish':
-      app.finishReview(booleanData(target.dataset.known));
+      finishReview(booleanData(target.dataset.known));
       break;
     case 'micro-close':
-      app.closeMicroReview();
+      closeMicroReview();
       break;
   }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  onClick('logoutBtn', app.doLogout);
-  onClick('loginBtn', app.openAuthModal);
-  onClick('historyBtn', app.toggleHistory);
-  onClick('searchBtn', app.lookupWord);
-  onClick('practiceStartBtn', app.startPracticeWithInput);
-  onClick('practiceBackBtn', app.showPracticePicker);
-  onClick('textModeBtn', () => app.switchPracticeMode('text'));
-  onClick('voiceModeBtn', () => app.switchPracticeMode('voice'));
-  onClick('chatSendBtn', app.sendChat);
-  onClick('voiceStartBtn', app.toggleVoiceSession);
-  onClick('overlay', app.toggleHistory);
-  onClick('historyCloseBtn', app.toggleHistory);
-  onClick('googleLoginBtn', app.signInWithGoogle);
-  onClick('authCancelBtn', app.closeAuthModal);
-  onClick('reviewRevealBtn', app.revealAnswer);
+  onClick('logoutBtn', doLogout);
+  onClick('loginBtn', openAuthModal);
+  onClick('historyBtn', toggleHistory);
+  onClick('searchBtn', lookupWord);
+  onClick('practiceStartBtn', startPracticeWithInput);
+  onClick('practiceBackBtn', showPracticePicker);
+  onClick('textModeBtn', () => switchPracticeMode('text'));
+  onClick('voiceModeBtn', () => switchPracticeMode('voice'));
+  onClick('chatSendBtn', sendChat);
+  onClick('voiceStartBtn', toggleVoiceSession);
+  onClick('overlay', toggleHistory);
+  onClick('historyCloseBtn', toggleHistory);
+  onClick('googleLoginBtn', signInWithGoogle);
+  onClick('authCancelBtn', closeAuthModal);
+  onClick('reviewRevealBtn', revealAnswer);
 
   document.querySelectorAll<HTMLElement>('[data-suggestion]').forEach(element => {
     element.addEventListener('click', () => {
       const suggestion = element.dataset.suggestion;
-      if (suggestion) app.trySuggestion(suggestion);
+      if (suggestion) trySuggestion(suggestion);
     });
   });
 
   document.getElementById('chatInput')?.addEventListener('keydown', event => {
     if (event.key === 'Enter') {
-      void app.sendChat();
+      void sendChat();
     }
   });
 
