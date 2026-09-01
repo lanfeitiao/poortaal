@@ -795,3 +795,33 @@ async function startVoiceSession() {
 }
 function stopVoiceSession() { voiceActive = false; document.querySelectorAll('#voiceTranscript [data-pending]').forEach(el => el.remove()); const viz = document.getElementById('voiceVisualizer'); if (viz) viz.style.display = 'none'; document.querySelectorAll('.voice-dot').forEach(dot => dot.classList.remove('active')); if (voiceDataChannel) { voiceDataChannel.close(); voiceDataChannel = null; } if (voicePeerConnection) { voicePeerConnection.getSenders().forEach(s => { if (s.track) s.track.stop(); }); voicePeerConnection.close(); voicePeerConnection = null; } const btn = document.getElementById('voiceStartBtn'); if (btn) { btn.classList.remove('recording'); document.getElementById('voiceBtnIcon').textContent = '🎙️'; document.getElementById('voiceBtnText').textContent = 'Start gesprek'; } const statusEl = document.getElementById('voiceStatus'); if (statusEl) { statusEl.textContent = 'Gesprek beëindigd'; if (currentVoiceWord) { updateWordStats(currentVoiceWord.toLowerCase(), 'practice'); renderHistory(); } } setVoiceDots(false); }
 function setVoiceDots(active) { const viz = document.getElementById('voiceVisualizer'); if (viz) viz.style.display = active ? '' : 'none'; document.querySelectorAll('.voice-dot').forEach(dot => dot.classList.toggle('active', active)); }
+
+export {
+  closeAuthModal,
+  closeMicroReview,
+  deleteHistoryItem,
+  doLogout,
+  endReviewSessionToHome,
+  exitReviewSession,
+  exploreDailyWord,
+  finishReview,
+  goToPractice,
+  gradeAndAdvance,
+  lookupWord,
+  onReviewCardTap,
+  openAuthModal,
+  playExTTS,
+  playTTS,
+  revealAnswer,
+  sendChat,
+  showPracticePicker,
+  signInWithGoogle,
+  startMicroReview,
+  startPracticeForWord,
+  startPracticeWithInput,
+  startReviewSession,
+  switchPracticeMode,
+  toggleHistory,
+  toggleVoiceSession,
+  trySuggestion,
+};

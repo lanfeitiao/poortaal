@@ -2,12 +2,11 @@
   "name": "poortaal",
   "private": true,
   "scripts": {
-    "dev": "tsc -p tsconfig.app.json && concurrently --kill-others \"tsc --watch -p tsconfig.app.json --preserveWatchOutput\" \"vite\"",
+    "dev": "vite",
     "build": "tsc -p tsconfig.app.json && vite build --base=/poortaal/",
     "preview": "vite preview --base=/poortaal/"
   },
   "devDependencies": {
-    "concurrently": "10.0.5",
     "typescript": "7.0.2",
     "vite": "8.2.2"
   }
