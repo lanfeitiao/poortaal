@@ -17,7 +17,6 @@ const SUPABASE_URL = 'https://fcpauyuwylnomuxdqtln.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_gs091zHItkPEaLWQhmH3MQ_vspCp-Yl';
 const supabaseClient = (window as any).supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser: AppUser | null = null;
-let authMode = 'login'; // 'login' or 'signup'
 
 // Auth UI
 function openAuthModal() {
@@ -40,131 +39,6 @@ async function signInWithGoogle() {
     const errEl = document.getElementById('authError');
     errEl.textContent = e.message || 'Fout bij inloggen';
     errEl.style.display = 'block';
-  }
-}
-async function handleForgotPassword() {
-  authMode = 'forgot';
-  document.getElementById('authTitle').textContent = 'Wachtwoord resetten';
-  document.getElementById('authSubtitle').textContent = 'Vul je e-mail in om een reset link te ontvangen';
-  document.getElementById('authPassword').style.display = 'none';
-  document.getElementById('authSubmitBtn').textContent = 'Verstuur reset link';
-  document.getElementById('authSubmitBtn').onclick = doForgotPassword;
-  document.getElementById('authToggle').textContent = 'Terug naar inloggen';
-  document.getElementById('authToggle').onclick = () => { authMode = 'login'; updateAuthUI(); document.getElementById('authPassword').style.display = ''; document.getElementById('authSubmitBtn').onclick = handleAuth; document.getElementById('authToggle').onclick = toggleAuthMode; };
-  document.getElementById('authForgot').style.display = 'none';
-  document.getElementById('authError').style.display = 'none';
-}
-async function doForgotPassword() {
-  const email = (document.getElementById('authEmail') as HTMLInputElement).value.trim();
-  const errEl = document.getElementById('authError');
-  if (!email) {
-    errEl.textContent = 'Vul je e-mail in';
-    errEl.style.display = 'block';
-    errEl.style.color = '';
-    return;
-  }
-  try {
-    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-      redirectTo: 'https://lanfeitiao.github.io/poortaal/'
-    });
-    if (error) throw error;
-    errEl.style.display = 'block';
-    errEl.style.color = 'var(--blue-600)';
-    errEl.textContent = `Reset link verstuurd naar ${email}. Check je inbox!`;
-  } catch(e) {
-    errEl.textContent = e.message || 'Fout bij wachtwoord reset';
-    errEl.style.display = 'block';
-    errEl.style.color = '';
-  }
-}
-function toggleAuthMode() {
-  authMode = authMode === 'login' ? 'signup' : 'login';
-  updateAuthUI();
-}
-function updateAuthUI() {
-  document.getElementById('authTitle').textContent = authMode === 'login' ? 'Inloggen' : 'Registreren';
-  document.getElementById('authSubtitle').textContent = authMode === 'login'
-    ? 'Log in om je woorden te synchroniseren'
-    : 'Maak een account aan';
-  document.getElementById('authSubmitBtn').textContent = authMode === 'login' ? 'Inloggen' : 'Registreren';
-  document.getElementById('authToggle').textContent = authMode === 'login'
-    ? 'Nog geen account? Registreren'
-    : 'Al een account? Inloggen';
-  document.getElementById('authForgot').style.display = authMode === 'login' ? '' : 'none';
-  document.getElementById('authError').style.display = 'none';
-  document.getElementById('authError').style.color = '';
-}
-async function handleAuth() {
-  const email = (document.getElementById('authEmail') as HTMLInputElement).value.trim();
-  const password = (document.getElementById('authPassword') as HTMLInputElement).value;
-  const errEl = document.getElementById('authError');
-  if (!email || !password) { errEl.textContent = 'Vul e-mail en wachtwoord in'; errEl.style.display = 'block'; return; }
-  if (password.length < 6) { errEl.textContent = 'Wachtwoord moet minstens 6 tekens zijn'; errEl.style.display = 'block'; return; }
-
-  (document.getElementById('authSubmitBtn') as HTMLButtonElement).disabled = true;
-  try {
-    let result;
-    if (authMode === 'signup') {
-      result = await supabaseClient.auth.signUp({ email, password });
-    } else {
-      result = await supabaseClient.auth.signInWithPassword({ email, password });
-    }
-    if (result.error) throw result.error;
-    if (authMode === 'signup' && !result.data.session) {
-      errEl.textContent = 'Controleer je e-mail om je account te bevestigen';
-      errEl.style.display = 'block';
-      errEl.style.color = '#22C55E';
-      return;
-    }
-    currentUser = result.data.user;
-    closeAuthModal();
-    updateUserUI();
-    await syncFromCloud();
-  } catch (e) {
-    errEl.textContent = e.message || 'Er ging iets mis';
-    errEl.style.display = 'block';
-    errEl.style.color = '#DC2626';
-  } finally {
-    (document.getElementById('authSubmitBtn') as HTMLButtonElement).disabled = false;
-  }
-}
-function openChangePassword() {
-  document.getElementById('changePwOverlay').classList.add('open');
-  (document.getElementById('newPassword') as HTMLInputElement).value = '';
-  (document.getElementById('confirmPassword') as HTMLInputElement).value = '';
-  document.getElementById('changePwError').style.display = 'none';
-  document.getElementById('newPassword').focus();
-}
-function closeChangePassword() {
-  document.getElementById('changePwOverlay').classList.remove('open');
-}
-async function doChangePassword() {
-  const pw = (document.getElementById('newPassword') as HTMLInputElement).value;
-  const confirm = (document.getElementById('confirmPassword') as HTMLInputElement).value;
-  const errEl = document.getElementById('changePwError');
-  if (!pw || pw.length < 6) {
-    errEl.textContent = 'Wachtwoord moet minimaal 6 tekens zijn';
-    errEl.style.display = 'block';
-    errEl.style.color = '';
-    return;
-  }
-  if (pw !== confirm) {
-    errEl.textContent = 'Wachtwoorden komen niet overeen';
-    errEl.style.display = 'block';
-    errEl.style.color = '';
-    return;
-  }
-  try {
-    const { error } = await supabaseClient.auth.updateUser({ password: pw });
-    if (error) throw error;
-    errEl.textContent = 'Wachtwoord gewijzigd!';
-    errEl.style.display = 'block';
-    errEl.style.color = 'var(--blue-600)';
-    setTimeout(closeChangePassword, 1500);
-  } catch(e) {
-    errEl.textContent = e.message || 'Fout bij wijzigen';
-    errEl.style.display = 'block';
-    errEl.style.color = '';
   }
 }
 async function doLogout() {
@@ -603,7 +477,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initAuth(); renderHistory(); updateReviewBadge(); loadDailyWord();
   document.getElementById('wordInput').addEventListener('keydown', e => { if (e.key === 'Enter') lookupWord(); });
   document.getElementById('practiceWordInput').addEventListener('keydown', e => { if (e.key === 'Enter') startPracticeWithInput(); });
-  document.getElementById('authPassword')?.addEventListener('keydown', e => { if (e.key === 'Enter') handleAuth(); });
   handleRoute(); window.addEventListener('keydown', onReviewKeydown);
 });
 function onReviewKeydown(e: KeyboardEvent) {
