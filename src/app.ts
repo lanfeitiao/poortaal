@@ -1,8 +1,22 @@
+// --- Shared application types ---
+type AppUser = { id: string; email?: string | null };
+type ChatMessage = { role: 'system' | 'user' | 'assistant'; content: string };
+type WordStats = { lookups: number; practices: number; reviews: number[]; level: number; lastSeen: number };
+type WordStatsMap = Record<string, WordStats>;
+type PlantStageKey = 'strong' | 'growing' | 'sprout' | 'seed' | 'wilting';
+type PlantStage = { emoji: string; label: string; key: PlantStageKey; hint: string };
+type HistoryEntry = { word: string; timestamp: number; wordData?: WordExplanation };
+type ReviewItem = { entry: HistoryEntry; stats: Partial<WordStats>; level: number; isDue: boolean; isWilting: boolean; overdueDays: number };
+type DailyWord = { word: string; category: string; teaser: string };
+type CloudWord = { word: string; lookups?: number; practices?: number; reviews?: number[]; level?: number; last_seen?: number; word_data?: unknown };
+type CloudHistoryEntry = { word: string; timestamp?: number; word_data?: WordExplanation };
+type AuthSession = { user: AppUser } | null;
+
 // --- Supabase ---
 const SUPABASE_URL = 'https://fcpauyuwylnomuxdqtln.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_gs091zHItkPEaLWQhmH3MQ_vspCp-Yl';
 const supabaseClient = (window as any).supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-let currentUser = null;
+let currentUser: AppUser | null = null;
 let authMode = 'login'; // 'login' or 'signup'
 
 // Auth UI
@@ -164,7 +178,7 @@ function updateUserUI() {
   if (currentUser) {
     info.style.display = 'flex';
     btn.style.display = 'none';
-    document.getElementById('userEmail').textContent = currentUser.email;
+    document.getElementById('userEmail').textContent = currentUser.email || '';
   } else {
     info.style.display = 'none';
     btn.style.display = '';
@@ -177,11 +191,13 @@ async function syncFromCloud() {
   const ind = document.getElementById('syncIndicator');
   ind.classList.add('syncing');
   try {
-    const { data: cloudWords } = await supabaseClient.from('user_words').select('*').eq('user_id', currentUser.id);
-    const { data: cloudHistory } = await supabaseClient.from('user_history').select('*').eq('user_id', currentUser.id);
+    const { data: cloudWordsRaw } = await supabaseClient.from('user_words').select('*').eq('user_id', currentUser.id);
+    const { data: cloudHistoryRaw } = await supabaseClient.from('user_history').select('*').eq('user_id', currentUser.id);
+    const cloudWords = (cloudWordsRaw || []) as CloudWord[];
+    const cloudHistory = (cloudHistoryRaw || []) as CloudHistoryEntry[];
 
     const localStats = getWordStats();
-    if (cloudWords) {
+    if (cloudWords.length > 0) {
       for (const cw of cloudWords) {
         localStats[cw.word] = {
           lookups: cw.lookups || 0,
@@ -195,10 +211,10 @@ async function syncFromCloud() {
     }
     localStorage.setItem('poortaal_word_stats', JSON.stringify(localStats));
 
-    if (cloudHistory) {
+    if (cloudHistory.length > 0) {
       const cloudMap = new Map(cloudHistory.map(h => [h.word, h]));
       const localOnly = searchHistory.filter(h => !cloudMap.has(h.word));
-      const merged = cloudHistory.map(h => ({
+      const merged: HistoryEntry[] = cloudHistory.map(h => ({
         word: h.word,
         timestamp: h.timestamp || Date.now(),
         wordData: h.word_data || undefined,
@@ -210,18 +226,18 @@ async function syncFromCloud() {
 
       if (localOnly.length > 0) {
         const rows = localOnly.map(h => ({
-          user_id: currentUser.id,
+          user_id: currentUser!.id,
           word: h.word,
           word_data: h.wordData || null,
           timestamp: h.timestamp || Date.now(),
         }));
         await supabaseClient.from('user_history').upsert(rows, { onConflict: 'user_id,word' });
       }
-      const cloudWordSet = new Set((cloudWords || []).map(w => w.word));
-      const localOnlyStats = Object.entries(localStats as Record<string, any>).filter(([w]) => !cloudWordSet.has(w));
+      const cloudWordSet = new Set(cloudWords.map(w => w.word));
+      const localOnlyStats = Object.entries(localStats).filter(([w]) => !cloudWordSet.has(w));
       if (localOnlyStats.length > 0) {
         const rows = localOnlyStats.map(([w, s]) => ({
-          user_id: currentUser.id,
+          user_id: currentUser!.id,
           word: w,
           lookups: s.lookups || 0,
           practices: s.practices || 0,
@@ -243,7 +259,7 @@ async function syncFromCloud() {
   }
 }
 
-async function saveWordStatsToCloud(word) {
+async function saveWordStatsToCloud(word: string) {
   if (!currentUser) return;
   const stats = getWordStats()[word];
   if (!stats) return;
@@ -257,17 +273,17 @@ async function saveWordStatsToCloud(word) {
     last_seen: stats.lastSeen || Date.now(),
     word_data: getCachedWord(word) || null,
     updated_at: new Date().toISOString(),
-  }, { onConflict: 'user_id,word' }).then(({ error }) => { if (error) console.error('Save word error:', error); });
+  }, { onConflict: 'user_id,word' }).then(({ error }: { error: unknown }) => { if (error) console.error('Save word error:', error); });
 }
 
-async function saveHistoryToCloud(word, wordData) {
+async function saveHistoryToCloud(word: string, wordData?: WordExplanation | null) {
   if (!currentUser) return;
   await supabaseClient.from('user_history').upsert({
     user_id: currentUser.id,
     word: word,
     word_data: wordData || null,
     timestamp: Date.now(),
-  }, { onConflict: 'user_id,word' }).then(({ error }) => { if (error) console.error('Save history error:', error); });
+  }, { onConflict: 'user_id,word' }).then(({ error }: { error: unknown }) => { if (error) console.error('Save history error:', error); });
 }
 
 async function initAuth() {
@@ -277,7 +293,7 @@ async function initAuth() {
     updateUserUI();
     syncFromCloud();
   }
-  supabaseClient.auth.onAuthStateChange((event, session) => {
+  supabaseClient.auth.onAuthStateChange((_event: string, session: AuthSession) => {
     currentUser = session?.user || null;
     updateUserUI();
   });
@@ -285,25 +301,25 @@ async function initAuth() {
 
 // --- State ---
 const API_BASE = 'https://poortaal-api.weilin1990.workers.dev';
-let searchHistory = JSON.parse(localStorage.getItem('poortaal_history') || '[]');
-if (searchHistory.length > 0 && typeof searchHistory[0] === 'string') {
-  searchHistory = searchHistory.map(w => ({ word: w, timestamp: Date.now() }));
+const storedHistory = JSON.parse(localStorage.getItem('poortaal_history') || '[]') as Array<HistoryEntry | string>;
+let searchHistory: HistoryEntry[] = storedHistory.map(item => typeof item === 'string' ? { word: item, timestamp: Date.now() } : item);
+if (storedHistory.some(item => typeof item === 'string')) {
   localStorage.setItem('poortaal_history', JSON.stringify(searchHistory));
 }
-let currentWord = null;
-let currentWordData = null;
-let practiceMessages = [];
-let reviewQueue = [];
+let currentWord: string | null = null;
+let currentWordData: WordExplanation | null = null;
+let practiceMessages: ChatMessage[] = [];
+let reviewQueue: ReviewItem[] = [];
 let reviewIndex = 0;
 let reviewResults = { know: 0, again: 0 };
 let reviewRevealed = false;
 let reviewSessionActive = false;
 let practiceLoading = false;
-let microReviewTimer = null;
-let microReviewInterval = null;
+let microReviewTimer: ReturnType<typeof setTimeout> | null = null;
+let microReviewInterval: ReturnType<typeof setInterval> | null = null;
 
 // --- Routing ---
-function navigateTo(hash) {
+function navigateTo(hash: string) {
   window.location.hash = hash;
 }
 
@@ -327,7 +343,7 @@ function renderReviewHome() {
   }
   const wilting = due.filter(d => d.isWilting).length;
   const today = due.length - wilting;
-  const breakdownParts = [];
+  const breakdownParts: string[] = [];
   if (wilting > 0) breakdownParts.push(`🥀 ${wilting} verwelkt`);
   if (today > 0) breakdownParts.push(`🌿 ${today} vandaag`);
   const breakdown = breakdownParts.join(' · ');
@@ -370,7 +386,7 @@ function renderReviewSession() {
     return;
   }
   const item = reviewQueue[reviewIndex];
-  const data = item.entry.wordData || {};
+  const data = item.entry.wordData || {} as Partial<WordExplanation>;
   const word = item.entry.word;
   const total = reviewQueue.length;
   const pct = Math.round((reviewIndex / total) * 100);
@@ -470,7 +486,7 @@ function attachReviewCardSwipe() {
   card.addEventListener('pointercancel', commitOrReset);
 }
 
-function onReviewTTS(e, btn) { e.stopPropagation(); playExTTS(btn, btn.dataset.word || ''); }
+function onReviewTTS(e: Event, btn: HTMLElement) { e.stopPropagation(); playExTTS(btn, btn.dataset.word || ''); }
 function onReviewCardTap() {
   if (reviewRevealed) return;
   reviewRevealed = true;
@@ -483,7 +499,7 @@ function onReviewCardTap() {
   if (again) (again as HTMLButtonElement).disabled = false;
   if (know) (know as HTMLButtonElement).disabled = false;
 }
-function gradeAndAdvance(known) {
+function gradeAndAdvance(known: boolean) {
   if (!reviewSessionActive || !reviewRevealed) return;
   const item = reviewQueue[reviewIndex];
   if (!item) return;
@@ -501,7 +517,7 @@ function renderReviewSummary() {
   if (!root) return;
   const know = reviewResults.know;
   const again = reviewResults.again;
-  const lines = [];
+  const lines: string[] = [];
   if (know > 0) lines.push(`<div class="review-summary-stat">🌳 ${know} wist je</div>`);
   if (again > 0) lines.push(`<div class="review-summary-stat">🥀 ${again} opnieuw</div>`);
   if (lines.length === 0) lines.push('<div class="review-summary-stat">Geen woorden beoordeeld</div>');
@@ -555,31 +571,31 @@ const DAILY_EPOCH = new Date(2026, 0, 1);
 function getAbsoluteDay() {
   const now = new Date(); const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); return Math.floor((today.getTime() - DAILY_EPOCH.getTime()) / 86400000);
 }
-function seededShuffle(arr, seed) {
+function seededShuffle<T>(arr: T[], seed: number): T[] {
   const copy = [...arr];
   for (let i = copy.length - 1; i > 0; i--) { seed = (seed * 16807 + 0) % 2147483647; const j = seed % (i + 1); [copy[i], copy[j]] = [copy[j], copy[i]]; }
   return copy;
 }
-function getTodayWord(words) {
+function getTodayWord(words: DailyWord[]): DailyWord {
   const absoluteDay = getAbsoluteDay(); const cycle = Math.floor(absoluteDay / words.length); const effectiveList = cycle === 0 ? words : seededShuffle(words, cycle); return effectiveList[absoluteDay % words.length];
 }
-function getStreak() { try { return JSON.parse(localStorage.getItem('poortaal_streak')) || { lastDate: null, count: 0 }; } catch { return { lastDate: null, count: 0 }; } }
+function getStreak(): { lastDate: string | null; count: number } { try { return JSON.parse(localStorage.getItem('poortaal_streak') || 'null') || { lastDate: null, count: 0 }; } catch { return { lastDate: null, count: 0 }; } }
 function updateStreak() {
   const streak = getStreak(); const today = new Date().toISOString().slice(0, 10); if (streak.lastDate === today) return streak;
   const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
   const newStreak = { lastDate: today, count: streak.lastDate === yesterday ? streak.count + 1 : 1 };
   localStorage.setItem('poortaal_streak', JSON.stringify(newStreak)); return newStreak;
 }
-function renderDailyWord(word) {
+function renderDailyWord(word: DailyWord) {
   const container = document.getElementById('dailyWordContainer'); const streak = getStreak(); const streakCount = streak.count || 0;
   container.innerHTML = `<div class="daily-word-card"><div class="daily-word-top"><div class="daily-word-label">Woord van de Dag</div><div class="streak-badge">\u{1F333} Dag ${streakCount}</div></div><div class="daily-word-main"><h2>${escapeHtml(word.word)}</h2><span class="word-type">${escapeHtml(word.category)}</span></div><div class="daily-word-teaser">${escapeHtml(word.teaser)}</div><button class="daily-word-cta" data-action="explore-daily-word">Ontdek dit woord</button></div>`;
 }
 function exploreDailyWord() {
   if (!currentDailyWord) return; const streak = updateStreak(); const badge = document.querySelector('.streak-badge'); if (badge) badge.textContent = '\u{1F333} Dag ' + streak.count; (document.getElementById('wordInput') as HTMLInputElement).value = currentDailyWord.word; lookupWord();
 }
-let currentDailyWord = null;
+let currentDailyWord: DailyWord | null = null;
 async function loadDailyWord() {
-  try { const res = await fetch('words.json'); if (!res.ok) return; const words = await res.json(); if (!Array.isArray(words) || words.length === 0) return; currentDailyWord = getTodayWord(words); renderDailyWord(currentDailyWord); } catch {}
+  try { const res = await fetch('words.json'); if (!res.ok) return; const words = await res.json() as DailyWord[]; if (!Array.isArray(words) || words.length === 0) return; currentDailyWord = getTodayWord(words); renderDailyWord(currentDailyWord); } catch {}
 }
 
 // --- Init ---
@@ -590,7 +606,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('authPassword')?.addEventListener('keydown', e => { if (e.key === 'Enter') handleAuth(); });
   handleRoute(); window.addEventListener('keydown', onReviewKeydown);
 });
-function onReviewKeydown(e) {
+function onReviewKeydown(e: KeyboardEvent) {
   if (!reviewSessionActive) return; const tag = (document.activeElement && document.activeElement.tagName) || ''; if (tag === 'INPUT' || tag === 'TEXTAREA') return; if (reviewIndex >= reviewQueue.length) return;
   if (e.key === ' ' || e.code === 'Space') { e.preventDefault(); onReviewCardTap(); }
   else if (e.key === 'Enter' || e.key === 'ArrowRight') { if (!reviewRevealed) return; e.preventDefault(); gradeAndAdvance(true); }
@@ -598,43 +614,43 @@ function onReviewKeydown(e) {
 }
 
 // --- TTS ---
-async function _playTTSBlob(text) {
+async function _playTTSBlob(text: string) {
   const url = `https://poortaal-api.weilin1990.workers.dev/tts?q=${encodeURIComponent(text)}&tl=nl`; const res = await fetch(url); if (!res.ok) throw new Error('TTS fetch failed'); const blob = await res.blob(); const blobUrl = URL.createObjectURL(blob); const audio = new Audio(blobUrl); audio.onended = () => URL.revokeObjectURL(blobUrl); await audio.play();
 }
-function playPronunciation(text) { _playTTSBlob(text).catch(() => showToast('Er ging iets mis')); }
-async function playTTS(word) { const btn = document.getElementById('ttsBtn'); if (!btn || btn.classList.contains('loading')) return; btn.classList.add('loading'); btn.innerHTML = '<div class="tts-spinner"></div>'; try { await _playTTSBlob(word); } catch { showToast('Er ging iets mis'); } finally { btn.classList.remove('loading'); btn.innerHTML = '🔊'; } }
-async function playExTTS(btn, text) { if (btn.classList.contains('loading')) return; btn.classList.add('loading'); btn.innerHTML = '<span class="tts-spinner"></span>'; try { await _playTTSBlob(text); } catch { showToast('Er ging iets mis'); } finally { btn.classList.remove('loading'); btn.innerHTML = '🔊'; } }
+function playPronunciation(text: string) { _playTTSBlob(text).catch(() => showToast('Er ging iets mis')); }
+async function playTTS(word: string) { const btn = document.getElementById('ttsBtn'); if (!btn || btn.classList.contains('loading')) return; btn.classList.add('loading'); btn.innerHTML = '<div class="tts-spinner"></div>'; try { await _playTTSBlob(word); } catch { showToast('Er ging iets mis'); } finally { btn.classList.remove('loading'); btn.innerHTML = '🔊'; } }
+async function playExTTS(btn: HTMLElement, text: string) { if (btn.classList.contains('loading')) return; btn.classList.add('loading'); btn.innerHTML = '<span class="tts-spinner"></span>'; try { await _playTTSBlob(text); } catch { showToast('Er ging iets mis'); } finally { btn.classList.remove('loading'); btn.innerHTML = '🔊'; } }
 
 // --- History ---
 function toggleHistory() { const panel = document.getElementById('historyPanel'); const overlay = document.getElementById('overlay'); panel.classList.toggle('open'); overlay.classList.toggle('open'); }
-function getWordStats() { try { return JSON.parse(localStorage.getItem('poortaal_word_stats') || '{}'); } catch { return {}; } }
-function updateWordStats(word, type) {
+function getWordStats(): WordStatsMap { try { return JSON.parse(localStorage.getItem('poortaal_word_stats') || '{}') as WordStatsMap; } catch { return {}; } }
+function updateWordStats(word: string, type: 'lookup' | 'practice' | 'review' | 'review_again') {
   const stats = getWordStats(); const w = word.toLowerCase().trim(); if (!stats[w]) stats[w] = { lookups: 0, practices: 0, lastSeen: Date.now(), reviews: [], level: 0 }; if (!stats[w].reviews) stats[w].reviews = []; if (stats[w].level === undefined) stats[w].level = 0; if (type === 'lookup') stats[w].lookups++; if (type === 'practice') stats[w].practices++;
   if (type === 'review' || type === 'practice' || type === 'review_again') { const today = new Date().toDateString(); const lastReview = stats[w].reviews.length > 0 ? stats[w].reviews[stats[w].reviews.length - 1] : 0; const lastReviewDay = new Date(lastReview).toDateString(); const alreadyReviewedToday = lastReview && lastReviewDay === today; if (!alreadyReviewedToday) { stats[w].reviews.push(Date.now()); if (stats[w].reviews.length >= 2 && type !== 'review_again') stats[w].level = Math.min(stats[w].level + 1, 4); } }
   stats[w].lastSeen = Date.now(); localStorage.setItem('poortaal_word_stats', JSON.stringify(stats)); saveWordStatsToCloud(w); return stats[w];
 }
-function getNextInterval(level) { const intervals = [1, 3, 7, 14, 30]; return intervals[Math.min(level, intervals.length - 1)]; }
-function startOfDay(ts) { const d = new Date(ts); d.setHours(0, 0, 0, 0); return d.getTime(); }
-function addToHistory(word, wordData) { const w = word.toLowerCase().trim(); searchHistory = searchHistory.filter(h => h.word !== w); const entry: { word: string; timestamp: number; wordData?: any } = { word: w, timestamp: Date.now() }; if (wordData) entry.wordData = wordData; searchHistory.unshift(entry); if (searchHistory.length > 50) searchHistory = searchHistory.slice(0, 50); localStorage.setItem('poortaal_history', JSON.stringify(searchHistory)); updateWordStats(w, 'lookup'); saveHistoryToCloud(w, wordData); renderHistory(); updateReviewBadge(); }
-function getPlantStage(word) {
+function getNextInterval(level: number) { const intervals = [1, 3, 7, 14, 30]; return intervals[Math.min(level, intervals.length - 1)]; }
+function startOfDay(ts: number) { const d = new Date(ts); d.setHours(0, 0, 0, 0); return d.getTime(); }
+function addToHistory(word: string, wordData?: WordExplanation | null) { const w = word.toLowerCase().trim(); searchHistory = searchHistory.filter(h => h.word !== w); const entry: HistoryEntry = { word: w, timestamp: Date.now() }; if (wordData) entry.wordData = wordData; searchHistory.unshift(entry); if (searchHistory.length > 50) searchHistory = searchHistory.slice(0, 50); localStorage.setItem('poortaal_history', JSON.stringify(searchHistory)); updateWordStats(w, 'lookup'); saveHistoryToCloud(w, wordData); renderHistory(); updateReviewBadge(); }
+function getPlantStage(word: string): PlantStage {
   const stats = getWordStats()[word.toLowerCase().trim()]; if (!stats) return { emoji: '🌱', label: 'Zaaisel', key: 'seed', hint: '' }; const level = stats.level || 0; const lastSeen = stats.lastSeen || 0; const nextInterval = getNextInterval(level); const today = startOfDay(Date.now()); const dueDay = startOfDay(lastSeen + nextInterval * 86400000); const overdueDays = Math.max(0, Math.round((today - dueDay) / 86400000)); const daysLeft = Math.max(0, Math.round((dueDay - today) / 86400000)); const overdue = dueDay < today; const dueTodayHint = 'Herhaal vandaag!';
   if (overdue && level < 4) return { emoji: '🥀', label: 'Verwelkt', key: 'wilting', hint: `${overdueDays}d te laat` }; if (level >= 4) return { emoji: '🌳', label: 'Sterk', key: 'strong', hint: 'Goed gedaan!' }; if (level >= 3) return { emoji: '🪴', label: 'Groeiend', key: 'growing', hint: daysLeft === 0 ? dueTodayHint : `${daysLeft}d tot herhaling` }; if (level >= 1) return { emoji: '🌿', label: 'Kiempje', key: 'sprout', hint: daysLeft === 0 ? dueTodayHint : `${daysLeft}d tot herhaling` }; const hasPracticed = stats.practices > 0 || stats.reviews.length > 0; const seedHint = hasPracticed ? (daysLeft > 0 ? `${daysLeft}d tot herhaling` : dueTodayHint) : 'Oefen om te groeien'; return { emoji: '🌱', label: 'Zaaisel', key: 'seed', hint: seedHint };
 }
-function getDueWords() { const stats = getWordStats(); const today = startOfDay(Date.now()); return searchHistory.filter(entry => entry.wordData).map(entry => { const s = stats[entry.word] || {}; const level = s.level || 0; const lastSeen = s.lastSeen || 0; const nextInterval = getNextInterval(level); const dueDay = startOfDay(lastSeen + nextInterval * 86400000); return { entry, stats: s, level, isDue: dueDay <= today && level < 4, isWilting: dueDay < today, overdueDays: Math.max(0, Math.round((today - dueDay) / 86400000)) }; }).filter(x => x.isDue).sort((a, b) => b.overdueDays - a.overdueDays); }
+function getDueWords(): ReviewItem[] { const stats = getWordStats(); const today = startOfDay(Date.now()); return searchHistory.filter(entry => entry.wordData).map(entry => { const s: Partial<WordStats> = stats[entry.word] || {}; const level = s.level || 0; const lastSeen = s.lastSeen || 0; const nextInterval = getNextInterval(level); const dueDay = startOfDay(lastSeen + nextInterval * 86400000); return { entry, stats: s, level, isDue: dueDay <= today && level < 4, isWilting: dueDay < today, overdueDays: Math.max(0, Math.round((today - dueDay) / 86400000)) }; }).filter(x => x.isDue).sort((a, b) => b.overdueDays - a.overdueDays); }
 function updateReviewBadge() { const badge = document.getElementById('navReviewBadge'); if (!badge) return; const due = getDueWords(); badge.hidden = due.length === 0; badge.textContent = String(due.length); }
 function renderHistory() {
   const list = document.getElementById('historyList'); const summaryEl = document.getElementById('historySummary'); if (searchHistory.length === 0) { list.innerHTML = '<div class="history-empty">Nog geen woorden opgezocht</div>'; summaryEl.innerHTML = ''; return; }
-  const counts = { strong: 0, growing: 0, sprout: 0, seed: 0, wilting: 0 };
+  const counts: Record<PlantStageKey, number> = { strong: 0, growing: 0, sprout: 0, seed: 0, wilting: 0 };
   const rows = searchHistory.map(entry => { const safe = escapeHtml(entry.word); const safeAttr = safe.replace(/"/g, '&quot;'); const plant = getPlantStage(entry.word); counts[plant.key]++; const isWilting = plant.key === 'wilting' && Boolean(entry.wordData); return `<li><div class="swipe-delete" data-action="delete-history" data-word="${safeAttr}">Verwijder</div><div class="swipe-content" data-action="history-word" data-word="${safeAttr}" data-review="${isWilting}"><span class="history-word">${safe}</span><span class="plant-stage" title="${plant.hint || ''}"><span class="plant-emoji">${plant.emoji}</span><span class="plant-label">${plant.hint || plant.label}</span></span></div></li>`; });
-  list.innerHTML = rows.join(''); initSwipeHandlers(list); const parts = []; if (counts.strong) parts.push(`🌳 ${counts.strong} sterk`); if (counts.growing) parts.push(`🪴 ${counts.growing} groeiend`); if (counts.sprout) parts.push(`🌿 ${counts.sprout} kiempjes`); if (counts.seed) parts.push(`🌱 ${counts.seed} zaaisel`); if (counts.wilting) parts.push(`🥀 ${counts.wilting} verwelkt`); summaryEl.innerHTML = parts.join(' · ');
+  list.innerHTML = rows.join(''); initSwipeHandlers(list); const parts: string[] = []; if (counts.strong) parts.push(`🌳 ${counts.strong} sterk`); if (counts.growing) parts.push(`🪴 ${counts.growing} groeiend`); if (counts.sprout) parts.push(`🌿 ${counts.sprout} kiempjes`); if (counts.seed) parts.push(`🌱 ${counts.seed} zaaisel`); if (counts.wilting) parts.push(`🥀 ${counts.wilting} verwelkt`); summaryEl.innerHTML = parts.join(' · ');
 }
-function deleteHistoryItem(word) { const w = word.toLowerCase().trim(); searchHistory = searchHistory.filter(h => h.word !== w); localStorage.setItem('poortaal_history', JSON.stringify(searchHistory)); const cache = getWordCache(); delete cache[w]; localStorage.setItem(WORD_CACHE_KEY, JSON.stringify(cache)); const stats = getWordStats(); delete stats[w]; localStorage.setItem('poortaal_word_stats', JSON.stringify(stats)); if (currentUser) { supabaseClient.from('user_history').delete().eq('user_id', currentUser.id).eq('word', w).then(() => {}); supabaseClient.from('user_words').delete().eq('user_id', currentUser.id).eq('word', w).then(() => {}); } renderHistory(); }
-function initSwipeHandlers(list) { const items = list.querySelectorAll('.swipe-content'); items.forEach(el => { let startX = 0, currentX = 0, swiping = false; el.addEventListener('touchstart', e => { startX = e.touches[0].clientX; currentX = 0; swiping = false; el.style.transition = 'none'; }, { passive: true }); el.addEventListener('touchmove', e => { const dx = e.touches[0].clientX - startX; if (dx < -10) swiping = true; if (swiping) { currentX = Math.min(0, Math.max(dx, -120)); el.style.transform = `translateX(${currentX}px)`; } }, { passive: true }); el.addEventListener('touchend', () => { el.style.transition = 'transform 0.2s ease'; if (currentX < -100) { const word = el.dataset.word; el.style.transform = 'translateX(-100%)'; setTimeout(() => deleteHistoryItem(word), 200); } else if (currentX < -40) el.style.transform = 'translateX(-80px)'; else el.style.transform = 'translateX(0)'; }); el.addEventListener('click', e => { if (swiping) { e.stopPropagation(); e.preventDefault(); } }, true); }); }
+function deleteHistoryItem(word: string) { const w = word.toLowerCase().trim(); searchHistory = searchHistory.filter(h => h.word !== w); localStorage.setItem('poortaal_history', JSON.stringify(searchHistory)); const cache = getWordCache(); delete cache[w]; localStorage.setItem(WORD_CACHE_KEY, JSON.stringify(cache)); const stats = getWordStats(); delete stats[w]; localStorage.setItem('poortaal_word_stats', JSON.stringify(stats)); if (currentUser) { supabaseClient.from('user_history').delete().eq('user_id', currentUser.id).eq('word', w).then(() => {}); supabaseClient.from('user_words').delete().eq('user_id', currentUser.id).eq('word', w).then(() => {}); } renderHistory(); }
+function initSwipeHandlers(list: HTMLElement) { const items = list.querySelectorAll<HTMLElement>('.swipe-content'); items.forEach(el => { let startX = 0, currentX = 0, swiping = false; el.addEventListener('touchstart', e => { startX = e.touches[0].clientX; currentX = 0; swiping = false; el.style.transition = 'none'; }, { passive: true }); el.addEventListener('touchmove', e => { const dx = e.touches[0].clientX - startX; if (dx < -10) swiping = true; if (swiping) { currentX = Math.min(0, Math.max(dx, -120)); el.style.transform = `translateX(${currentX}px)`; } }, { passive: true }); el.addEventListener('touchend', () => { el.style.transition = 'transform 0.2s ease'; if (currentX < -100) { const word = el.dataset.word; el.style.transform = 'translateX(-100%)'; if (word) setTimeout(() => deleteHistoryItem(word), 200); } else if (currentX < -40) el.style.transform = 'translateX(-80px)'; else el.style.transform = 'translateX(0)'; }); el.addEventListener('click', e => { if (swiping) { e.stopPropagation(); e.preventDefault(); } }, true); }); }
 
 // --- Toast / OpenAI ---
-function showToast(msg) { const existing = document.querySelector('.toast'); if (existing) existing.remove(); const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 4000); }
-async function callOpenAI(messages, temperature = 0.7) { const res = await fetch(`${API_BASE}/openai`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'gpt-4o-mini', messages, temperature }) }); if (!res.ok) { showToast('Er ging iets mis'); throw new Error('API error'); } const data = await res.json(); return data.choices[0].message.content; }
-function trySuggestion(word) { (document.getElementById('wordInput') as HTMLInputElement).value = word; const panel = document.getElementById('historyPanel'); if (panel.classList.contains('open')) toggleHistory(); lookupWord(); }
+function showToast(msg: string) { const existing = document.querySelector('.toast'); if (existing) existing.remove(); const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 4000); }
+async function callOpenAI(messages: ChatMessage[], temperature = 0.7): Promise<string> { const res = await fetch(`${API_BASE}/openai`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'gpt-4o-mini', messages, temperature }) }); if (!res.ok) { showToast('Er ging iets mis'); throw new Error('API error'); } const data = await res.json(); return data.choices[0].message.content; }
+function trySuggestion(word: string) { (document.getElementById('wordInput') as HTMLInputElement).value = word; const panel = document.getElementById('historyPanel'); if (panel.classList.contains('open')) toggleHistory(); lookupWord(); }
 
 // --- Word explanation validation ---
 type WordExample = { nl: string; en: string };
@@ -713,9 +729,9 @@ function parseWordExplanation(raw: string): WordExplanation {
 }
 
 const WORD_CACHE_KEY = 'poortaal_word_cache_v4';
-function getWordCache() { try { return JSON.parse(localStorage.getItem(WORD_CACHE_KEY) || '{}'); } catch { return {}; } }
-function setWordCache(word, data) { const cache = getWordCache(); cache[word.toLowerCase().trim()] = data; const keys = Object.keys(cache); if (keys.length > 200) delete cache[keys[0]]; localStorage.setItem(WORD_CACHE_KEY, JSON.stringify(cache)); }
-function getCachedWord(word) {
+function getWordCache(): Record<string, unknown> { try { return JSON.parse(localStorage.getItem(WORD_CACHE_KEY) || '{}') as Record<string, unknown>; } catch { return {}; } }
+function setWordCache(word: string, data: unknown) { const cache = getWordCache(); cache[word.toLowerCase().trim()] = data; const keys = Object.keys(cache); if (keys.length > 200) delete cache[keys[0]]; localStorage.setItem(WORD_CACHE_KEY, JSON.stringify(cache)); }
+function getCachedWord(word: string): WordExplanation | null {
   const key = word.toLowerCase().trim();
   const cache = getWordCache();
   const cached = cache[key];
@@ -751,11 +767,11 @@ function renderWordCard(data: WordExplanation) {
 }
 
 // --- Practice ---
-function goToPractice(word) { navigateTo('#practice'); setTimeout(() => startPracticeForWord(word), 50); }
+function goToPractice(word: string) { navigateTo('#practice'); setTimeout(() => startPracticeForWord(word), 50); }
 function renderPracticeHistoryList() { const list = document.getElementById('practiceHistoryList'); const wordsWithData = searchHistory.filter(h => h.wordData); if (wordsWithData.length === 0) { list.innerHTML = '<div class="history-empty" style="padding:2rem 0;">Zoek eerst een woord op om mee te oefenen</div>'; return; } list.innerHTML = wordsWithData.map(entry => { const safe = escapeHtml(entry.word); const safeAttr = safe.replace(/"/g, '&quot;'); const typeHint = entry.wordData?.type ? escapeHtml(entry.wordData.type) : ''; return `<li data-action="start-practice-word" data-word="${safeAttr}"><span class="word-label">${safe}</span><span class="word-type-hint">${typeHint}</span></li>`; }).join(''); }
 function startPracticeWithInput() { const input = document.getElementById('practiceWordInput') as HTMLInputElement; const word = input.value.trim(); if (!word) return; input.value = ''; startPracticeForWord(word); }
 function showPracticePicker() { if (voiceActive) stopVoiceSession(); const practicedWord = document.getElementById('practiceChatWord')?.textContent?.toLowerCase()?.trim(); const userSentMessages = practiceMessages.filter(m => m.role === 'user').length; if (practicedWord && userSentMessages > 0) { updateWordStats(practicedWord, 'practice'); renderHistory(); } document.getElementById('practicePickerSection').style.display = ''; document.getElementById('practiceChatSection').style.display = 'none'; switchPracticeMode('text'); practiceMessages = []; }
-async function startPracticeForWord(word) {
+async function startPracticeForWord(word: string) {
   const entry = searchHistory.find(h => h.word === word.toLowerCase()); const wordData = entry?.wordData || { word, meaning_en: '' }; document.getElementById('practicePickerSection').style.display = 'none'; document.getElementById('practiceChatSection').style.display = ''; document.getElementById('practiceChatWord').textContent = wordData.word; const msgs = document.getElementById('chatMessages'); msgs.innerHTML = '<div class="chat-msg system">Scenario wordt voorbereid...</div>'; const meaningHint = wordData.meaning_en ? ` (${wordData.meaning_en})` : '';
   practiceMessages = [{ role: 'system', content: `You are a friendly Dutch language tutor running a role-play practice session. The student is learning the word "${wordData.word}"${meaningHint}.
 
@@ -769,32 +785,32 @@ Your job:
   try { const response = await callOpenAI(practiceMessages); practiceMessages.push({ role: 'assistant', content: response }); msgs.innerHTML = `<div class="chat-msg tutor">${formatChat(response)}</div>`; document.getElementById('chatInput').focus(); } catch { msgs.innerHTML = '<div class="chat-msg system">Kon het scenario niet starten. Probeer opnieuw.</div>'; }
 }
 async function sendChat() { const input = document.getElementById('chatInput') as HTMLInputElement; const text = input.value.trim(); if (!text || practiceLoading) return; const msgs = document.getElementById('chatMessages'); practiceMessages.push({ role: 'user', content: text }); msgs.innerHTML += `<div class="chat-msg user">${escapeHtml(text)}</div>`; input.value = ''; msgs.scrollTop = msgs.scrollHeight; practiceLoading = true; (document.getElementById('chatSendBtn') as HTMLButtonElement).disabled = true; msgs.innerHTML += '<div class="chat-msg system" id="chatLoading">💭 Even denken...</div>'; try { const response = await callOpenAI(practiceMessages); practiceMessages.push({ role: 'assistant', content: response }); document.getElementById('chatLoading')?.remove(); msgs.innerHTML += `<div class="chat-msg tutor">${formatChat(response)}</div>`; } catch { document.getElementById('chatLoading')?.remove(); msgs.innerHTML += '<div class="chat-msg system">Fout bij het versturen. Probeer opnieuw.</div>'; } finally { practiceLoading = false; (document.getElementById('chatSendBtn') as HTMLButtonElement).disabled = false; msgs.scrollTop = msgs.scrollHeight; } }
-function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-function formatChat(text) { return escapeHtml(text).replace(/\n/g, '<br>'); }
+function escapeHtml(s: string) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function formatChat(text: string) { return escapeHtml(text).replace(/\n/g, '<br>'); }
 
 // --- Micro review ---
-function startMicroReview(word) { const entry = searchHistory.find(h => h.word === word); if (!entry || !entry.wordData) { trySuggestion(word); return; } const panel = document.getElementById('historyPanel'); if (panel.classList.contains('open')) toggleHistory(); const data = entry.wordData; document.getElementById('reviewWord').textContent = data.word; document.getElementById('reviewType').textContent = data.type || ''; document.getElementById('reviewNl').textContent = data.meaning_nl || ''; document.getElementById('reviewEn').textContent = data.meaning_en || ''; document.getElementById('reviewAnswer').classList.remove('revealed'); document.getElementById('reviewActions').innerHTML = '<button class="review-btn-reveal" data-action="micro-reveal">Onthullen</button>'; document.getElementById('microReviewOverlay').classList.add('open'); let remaining = 30; const bar = document.getElementById('reviewTimerBar'); const text = document.getElementById('reviewTimerText'); bar.style.width = '100%'; text.textContent = '30s'; if (microReviewInterval) clearInterval(microReviewInterval); microReviewInterval = setInterval(() => { remaining -= 0.1; if (remaining <= 0) { remaining = 0; clearInterval(microReviewInterval); revealAnswer(); } bar.style.width = ((remaining / 30) * 100) + '%'; text.textContent = Math.ceil(remaining) + 's'; }, 100); }
+function startMicroReview(word: string) { const entry = searchHistory.find(h => h.word === word); if (!entry || !entry.wordData) { trySuggestion(word); return; } const panel = document.getElementById('historyPanel'); if (panel.classList.contains('open')) toggleHistory(); const data = entry.wordData; document.getElementById('reviewWord').textContent = data.word; document.getElementById('reviewType').textContent = data.type || ''; document.getElementById('reviewNl').textContent = data.meaning_nl || ''; document.getElementById('reviewEn').textContent = data.meaning_en || ''; document.getElementById('reviewAnswer').classList.remove('revealed'); document.getElementById('reviewActions').innerHTML = '<button class="review-btn-reveal" data-action="micro-reveal">Onthullen</button>'; document.getElementById('microReviewOverlay').classList.add('open'); let remaining = 30; const bar = document.getElementById('reviewTimerBar'); const text = document.getElementById('reviewTimerText'); bar.style.width = '100%'; text.textContent = '30s'; if (microReviewInterval) clearInterval(microReviewInterval); microReviewInterval = setInterval(() => { remaining -= 0.1; if (remaining <= 0) { remaining = 0; clearInterval(microReviewInterval!); revealAnswer(); } bar.style.width = ((remaining / 30) * 100) + '%'; text.textContent = Math.ceil(remaining) + 's'; }, 100); }
 function revealAnswer() { if (microReviewInterval) { clearInterval(microReviewInterval); microReviewInterval = null; } document.getElementById('reviewAnswer').classList.add('revealed'); document.getElementById('reviewActions').innerHTML = '<button class="review-btn-know" data-action="micro-finish" data-known="true">Wist ik!</button><button class="review-btn-again" data-action="micro-finish" data-known="false">Opnieuw</button><button class="review-btn-close" data-action="micro-close">Sluiten</button>'; }
-function finishReview(knew) { const word = document.getElementById('reviewWord').textContent.toLowerCase(); const idx = searchHistory.findIndex(h => h.word === word); if (idx !== -1) { searchHistory[idx].timestamp = Date.now(); localStorage.setItem('poortaal_history', JSON.stringify(searchHistory)); } updateWordStats(word, 'practice'); closeMicroReview(); if (!knew) trySuggestion(word); renderHistory(); }
+function finishReview(knew: boolean) { const word = document.getElementById('reviewWord').textContent.toLowerCase(); const idx = searchHistory.findIndex(h => h.word === word); if (idx !== -1) { searchHistory[idx].timestamp = Date.now(); localStorage.setItem('poortaal_history', JSON.stringify(searchHistory)); } updateWordStats(word, 'practice'); closeMicroReview(); if (!knew) trySuggestion(word); renderHistory(); }
 function closeMicroReview() { if (microReviewInterval) { clearInterval(microReviewInterval); microReviewInterval = null; } document.getElementById('microReviewOverlay').classList.remove('open'); }
 
 // --- Voice Practice ---
-let voicePeerConnection = null;
-let voiceDataChannel = null;
+let voicePeerConnection: RTCPeerConnection | null = null;
+let voiceDataChannel: RTCDataChannel | null = null;
 let voiceActive = false;
 let currentVoiceWord = '';
-function switchPracticeMode(mode) { document.getElementById('textModeBtn').classList.toggle('active', mode === 'text'); document.getElementById('voiceModeBtn').classList.toggle('active', mode === 'voice'); document.getElementById('textPracticePanel').style.display = mode === 'text' ? '' : 'none'; document.getElementById('voicePracticePanel').style.display = mode === 'voice' ? '' : 'none'; if (mode === 'voice') { const word = document.getElementById('practiceChatWord').textContent; document.getElementById('voicePracticeWord').textContent = word; currentVoiceWord = word; } if (mode === 'text' && voiceActive) stopVoiceSession(); }
+function switchPracticeMode(mode: 'text' | 'voice') { document.getElementById('textModeBtn').classList.toggle('active', mode === 'text'); document.getElementById('voiceModeBtn').classList.toggle('active', mode === 'voice'); document.getElementById('textPracticePanel').style.display = mode === 'text' ? '' : 'none'; document.getElementById('voicePracticePanel').style.display = mode === 'voice' ? '' : 'none'; if (mode === 'voice') { const word = document.getElementById('practiceChatWord').textContent || ''; document.getElementById('voicePracticeWord').textContent = word; currentVoiceWord = word; } if (mode === 'text' && voiceActive) stopVoiceSession(); }
 async function toggleVoiceSession() { if (voiceActive) stopVoiceSession(); else await startVoiceSession(); }
 async function startVoiceSession() {
   const word = currentVoiceWord; const statusEl = document.getElementById('voiceStatus'); const btn = document.getElementById('voiceStartBtn'); const transcript = document.getElementById('voiceTranscript'); statusEl.textContent = 'Verbinding maken...'; transcript.innerHTML = '';
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true }); const tokenRes = await fetch(`${API_BASE}/realtime-token`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ word }) }); if (!tokenRes.ok) throw new Error('Kon geen sessie starten'); const tokenData = await tokenRes.json(); const ephemeralToken = tokenData.client_secret?.value || tokenData.value; if (!ephemeralToken) throw new Error('Geen token ontvangen'); const pc = new RTCPeerConnection(); voicePeerConnection = pc; const audioEl = document.createElement('audio'); audioEl.autoplay = true; pc.ontrack = e => { audioEl.srcObject = e.streams[0]; }; stream.getTracks().forEach(track => pc.addTrack(track, stream)); const dc = pc.createDataChannel('oai-events'); voiceDataChannel = dc; let currentAssistantText = ''; let userPendingEl = null; let assistantStreamEl = null;
-    dc.addEventListener('message', e => { const event = JSON.parse(e.data); console.log('🎙️ Event:', event.type, event); if (event.type === 'input_audio_buffer.speech_started') { if (assistantStreamEl) { dc.send(JSON.stringify({ type: 'response.cancel' })); if (currentAssistantText) assistantStreamEl.innerHTML = formatChat(currentAssistantText + '...'); assistantStreamEl = null; currentAssistantText = ''; } setVoiceDots(true); userPendingEl = document.createElement('div'); userPendingEl.className = 'chat-msg user'; userPendingEl.setAttribute('data-pending', 'true'); userPendingEl.textContent = '...'; transcript.appendChild(userPendingEl); transcript.scrollTop = transcript.scrollHeight; } if (event.type === 'input_audio_buffer.speech_stopped') setVoiceDots(false); if (event.type === 'conversation.item.input_audio_transcription.completed') { const text = event.transcript; if (userPendingEl) { userPendingEl.removeAttribute('data-pending'); userPendingEl.innerHTML = escapeHtml(text); userPendingEl = null; } else { const el = document.createElement('div'); el.className = 'chat-msg user'; el.innerHTML = escapeHtml(text); transcript.appendChild(el); } transcript.scrollTop = transcript.scrollHeight; if (dc && dc.readyState === 'open') dc.send(JSON.stringify({ type: 'response.create' })); } if (event.type === 'response.output_audio_transcript.delta') { currentAssistantText += event.delta; if (assistantStreamEl) assistantStreamEl.innerHTML = formatChat(currentAssistantText); else { assistantStreamEl = document.createElement('div'); assistantStreamEl.className = 'chat-msg tutor'; assistantStreamEl.innerHTML = formatChat(currentAssistantText); transcript.appendChild(assistantStreamEl); } transcript.scrollTop = transcript.scrollHeight; setVoiceDots(true); } if (event.type === 'response.output_audio_transcript.done') { if (assistantStreamEl) { assistantStreamEl.innerHTML = formatChat(event.transcript); assistantStreamEl = null; } currentAssistantText = ''; setVoiceDots(false); } });
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true }); const tokenRes = await fetch(`${API_BASE}/realtime-token`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ word }) }); if (!tokenRes.ok) throw new Error('Kon geen sessie starten'); const tokenData = await tokenRes.json(); const ephemeralToken = tokenData.client_secret?.value || tokenData.value; if (!ephemeralToken) throw new Error('Geen token ontvangen'); const pc = new RTCPeerConnection(); voicePeerConnection = pc; const audioEl = document.createElement('audio'); audioEl.autoplay = true; pc.ontrack = e => { audioEl.srcObject = e.streams[0]; }; stream.getTracks().forEach(track => pc.addTrack(track, stream)); const dc = pc.createDataChannel('oai-events'); voiceDataChannel = dc; let currentAssistantText = ''; let userPendingEl: HTMLDivElement | null = null; let assistantStreamEl: HTMLDivElement | null = null;
+    dc.addEventListener('message', e => { const event = JSON.parse(e.data); console.log('🎙️ Event:', event.type, event); if (event.type === 'input_audio_buffer.speech_started') { if (assistantStreamEl) { dc.send(JSON.stringify({ type: 'response.cancel' })); if (currentAssistantText) assistantStreamEl.innerHTML = formatChat(currentAssistantText + '...'); assistantStreamEl = null; currentAssistantText = ''; } setVoiceDots(true); userPendingEl = document.createElement('div'); userPendingEl.className = 'chat-msg user'; userPendingEl.setAttribute('data-pending', 'true'); userPendingEl.textContent = '...'; transcript.appendChild(userPendingEl); transcript.scrollTop = transcript.scrollHeight; } if (event.type === 'input_audio_buffer.speech_stopped') setVoiceDots(false); if (event.type === 'conversation.item.input_audio_transcription.completed') { const text = event.transcript; if (userPendingEl) { userPendingEl.removeAttribute('data-pending'); userPendingEl.innerHTML = escapeHtml(text); userPendingEl = null; } else { const el = document.createElement('div'); el.className = 'chat-msg user'; el.innerHTML = escapeHtml(text); transcript.appendChild(el); } transcript.scrollTop = transcript.scrollHeight; if (dc.readyState === 'open') dc.send(JSON.stringify({ type: 'response.create' })); } if (event.type === 'response.output_audio_transcript.delta') { currentAssistantText += event.delta; if (assistantStreamEl) assistantStreamEl.innerHTML = formatChat(currentAssistantText); else { assistantStreamEl = document.createElement('div'); assistantStreamEl.className = 'chat-msg tutor'; assistantStreamEl.innerHTML = formatChat(currentAssistantText); transcript.appendChild(assistantStreamEl); } transcript.scrollTop = transcript.scrollHeight; setVoiceDots(true); } if (event.type === 'response.output_audio_transcript.done') { if (assistantStreamEl) { assistantStreamEl.innerHTML = formatChat(event.transcript); assistantStreamEl = null; } currentAssistantText = ''; setVoiceDots(false); } });
     dc.addEventListener('open', () => { statusEl.textContent = 'Verbonden — begin te praten!'; btn.classList.add('recording'); document.getElementById('voiceBtnIcon').textContent = '⏹️'; document.getElementById('voiceBtnText').textContent = 'Stop gesprek'; voiceActive = true; }); dc.addEventListener('close', () => stopVoiceSession()); const offer = await pc.createOffer(); await pc.setLocalDescription(offer); const sdpRes = await fetch('https://api.openai.com/v1/realtime/calls', { method: 'POST', body: offer.sdp, headers: { 'Authorization': `Bearer ${ephemeralToken}`, 'Content-Type': 'application/sdp' } }); const answerSdp = await sdpRes.text(); await pc.setRemoteDescription({ type: 'answer', sdp: answerSdp });
   } catch (err) { console.error('Voice session error:', err); statusEl.textContent = `Fout: ${err.message}`; stopVoiceSession(); }
 }
 function stopVoiceSession() { voiceActive = false; document.querySelectorAll('#voiceTranscript [data-pending]').forEach(el => el.remove()); const viz = document.getElementById('voiceVisualizer'); if (viz) viz.style.display = 'none'; document.querySelectorAll('.voice-dot').forEach(dot => dot.classList.remove('active')); if (voiceDataChannel) { voiceDataChannel.close(); voiceDataChannel = null; } if (voicePeerConnection) { voicePeerConnection.getSenders().forEach(s => { if (s.track) s.track.stop(); }); voicePeerConnection.close(); voicePeerConnection = null; } const btn = document.getElementById('voiceStartBtn'); if (btn) { btn.classList.remove('recording'); document.getElementById('voiceBtnIcon').textContent = '🎙️'; document.getElementById('voiceBtnText').textContent = 'Start gesprek'; } const statusEl = document.getElementById('voiceStatus'); if (statusEl) { statusEl.textContent = 'Gesprek beëindigd'; if (currentVoiceWord) { updateWordStats(currentVoiceWord.toLowerCase(), 'practice'); renderHistory(); } } setVoiceDots(false); }
-function setVoiceDots(active) { const viz = document.getElementById('voiceVisualizer'); if (viz) viz.style.display = active ? '' : 'none'; document.querySelectorAll('.voice-dot').forEach(dot => dot.classList.toggle('active', active)); }
+function setVoiceDots(active: boolean) { const viz = document.getElementById('voiceVisualizer'); if (viz) viz.style.display = active ? '' : 'none'; document.querySelectorAll('.voice-dot').forEach(dot => dot.classList.toggle('active', active)); }
 
 export {
   closeAuthModal,
