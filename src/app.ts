@@ -1,7 +1,7 @@
 // --- Supabase ---
 const SUPABASE_URL = 'https://fcpauyuwylnomuxdqtln.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_gs091zHItkPEaLWQhmH3MQ_vspCp-Yl';
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = (window as any).supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 let authMode = 'login'; // 'login' or 'signup'
 
@@ -41,7 +41,7 @@ async function handleForgotPassword() {
   document.getElementById('authError').style.display = 'none';
 }
 async function doForgotPassword() {
-  const email = document.getElementById('authEmail').value.trim();
+  const email = (document.getElementById('authEmail') as HTMLInputElement).value.trim();
   const errEl = document.getElementById('authError');
   if (!email) {
     errEl.textContent = 'Vul je e-mail in';
@@ -81,13 +81,13 @@ function updateAuthUI() {
   document.getElementById('authError').style.color = '';
 }
 async function handleAuth() {
-  const email = document.getElementById('authEmail').value.trim();
-  const password = document.getElementById('authPassword').value;
+  const email = (document.getElementById('authEmail') as HTMLInputElement).value.trim();
+  const password = (document.getElementById('authPassword') as HTMLInputElement).value;
   const errEl = document.getElementById('authError');
   if (!email || !password) { errEl.textContent = 'Vul e-mail en wachtwoord in'; errEl.style.display = 'block'; return; }
   if (password.length < 6) { errEl.textContent = 'Wachtwoord moet minstens 6 tekens zijn'; errEl.style.display = 'block'; return; }
 
-  document.getElementById('authSubmitBtn').disabled = true;
+  (document.getElementById('authSubmitBtn') as HTMLButtonElement).disabled = true;
   try {
     let result;
     if (authMode === 'signup') {
@@ -111,13 +111,13 @@ async function handleAuth() {
     errEl.style.display = 'block';
     errEl.style.color = '#DC2626';
   } finally {
-    document.getElementById('authSubmitBtn').disabled = false;
+    (document.getElementById('authSubmitBtn') as HTMLButtonElement).disabled = false;
   }
 }
 function openChangePassword() {
   document.getElementById('changePwOverlay').classList.add('open');
-  document.getElementById('newPassword').value = '';
-  document.getElementById('confirmPassword').value = '';
+  (document.getElementById('newPassword') as HTMLInputElement).value = '';
+  (document.getElementById('confirmPassword') as HTMLInputElement).value = '';
   document.getElementById('changePwError').style.display = 'none';
   document.getElementById('newPassword').focus();
 }
@@ -125,8 +125,8 @@ function closeChangePassword() {
   document.getElementById('changePwOverlay').classList.remove('open');
 }
 async function doChangePassword() {
-  const pw = document.getElementById('newPassword').value;
-  const confirm = document.getElementById('confirmPassword').value;
+  const pw = (document.getElementById('newPassword') as HTMLInputElement).value;
+  const confirm = (document.getElementById('confirmPassword') as HTMLInputElement).value;
   const errEl = document.getElementById('changePwError');
   if (!pw || pw.length < 6) {
     errEl.textContent = 'Wachtwoord moet minimaal 6 tekens zijn';
@@ -218,7 +218,7 @@ async function syncFromCloud() {
         await supabaseClient.from('user_history').upsert(rows, { onConflict: 'user_id,word' });
       }
       const cloudWordSet = new Set((cloudWords || []).map(w => w.word));
-      const localOnlyStats = Object.entries(localStats).filter(([w]) => !cloudWordSet.has(w));
+      const localOnlyStats = Object.entries(localStats as Record<string, any>).filter(([w]) => !cloudWordSet.has(w));
       if (localOnlyStats.length > 0) {
         const rows = localOnlyStats.map(([w, s]) => ({
           user_id: currentUser.id,
@@ -480,8 +480,8 @@ function onReviewCardTap() {
   if (hint) hint.hidden = true;
   const again = document.getElementById('reviewBtnAgain');
   const know = document.getElementById('reviewBtnKnow');
-  if (again) again.disabled = false;
-  if (know) know.disabled = false;
+  if (again) (again as HTMLButtonElement).disabled = false;
+  if (know) (know as HTMLButtonElement).disabled = false;
 }
 function gradeAndAdvance(known) {
   if (!reviewSessionActive || !reviewRevealed) return;
@@ -553,7 +553,7 @@ window.addEventListener('hashchange', handleRoute);
 // --- Daily Word ---
 const DAILY_EPOCH = new Date(2026, 0, 1);
 function getAbsoluteDay() {
-  const now = new Date(); const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); return Math.floor((today - DAILY_EPOCH) / 86400000);
+  const now = new Date(); const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); return Math.floor((today.getTime() - DAILY_EPOCH.getTime()) / 86400000);
 }
 function seededShuffle(arr, seed) {
   const copy = [...arr];
@@ -575,7 +575,7 @@ function renderDailyWord(word) {
   container.innerHTML = `<div class="daily-word-card"><div class="daily-word-top"><div class="daily-word-label">Woord van de Dag</div><div class="streak-badge">\u{1F333} Dag ${streakCount}</div></div><div class="daily-word-main"><h2>${escapeHtml(word.word)}</h2><span class="word-type">${escapeHtml(word.category)}</span></div><div class="daily-word-teaser">${escapeHtml(word.teaser)}</div><button class="daily-word-cta" data-action="explore-daily-word">Ontdek dit woord</button></div>`;
 }
 function exploreDailyWord() {
-  if (!currentDailyWord) return; const streak = updateStreak(); const badge = document.querySelector('.streak-badge'); if (badge) badge.textContent = '\u{1F333} Dag ' + streak.count; document.getElementById('wordInput').value = currentDailyWord.word; lookupWord();
+  if (!currentDailyWord) return; const streak = updateStreak(); const badge = document.querySelector('.streak-badge'); if (badge) badge.textContent = '\u{1F333} Dag ' + streak.count; (document.getElementById('wordInput') as HTMLInputElement).value = currentDailyWord.word; lookupWord();
 }
 let currentDailyWord = null;
 async function loadDailyWord() {
@@ -615,7 +615,7 @@ function updateWordStats(word, type) {
 }
 function getNextInterval(level) { const intervals = [1, 3, 7, 14, 30]; return intervals[Math.min(level, intervals.length - 1)]; }
 function startOfDay(ts) { const d = new Date(ts); d.setHours(0, 0, 0, 0); return d.getTime(); }
-function addToHistory(word, wordData) { const w = word.toLowerCase().trim(); searchHistory = searchHistory.filter(h => h.word !== w); const entry = { word: w, timestamp: Date.now() }; if (wordData) entry.wordData = wordData; searchHistory.unshift(entry); if (searchHistory.length > 50) searchHistory = searchHistory.slice(0, 50); localStorage.setItem('poortaal_history', JSON.stringify(searchHistory)); updateWordStats(w, 'lookup'); saveHistoryToCloud(w, wordData); renderHistory(); updateReviewBadge(); }
+function addToHistory(word, wordData) { const w = word.toLowerCase().trim(); searchHistory = searchHistory.filter(h => h.word !== w); const entry: { word: string; timestamp: number; wordData?: any } = { word: w, timestamp: Date.now() }; if (wordData) entry.wordData = wordData; searchHistory.unshift(entry); if (searchHistory.length > 50) searchHistory = searchHistory.slice(0, 50); localStorage.setItem('poortaal_history', JSON.stringify(searchHistory)); updateWordStats(w, 'lookup'); saveHistoryToCloud(w, wordData); renderHistory(); updateReviewBadge(); }
 function getPlantStage(word) {
   const stats = getWordStats()[word.toLowerCase().trim()]; if (!stats) return { emoji: '🌱', label: 'Zaaisel', key: 'seed', hint: '' }; const level = stats.level || 0; const lastSeen = stats.lastSeen || 0; const nextInterval = getNextInterval(level); const today = startOfDay(Date.now()); const dueDay = startOfDay(lastSeen + nextInterval * 86400000); const overdueDays = Math.max(0, Math.round((today - dueDay) / 86400000)); const daysLeft = Math.max(0, Math.round((dueDay - today) / 86400000)); const overdue = dueDay < today; const dueTodayHint = 'Herhaal vandaag!';
   if (overdue && level < 4) return { emoji: '🥀', label: 'Verwelkt', key: 'wilting', hint: `${overdueDays}d te laat` }; if (level >= 4) return { emoji: '🌳', label: 'Sterk', key: 'strong', hint: 'Goed gedaan!' }; if (level >= 3) return { emoji: '🪴', label: 'Groeiend', key: 'growing', hint: daysLeft === 0 ? dueTodayHint : `${daysLeft}d tot herhaling` }; if (level >= 1) return { emoji: '🌿', label: 'Kiempje', key: 'sprout', hint: daysLeft === 0 ? dueTodayHint : `${daysLeft}d tot herhaling` }; const hasPracticed = stats.practices > 0 || stats.reviews.length > 0; const seedHint = hasPracticed ? (daysLeft > 0 ? `${daysLeft}d tot herhaling` : dueTodayHint) : 'Oefen om te groeien'; return { emoji: '🌱', label: 'Zaaisel', key: 'seed', hint: seedHint };
@@ -634,7 +634,7 @@ function initSwipeHandlers(list) { const items = list.querySelectorAll('.swipe-c
 // --- Toast / OpenAI ---
 function showToast(msg) { const existing = document.querySelector('.toast'); if (existing) existing.remove(); const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 4000); }
 async function callOpenAI(messages, temperature = 0.7) { const res = await fetch(`${API_BASE}/openai`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'gpt-4o-mini', messages, temperature }) }); if (!res.ok) { showToast('Er ging iets mis'); throw new Error('API error'); } const data = await res.json(); return data.choices[0].message.content; }
-function trySuggestion(word) { document.getElementById('wordInput').value = word; const panel = document.getElementById('historyPanel'); if (panel.classList.contains('open')) toggleHistory(); lookupWord(); }
+function trySuggestion(word) { (document.getElementById('wordInput') as HTMLInputElement).value = word; const panel = document.getElementById('historyPanel'); if (panel.classList.contains('open')) toggleHistory(); lookupWord(); }
 
 // --- Word explanation validation ---
 type WordExample = { nl: string; en: string };
@@ -698,7 +698,7 @@ function validateWordExplanation(value: unknown): WordExplanation {
     meaning_en: requireNonEmptyString(value, 'meaning_en'),
     examples,
     tips: requireNonEmptyString(value, 'tips'),
-    fun_fact: funFact,
+    fun_fact: funFact as string | null,
   };
 }
 
@@ -731,8 +731,8 @@ function getCachedWord(word) {
 }
 
 async function lookupWord() {
-  const input = document.getElementById('wordInput'); const word = input.value.trim(); if (!word) return; const cached = getCachedWord(word); if (cached) { currentWord = word; currentWordData = cached; addToHistory(word, cached); renderWordCard(cached); return; }
-  const btn = document.getElementById('searchBtn'); btn.disabled = true; const content = document.getElementById('content'); content.innerHTML = `<div class="spinner-wrap"><div class="spinner"></div><span>Even denken over "${word}"...</span></div>`;
+  const input = document.getElementById('wordInput') as HTMLInputElement; const word = input.value.trim(); if (!word) return; const cached = getCachedWord(word); if (cached) { currentWord = word; currentWordData = cached; addToHistory(word, cached); renderWordCard(cached); return; }
+  const btn = document.getElementById('searchBtn') as HTMLButtonElement; btn.disabled = true; const content = document.getElementById('content'); content.innerHTML = `<div class="spinner-wrap"><div class="spinner"></div><span>Even denken over "${word}"...</span></div>`;
   try {
     const systemPrompt = `You are a friendly, knowledgeable Dutch language tutor. The user will give you a Dutch word. Respond with ONLY valid JSON (no markdown, no code fences) with these fields:
 - "word": the word
@@ -753,7 +753,7 @@ function renderWordCard(data: WordExplanation) {
 // --- Practice ---
 function goToPractice(word) { navigateTo('#practice'); setTimeout(() => startPracticeForWord(word), 50); }
 function renderPracticeHistoryList() { const list = document.getElementById('practiceHistoryList'); const wordsWithData = searchHistory.filter(h => h.wordData); if (wordsWithData.length === 0) { list.innerHTML = '<div class="history-empty" style="padding:2rem 0;">Zoek eerst een woord op om mee te oefenen</div>'; return; } list.innerHTML = wordsWithData.map(entry => { const safe = escapeHtml(entry.word); const safeAttr = safe.replace(/"/g, '&quot;'); const typeHint = entry.wordData?.type ? escapeHtml(entry.wordData.type) : ''; return `<li data-action="start-practice-word" data-word="${safeAttr}"><span class="word-label">${safe}</span><span class="word-type-hint">${typeHint}</span></li>`; }).join(''); }
-function startPracticeWithInput() { const input = document.getElementById('practiceWordInput'); const word = input.value.trim(); if (!word) return; input.value = ''; startPracticeForWord(word); }
+function startPracticeWithInput() { const input = document.getElementById('practiceWordInput') as HTMLInputElement; const word = input.value.trim(); if (!word) return; input.value = ''; startPracticeForWord(word); }
 function showPracticePicker() { if (voiceActive) stopVoiceSession(); const practicedWord = document.getElementById('practiceChatWord')?.textContent?.toLowerCase()?.trim(); const userSentMessages = practiceMessages.filter(m => m.role === 'user').length; if (practicedWord && userSentMessages > 0) { updateWordStats(practicedWord, 'practice'); renderHistory(); } document.getElementById('practicePickerSection').style.display = ''; document.getElementById('practiceChatSection').style.display = 'none'; switchPracticeMode('text'); practiceMessages = []; }
 async function startPracticeForWord(word) {
   const entry = searchHistory.find(h => h.word === word.toLowerCase()); const wordData = entry?.wordData || { word, meaning_en: '' }; document.getElementById('practicePickerSection').style.display = 'none'; document.getElementById('practiceChatSection').style.display = ''; document.getElementById('practiceChatWord').textContent = wordData.word; const msgs = document.getElementById('chatMessages'); msgs.innerHTML = '<div class="chat-msg system">Scenario wordt voorbereid...</div>'; const meaningHint = wordData.meaning_en ? ` (${wordData.meaning_en})` : '';
@@ -768,7 +768,7 @@ Your job:
 6. Be warm, encouraging, and fun!` }];
   try { const response = await callOpenAI(practiceMessages); practiceMessages.push({ role: 'assistant', content: response }); msgs.innerHTML = `<div class="chat-msg tutor">${formatChat(response)}</div>`; document.getElementById('chatInput').focus(); } catch { msgs.innerHTML = '<div class="chat-msg system">Kon het scenario niet starten. Probeer opnieuw.</div>'; }
 }
-async function sendChat() { const input = document.getElementById('chatInput'); const text = input.value.trim(); if (!text || practiceLoading) return; const msgs = document.getElementById('chatMessages'); practiceMessages.push({ role: 'user', content: text }); msgs.innerHTML += `<div class="chat-msg user">${escapeHtml(text)}</div>`; input.value = ''; msgs.scrollTop = msgs.scrollHeight; practiceLoading = true; document.getElementById('chatSendBtn').disabled = true; msgs.innerHTML += '<div class="chat-msg system" id="chatLoading">💭 Even denken...</div>'; try { const response = await callOpenAI(practiceMessages); practiceMessages.push({ role: 'assistant', content: response }); document.getElementById('chatLoading')?.remove(); msgs.innerHTML += `<div class="chat-msg tutor">${formatChat(response)}</div>`; } catch { document.getElementById('chatLoading')?.remove(); msgs.innerHTML += '<div class="chat-msg system">Fout bij het versturen. Probeer opnieuw.</div>'; } finally { practiceLoading = false; document.getElementById('chatSendBtn').disabled = false; msgs.scrollTop = msgs.scrollHeight; } }
+async function sendChat() { const input = document.getElementById('chatInput') as HTMLInputElement; const text = input.value.trim(); if (!text || practiceLoading) return; const msgs = document.getElementById('chatMessages'); practiceMessages.push({ role: 'user', content: text }); msgs.innerHTML += `<div class="chat-msg user">${escapeHtml(text)}</div>`; input.value = ''; msgs.scrollTop = msgs.scrollHeight; practiceLoading = true; (document.getElementById('chatSendBtn') as HTMLButtonElement).disabled = true; msgs.innerHTML += '<div class="chat-msg system" id="chatLoading">💭 Even denken...</div>'; try { const response = await callOpenAI(practiceMessages); practiceMessages.push({ role: 'assistant', content: response }); document.getElementById('chatLoading')?.remove(); msgs.innerHTML += `<div class="chat-msg tutor">${formatChat(response)}</div>`; } catch { document.getElementById('chatLoading')?.remove(); msgs.innerHTML += '<div class="chat-msg system">Fout bij het versturen. Probeer opnieuw.</div>'; } finally { practiceLoading = false; (document.getElementById('chatSendBtn') as HTMLButtonElement).disabled = false; msgs.scrollTop = msgs.scrollHeight; } }
 function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 function formatChat(text) { return escapeHtml(text).replace(/\n/g, '<br>'); }
 
