@@ -1,3 +1,4 @@
+import { assertRequiredDom } from './dom-contract';
 import {
   closeAuthModal,
   closeMicroReview,
@@ -27,6 +28,8 @@ import {
   toggleVoiceSession,
   trySuggestion,
 } from './app';
+
+assertRequiredDom();
 
 function onClick(id: string, handler: () => void | Promise<void>) {
   document.getElementById(id)?.addEventListener('click', () => {
