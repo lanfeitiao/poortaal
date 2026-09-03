@@ -88,6 +88,57 @@ test('retries a network failure once and succeeds', async () => {
   assert.equal(calls, 2);
 });
 
+test('retries a network failure while reading the response body', async () => {
+  let calls = 0;
+  const bodyError = new TypeError('body stream interrupted');
+
+  const result = await requestOpenAIChat(
+    'https://example.test',
+    messages,
+    0.7,
+    async () => {
+      calls++;
+      if (calls === 1) {
+        const response = jsonResponse({ choices: [{ message: { content: 'ignored' } }] });
+        response.json = async () => {
+          throw bodyError;
+        };
+        return response;
+      }
+      return jsonResponse({ choices: [{ message: { content: 'hello' } }] });
+    },
+  );
+
+  assert.equal(result, 'hello');
+  assert.equal(calls, 2);
+});
+
+test('does not retry malformed JSON response bodies', async () => {
+  let calls = 0;
+
+  await assert.rejects(
+    () => requestOpenAIChat(
+      'https://example.test',
+      messages,
+      0.7,
+      async () => {
+        calls++;
+        return new Response('not-json', {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      },
+    ),
+    (error: unknown) => {
+      assert.ok(error instanceof Error);
+      assert.equal(error.message, 'Invalid OpenAI response');
+      return true;
+    },
+  );
+
+  assert.equal(calls, 1);
+});
+
 test('does not retry a non-retryable HTTP 400 failure', async () => {
   let calls = 0;
 
