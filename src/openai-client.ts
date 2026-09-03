@@ -62,7 +62,16 @@ async function requestOpenAIChatOnce(
     throw new OpenAIRequestError('http', { status: response.status });
   }
 
-  const data = await response.json() as OpenAIChatResponse;
+  let data: OpenAIChatResponse;
+  try {
+    data = await response.json() as OpenAIChatResponse;
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new Error('Invalid OpenAI response');
+    }
+    throw new OpenAIRequestError('network', { originalError: error });
+  }
+
   const content = data.choices?.[0]?.message?.content;
   if (typeof content !== 'string') {
     throw new Error('Invalid OpenAI response');
