@@ -29,11 +29,23 @@ type OpenAIChatResponse = {
   }>;
 };
 
-export async function requestOpenAIChat(
+const RETRY_DELAY_MS = 250;
+
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export function isRetryableOpenAIRequestError(error: unknown): boolean {
+  if (!(error instanceof OpenAIRequestError)) return false;
+  if (error.kind === 'network') return true;
+  return error.status === 429 || (error.status !== null && error.status >= 500);
+}
+
+async function requestOpenAIChatOnce(
   apiBase: string,
   messages: ChatMessage[],
-  temperature = 0.7,
-  fetchImpl: Fetcher = fetch,
+  temperature: number,
+  fetchImpl: Fetcher,
 ): Promise<string> {
   let response: Response;
   try {
@@ -57,4 +69,20 @@ export async function requestOpenAIChat(
   }
 
   return content;
+}
+
+export async function requestOpenAIChat(
+  apiBase: string,
+  messages: ChatMessage[],
+  temperature = 0.7,
+  fetchImpl: Fetcher = fetch,
+): Promise<string> {
+  try {
+    return await requestOpenAIChatOnce(apiBase, messages, temperature, fetchImpl);
+  } catch (error) {
+    if (!isRetryableOpenAIRequestError(error)) throw error;
+  }
+
+  await delay(RETRY_DELAY_MS);
+  return requestOpenAIChatOnce(apiBase, messages, temperature, fetchImpl);
 }
