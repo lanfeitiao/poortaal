@@ -23,6 +23,16 @@ type ChatCompletion = (
   temperature?: number,
 ) => Promise<string>;
 
+export class WordExplanationRequestError extends Error {
+  readonly originalError: unknown;
+
+  constructor(originalError: unknown) {
+    super('API error');
+    this.name = 'WordExplanationRequestError';
+    this.originalError = originalError;
+  }
+}
+
 export class InvalidWordExplanationError extends Error {
   constructor(message: string) {
     super(message);
@@ -113,10 +123,15 @@ export async function generateWordExplanation(
   word: string,
   completeChat: ChatCompletion,
 ): Promise<WordExplanation> {
-  const raw = await completeChat([
-    { role: 'system', content: WORD_EXPLANATION_SYSTEM_PROMPT },
-    { role: 'user', content: word },
-  ]);
+  let raw: string;
+  try {
+    raw = await completeChat([
+      { role: 'system', content: WORD_EXPLANATION_SYSTEM_PROMPT },
+      { role: 'user', content: word },
+    ]);
+  } catch (error) {
+    throw new WordExplanationRequestError(error);
+  }
 
   return parseWordExplanation(cleanJsonResponse(raw));
 }
