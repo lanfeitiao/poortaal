@@ -5,6 +5,7 @@ import {
 import {
   generateWordExplanation,
   InvalidWordExplanationError,
+  WordExplanationRequestError,
   validateWordExplanation,
   type ChatMessage,
   type WordExplanation,
@@ -569,7 +570,7 @@ async function lookupWord() {
   try {
     const data = await generateWordExplanation(word, callOpenAI);
     currentWord = word; currentWordData = data; setWordCache(word, data); addToHistory(word, data); renderWordCard(data);
-  } catch (e) { if (e instanceof InvalidWordExplanationError) console.warn('Rejected invalid AI word explanation', e); const message = e instanceof Error ? e.message : ''; content.innerHTML = message !== 'API error' ? '<div class="empty-state"><div class="icon">😅</div><p>Kon het woord niet verwerken. Probeer het opnieuw.</p></div>' : '<div class="empty-state"><div class="icon">⚠️</div><p>Er ging iets mis. Probeer het opnieuw.</p></div>'; } finally { btn.disabled = false; }
+  } catch (e) { if (e instanceof InvalidWordExplanationError) console.warn('Rejected invalid AI word explanation', e); const requestFailed = e instanceof WordExplanationRequestError; content.innerHTML = requestFailed ? '<div class="empty-state"><div class="icon">⚠️</div><p>Er ging iets mis. Probeer het opnieuw.</p></div>' : '<div class="empty-state"><div class="icon">😅</div><p>Kon het woord niet verwerken. Probeer het opnieuw.</p></div>'; } finally { btn.disabled = false; }
 }
 function renderWordCard(data: WordExplanation) {
   const content = document.getElementById('content'); const examplesHtml = (data.examples || []).slice(0, 2).map(ex => { const safeNl = escapeHtml(ex.nl).replace(/"/g, '&quot;'); return `<div class="example-item"><div class="example-nl">"${ex.nl}" <button class="ex-tts-btn" data-action="play-example-tts" data-text="${safeNl}" title="Uitspraak">🔊</button></div><div class="example-en">${ex.en}</div></div>`; }).join(''); const funFactHtml = data.fun_fact ? `<div class="fun-fact">💡 ${data.fun_fact}</div>` : ''; const tipsHtml = `<div class="card"><div class="card-label">Tips</div><div class="tips-text">${data.tips || 'No additional usage tip is available for this word.'}</div></div>`; const safeWordAttr = escapeHtml(data.word).replace(/"/g, '&quot;');
