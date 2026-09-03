@@ -1,4 +1,8 @@
 import {
+  OpenAIRequestError,
+  requestOpenAIChat,
+} from './openai-client';
+import {
   generateWordExplanation,
   InvalidWordExplanationError,
   validateWordExplanation,
@@ -529,7 +533,16 @@ function initSwipeHandlers(list: HTMLElement) { const items = list.querySelector
 
 // --- Toast / OpenAI ---
 function showToast(msg: string) { const existing = document.querySelector('.toast'); if (existing) existing.remove(); const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 4000); }
-async function callOpenAI(messages: ChatMessage[], temperature = 0.7): Promise<string> { const res = await fetch(`${API_BASE}/openai`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'gpt-4o-mini', messages, temperature }) }); if (!res.ok) { showToast('Er ging iets mis'); throw new Error('API error'); } const data = await res.json(); return data.choices[0].message.content; }
+async function callOpenAI(messages: ChatMessage[], temperature = 0.7): Promise<string> {
+  try {
+    return await requestOpenAIChat(API_BASE, messages, temperature);
+  } catch (error) {
+    if (error instanceof OpenAIRequestError && error.kind === 'http') {
+      showToast('Er ging iets mis');
+    }
+    throw error;
+  }
+}
 function trySuggestion(word: string) { (document.getElementById('wordInput') as HTMLInputElement).value = word; const panel = document.getElementById('historyPanel'); if (panel.classList.contains('open')) toggleHistory(); lookupWord(); }
 
 const WORD_CACHE_KEY = 'poortaal_word_cache_v4';
