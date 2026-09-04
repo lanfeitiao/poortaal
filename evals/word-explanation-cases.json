@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "purpose": "Small golden dataset for judging the quality of Dutch word explanations. These cases define what a good answer should get right without requiring one exact wording.",
+  "cases": [
+    {
+      "id": "vervangen-separability",
+      "input": "vervangen",
+      "risk": "A model may incorrectly infer separability from the spelling and teach a false conjugation pattern.",
+      "reference_facts": [
+        "vervangen is an inseparable verb",
+        "the finite form stays together, for example: ik vervang de lamp",
+        "the past participle is vervangen, for example: ik heb de lamp vervangen",
+        "the verb does not split as ik vang ... ver"
+      ],
+      "critical_failures": [
+        "claims that vervangen is separable",
+        "recommends a split form such as ik vang ... ver",
+        "recommends an incorrect past participle formed by adding ge- to vervangen"
+      ],
+      "quality_criteria": [
+        "explains the useful conjugation consequence clearly",
+        "uses natural Dutch examples",
+        "keeps the explanation understandable for an A2-B1 learner"
+      ]
+    },
+    {
+      "id": "bezighouden-separability",
+      "input": "bezighouden",
+      "risk": "A model may treat bezighouden like an inseparable be- verb even though bezig is the separable particle here.",
+      "reference_facts": [
+        "bezighouden is separable",
+        "a common reflexive construction is zich bezighouden met",
+        "a correct present-tense example is: ik houd me bezig met Nederlands",
+        "a correct perfect example is: ik heb me met Nederlands beziggehouden"
+      ],
+      "critical_failures": [
+        "claims that bezighouden is inseparable",
+        "recommends keeping bezighouden together in a finite main-clause form where it should split",
+        "gives a past participle that omits the correct beziggehouden form"
+      ],
+      "quality_criteria": [
+        "shows the separation in a useful sentence rather than only naming the grammar rule",
+        "handles the reflexive pronoun naturally when using zich bezighouden met",
+        "uses natural Dutch word order"
+      ]
+    },
+    {
+      "id": "gezellig-context",
+      "input": "gezellig",
+      "risk": "A model may reduce gezellig to one English gloss such as cozy and miss how broadly it is used in Dutch.",
+      "reference_facts": [
+        "gezellig is context-dependent and can describe a pleasant, sociable or cozy atmosphere, activity, place or company",
+        "there is no single English translation that fits every use"
+      ],
+      "critical_failures": [
+        "presents gezellig as having one fixed English meaning in every context",
+        "gives Dutch examples that are grammatically wrong or clearly unnatural"
+      ],
+      "quality_criteria": [
+        "uses examples that demonstrate at least two natural contexts when possible",
+        "explains the idea more helpfully than a bare dictionary translation",
+        "keeps examples conversational and suitable for an A2-B1 learner"
+      ]
+    },
+    {
+      "id": "afspraak-usage",
+      "input": "afspraak",
+      "risk": "A model may give a technically possible translation without teaching the common everyday constructions learners actually need.",
+      "reference_facts": [
+        "afspraak commonly refers to an appointment or an agreement/arrangement depending on context",
+        "een afspraak maken is a common construction",
+        "een afspraak hebben bij de huisarts is a natural everyday use"
+      ],
+      "critical_failures": [
+        "gives a materially wrong core meaning",
+        "teaches an unidiomatic construction as the normal way to make or have an appointment"
+      ],
+      "quality_criteria": [
+        "includes at least one common collocation or construction",
+        "makes the context-dependent meaning clear without overcomplicating it",
+        "uses practical natural Dutch examples"
+      ]
+    }
+  ]
+}
