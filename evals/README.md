@@ -76,21 +76,22 @@ The first live baseline immediately caught a real quality failure:
 
 That failure led to a production prompt change. The separability guidance now says to inspect actual conjugation, stress and morphological structure rather than inferring the rule from the first letters of a verb. It explicitly contrasts `vervangen` (inseparable `ver-`) with `bezighouden` (separable particle `bezig`).
 
-A second live run after that change produced:
+A second live run after that change showed that the targeted factual bug was fixed without reversing the `vervangen` rule:
 
-- `vervangen` — PASS; the inseparable rule remained correct.
-- `bezighouden` — PASS; the Tips field now correctly says it is separable and gives `ik houd me bezig` / `ik heb me beziggehouden`.
-- `gezellig` — PASS; examples remained natural and the Tips field captured the broader social/togetherness meaning.
-- `afspraak` — NEEDS_REVIEW; the output remained broadly useful but still leaned toward the appointment/meeting sense and some phrasing was less idiomatic than ideal.
+- `vervangen` — NEEDS_REVIEW overall: the Tips field still correctly says the verb is inseparable, but one generated example (`vervang ik de speeltijd met ...`) is less idiomatic than the usual `vervangen door` construction.
+- `bezighouden` — NEEDS_REVIEW overall: the Tips field is now factually correct and gives `ik houd me bezig` / `ik heb me beziggehouden`, but the Dutch definition (`dat je jezelf met iets bezig bent`) is awkward compared with `dat je je met iets bezighoudt`.
+- `gezellig` — PASS / minor wording review: the examples are natural and the Tips field captures the broader social/togetherness meaning, although the Dutch definition is somewhat circular.
+- `afspraak` — NEEDS_REVIEW: the output remains broadly useful but still leans toward the appointment/meeting sense and some phrasing is less idiomatic than ideal.
 
-This is the intended feedback loop:
+So the target regression moved from a hard factual FAIL to softer wording/naturalness issues. This is the intended feedback loop:
 
 ```text
 baseline eval
 → observe a real quality failure
 → change prompt/model/context
 → rerun the same cases
-→ confirm the target improved without obvious regression elsewhere
+→ confirm the target factual failure improved
+→ inspect any remaining softer quality issues
 ```
 
 ## What comes later
