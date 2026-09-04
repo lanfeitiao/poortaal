@@ -119,7 +119,7 @@ const WORD_EXPLANATION_SYSTEM_PROMPT = `You are a friendly, knowledgeable Dutch 
 - "tips": one concise, genuinely useful and factually reliable insight in English. Always provide this field so the learner consistently sees a Tips card. Prioritize information that changes how a learner would form or understand a sentence: irregular grammar or inflection, required articles or prepositions, register, idiomatic usage, a common learner error, or a useful contrast with a similar word. For a transparent compound or a word with a meaningful affix, explain its parts only when the analysis is certain and helps the learner remember or infer the meaning. Avoid merely restating the definition, examples, or obvious spelling/capitalization rules. Silently verify every grammatical claim before responding; if you are not confident that a claim is correct, give a simpler, well-established usage tip instead. For verbs, determine separability from the verb's actual conjugation and stress pattern, never merely from its spelling. In particular, Dutch verbs with unstressed prefixes such as be-, ge-, her-, ont-, and ver- are normally inseparable: do not split the prefix and do not add ge- in the past participle. For example, vervangen is inseparable: use "ik vervang" and "ik heb vervangen", never "ik vang ... ver". Do not describe an inseparable verb as separable
 - "fun_fact": an interesting etymology or cultural note (in English), or null if nothing notable`;
 
-export async function generateWordExplanation(
+async function requestWordExplanation(
   word: string,
   completeChat: ChatCompletion,
 ): Promise<WordExplanation> {
@@ -134,4 +134,17 @@ export async function generateWordExplanation(
   }
 
   return parseWordExplanation(cleanJsonResponse(raw));
+}
+
+export async function generateWordExplanation(
+  word: string,
+  completeChat: ChatCompletion,
+): Promise<WordExplanation> {
+  try {
+    return await requestWordExplanation(word, completeChat);
+  } catch (error) {
+    if (!(error instanceof InvalidWordExplanationError)) throw error;
+  }
+
+  return requestWordExplanation(word, completeChat);
 }

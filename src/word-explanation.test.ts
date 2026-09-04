@@ -39,11 +39,13 @@ test('accepts a JSON response wrapped in a markdown code fence', async () => {
   assert.deepEqual(result, validExplanation);
 });
 
-test('classifies request failures as WordExplanationRequestError', async () => {
+test('does not regenerate after a request failure', async () => {
   const originalError = new TypeError('fetch failed');
+  let calls = 0;
 
   await assert.rejects(
     () => generateWordExplanation('gezellig', async () => {
+      calls++;
       throw originalError;
     }),
     (error: unknown) => {
@@ -52,31 +54,50 @@ test('classifies request failures as WordExplanationRequestError', async () => {
       return true;
     },
   );
+
+  assert.equal(calls, 1);
 });
 
-test('classifies malformed JSON as InvalidWordExplanationError', async () => {
+test('regenerates once after malformed JSON and accepts the second response', async () => {
+  let calls = 0;
+  const result = await generateWordExplanation('gezellig', async () => {
+    calls++;
+    return calls === 1 ? 'not-json' : JSON.stringify(validExplanation);
+  });
+
+  assert.deepEqual(result, validExplanation);
+  assert.equal(calls, 2);
+});
+
+test('stops after one regeneration when JSON stays malformed', async () => {
+  let calls = 0;
+
   await assert.rejects(
-    () => generateWordExplanation('gezellig', async () => 'not-json'),
+    () => generateWordExplanation('gezellig', async () => {
+      calls++;
+      return 'not-json';
+    }),
     (error: unknown) => {
       assert.ok(error instanceof InvalidWordExplanationError);
       assert.equal(error.message, 'AI response was not valid JSON');
       return true;
     },
   );
+
+  assert.equal(calls, 2);
 });
 
-test('classifies a missing required field as InvalidWordExplanationError', async () => {
+test('regenerates once when a required field is missing', async () => {
   const { tips: _tips, ...withoutTips } = validExplanation;
+  let calls = 0;
 
-  await assert.rejects(
-    () => generateWordExplanation(
-      'gezellig',
-      async () => JSON.stringify(withoutTips),
-    ),
-    (error: unknown) => {
-      assert.ok(error instanceof InvalidWordExplanationError);
-      assert.equal(error.message, 'Invalid or missing field: tips');
-      return true;
-    },
-  );
+  const result = await generateWordExplanation('gezellig', async () => {
+    calls++;
+    return calls === 1
+      ? JSON.stringify(withoutTips)
+      : JSON.stringify(validExplanation);
+  });
+
+  assert.deepEqual(result, validExplanation);
+  assert.equal(calls, 2);
 });
