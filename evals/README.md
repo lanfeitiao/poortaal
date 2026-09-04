@@ -30,17 +30,19 @@ By default the live runner uses the production Poortaal Worker endpoint. To eval
 
 Do not collapse every quality problem into one pass/fail judgment. Score these dimensions separately:
 
-- **Factual correctness (0-1)** — the hard gate. `0` means a material Dutch fact is wrong, a critical failure occurs, or the answer contradicts itself on an important point. `1` means the important facts are correct.
+- **Factual correctness (0-1)** — whether important Dutch grammar, meaning, and usage claims are correct. `0` means a material factual error or contradiction; `1` means the important reference facts are correct.
 - **Naturalness (0-2)** — whether the Dutch is idiomatic and safe for a learner to reuse. `0` is clearly unidiomatic/misleading, `1` is understandable but awkward, and `2` is natural everyday Dutch.
 - **Coverage (0-2)** — whether the answer covers the important meanings, constructions, or contrasts identified by the case. `0` misses a central point, `1` covers the main point but is incomplete, and `2` covers the important usage well.
 - **Learner usefulness (0-2)** — whether the explanation, examples, and Tips give practical reusable value rather than merely restating a translation.
 - **A2-B1 fit (0-2)** — whether the explanation is clear, concise, and appropriately simple for the intended learner.
 
-The dimension scores are **diagnostic, not an automatic total**. Keep the final human label:
+The dimension scores are **diagnostic, not an automatic total**. Case-specific critical failures stay separate from the factual score: a critical failure can be factual, but a case may also define another severe failure such as clearly misleading language.
 
-- **FAIL** — factual correctness is `0` or a critical failure occurs.
-- **NEEDS_REVIEW** — facts are correct, but one or more softer dimensions reveal a meaningful quality problem or incomplete answer.
-- **PASS** — facts are correct and the answer is natural, sufficiently complete, useful, and appropriate for the learner.
+Keep the final human label:
+
+- **FAIL** — factual correctness is `0`, or any case-specific critical failure occurs.
+- **NEEDS_REVIEW** — facts are correct and no critical failure occurs, but one or more softer dimensions reveal a meaningful quality problem or incomplete answer.
+- **PASS** — facts are correct, no critical failure occurs, and the answer is natural, sufficiently complete, useful, and appropriate for the learner.
 
 Do not invent a total-score threshold yet. A threshold that looks neat after only a few examples is likely to encode accidental assumptions rather than a stable quality standard.
 
