@@ -6,7 +6,7 @@ The production validator answers a structural question: **is this a valid `WordE
 
 ## Current workflow
 
-The first dataset lives in `word-explanation-cases.json`. It records reusable facts and quality criteria rather than one exact expected paragraph.
+The dataset lives in `word-explanation-cases.json`. It records reusable facts, case-specific quality criteria, and a shared human scoring rubric rather than one exact expected paragraph.
 
 Run a dry run first:
 
@@ -14,7 +14,7 @@ Run a dry run first:
 npm run eval:words
 ```
 
-This parses the dataset and prints every case and rubric without sending any AI requests.
+This parses the dataset and prints every case, scoring dimension, and blank scorecard without sending any AI requests.
 
 To generate current Poortaal outputs for manual review:
 
@@ -22,17 +22,27 @@ To generate current Poortaal outputs for manual review:
 npm run eval:words -- --live
 ```
 
-The live runner calls the same `generateWordExplanation()` use case used by the app, through the existing Poortaal OpenAI client. It prints the generated `WordExplanation` next to that case's reference facts, critical failures and quality criteria.
+The live runner calls the same `generateWordExplanation()` use case used by the app, through the existing Poortaal OpenAI client. It prints the generated `WordExplanation` next to that case's reference facts, critical failures, quality criteria, and manual scorecard.
 
 By default the live runner uses the production Poortaal Worker endpoint. To evaluate another compatible endpoint, set `POORTAAL_API_BASE` before running it.
 
-The runner deliberately **does not score the output automatically yet**. A human reviews each generated answer and labels it:
+## Scoring dimensions
 
-- **PASS** — no critical failure, the important reference facts are correct, and the answer is natural and useful.
-- **NEEDS_REVIEW** — no clear factual failure, but a subjective quality criterion is debatable or the answer is incomplete.
-- **FAIL** — any critical failure occurs, or the answer teaches a materially incorrect Dutch fact.
+Do not collapse every quality problem into one pass/fail judgment. Score these dimensions separately:
 
-A critical factual error is a gate: a polished or natural answer cannot compensate for teaching the wrong grammar.
+- **Factual correctness (0-1)** — the hard gate. `0` means a material Dutch fact is wrong, a critical failure occurs, or the answer contradicts itself on an important point. `1` means the important facts are correct.
+- **Naturalness (0-2)** — whether the Dutch is idiomatic and safe for a learner to reuse. `0` is clearly unidiomatic/misleading, `1` is understandable but awkward, and `2` is natural everyday Dutch.
+- **Coverage (0-2)** — whether the answer covers the important meanings, constructions, or contrasts identified by the case. `0` misses a central point, `1` covers the main point but is incomplete, and `2` covers the important usage well.
+- **Learner usefulness (0-2)** — whether the explanation, examples, and Tips give practical reusable value rather than merely restating a translation.
+- **A2-B1 fit (0-2)** — whether the explanation is clear, concise, and appropriately simple for the intended learner.
+
+The dimension scores are **diagnostic, not an automatic total**. Keep the final human label:
+
+- **FAIL** — factual correctness is `0` or a critical failure occurs.
+- **NEEDS_REVIEW** — facts are correct, but one or more softer dimensions reveal a meaningful quality problem or incomplete answer.
+- **PASS** — facts are correct and the answer is natural, sufficiently complete, useful, and appropriate for the learner.
+
+Do not invent a total-score threshold yet. A threshold that looks neat after only a few examples is likely to encode accidental assumptions rather than a stable quality standard.
 
 ## What to review for each case
 
@@ -41,8 +51,9 @@ For each case in `word-explanation-cases.json`:
 1. Generate a normal Poortaal word explanation for the `input`.
 2. Compare the output with `reference_facts`.
 3. Check for any `critical_failures`.
-4. Review the softer `quality_criteria`.
-5. Assign PASS, NEEDS_REVIEW or FAIL.
+4. Review the case-specific `quality_criteria`.
+5. Score factual correctness, naturalness, coverage, learner usefulness, and A2-B1 fit.
+6. Assign PASS, NEEDS_REVIEW or FAIL and add short notes explaining the important score deductions.
 
 ## Why not compare with one exact answer?
 
@@ -76,28 +87,34 @@ The first live baseline immediately caught a real quality failure:
 
 That failure led to a production prompt change. The separability guidance now says to inspect actual conjugation, stress and morphological structure rather than inferring the rule from the first letters of a verb. It explicitly contrasts `vervangen` (inseparable `ver-`) with `bezighouden` (separable particle `bezig`).
 
-A second live run after that change showed that the targeted factual bug was fixed without reversing the `vervangen` rule:
+A second live run after that change showed that the targeted factual bug was fixed without reversing the `vervangen` rule. Re-reading that same run with the multidimensional rubric gives a more precise diagnosis:
 
-- `vervangen` — NEEDS_REVIEW overall: the Tips field still correctly says the verb is inseparable, but one generated example (`vervang ik de speeltijd met ...`) is less idiomatic than the usual `vervangen door` construction.
-- `bezighouden` — NEEDS_REVIEW overall: the Tips field is now factually correct and gives `ik houd me bezig` / `ik heb me beziggehouden`, but the Dutch definition (`dat je jezelf met iets bezig bent`) is awkward compared with `dat je je met iets bezighoudt`.
-- `gezellig` — PASS / minor wording review: the examples are natural and the Tips field captures the broader social/togetherness meaning, although the Dutch definition is somewhat circular.
-- `afspraak` — NEEDS_REVIEW: the output remains broadly useful but still leans toward the appointment/meeting sense and some phrasing is less idiomatic than ideal.
+| Case | Fact | Naturalness | Coverage | Usefulness | A2-B1 | Final label | Main reason |
+| --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| `vervangen` | 1 | 1 | 2 | 2 | 2 | NEEDS_REVIEW | separability is correct, but one example used less idiomatic `vervangen met` instead of the usual `vervangen door` |
+| `bezighouden` | 1 | 0 | 2 | 2 | 1 | NEEDS_REVIEW | the factual bug is fixed, but `dat je jezelf met iets bezig bent` is not wording a learner should copy |
+| `gezellig` | 1 | 2 | 2 | 2 | 2 | PASS | examples and Tips capture useful social/togetherness meaning; the definition is slightly circular but not materially harmful |
+| `afspraak` | 1 | 1 | 1 | 1 | 2 | NEEDS_REVIEW | useful appointment sense, but broader agreement/arrangement coverage is incomplete and some phrasing is less idiomatic than ideal |
 
-So the target regression moved from a hard factual FAIL to softer wording/naturalness issues. This is the intended feedback loop:
+This makes the improvement visible without pretending every remaining issue has the same severity:
 
 ```text
-baseline eval
-→ observe a real quality failure
-→ change prompt/model/context
-→ rerun the same cases
-→ confirm the target factual failure improved
-→ inspect any remaining softer quality issues
+bezighouden before prompt change
+factual correctness = 0
+→ FAIL
+
+bezighouden after prompt change
+factual correctness = 1
+naturalness still weak
+→ NEEDS_REVIEW
 ```
+
+That distinction is the reason to keep scoring dimensions separate.
 
 ## What comes later
 
-Do not automate every criterion just because it can be encoded. First collect a few real failures and see which checks are stable.
+Do not automate every criterion just because it can be encoded. First collect a few more real failures and see which checks are stable.
 
-Good candidates for later automation are crisp factual failures where a deterministic check can be made robustly. Subjective criteria such as naturalness, usefulness and A2-B1 suitability may remain human-reviewed or later use an LLM judge with a clear rubric.
+Good candidates for later automation are crisp factual failures where a deterministic check can be made robustly. Subjective criteria such as naturalness, usefulness and A2-B1 suitability may remain human-reviewed or later use an LLM judge with the same rubric.
 
-Automation should build on the human-readable dataset and rubric rather than replacing the definition of quality.
+Automation should build on the human-readable dataset and scoring contract rather than replacing the definition of quality.
