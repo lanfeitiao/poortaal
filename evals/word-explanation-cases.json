@@ -1,6 +1,65 @@
 {
-  "version": 1,
+  "version": 2,
   "purpose": "Small golden dataset for judging the quality of Dutch word explanations. These cases define what a good answer should get right without requiring one exact wording.",
+  "scoring_rubric": {
+    "dimensions": [
+      {
+        "id": "factual_correctness",
+        "label": "Factual correctness",
+        "scale": "0-1",
+        "scores": {
+          "0": "A material Dutch fact is wrong, a critical failure occurs, or the answer contradicts itself on an important grammar or meaning point.",
+          "1": "No material factual error is present and the important reference facts are correct."
+        }
+      },
+      {
+        "id": "naturalness",
+        "label": "Naturalness",
+        "scale": "0-2",
+        "scores": {
+          "0": "Dutch wording or examples are clearly unidiomatic or misleading enough that a learner should not copy them.",
+          "1": "Understandable and mostly grammatical, but some wording, collocation, or word order is noticeably awkward.",
+          "2": "Natural, idiomatic everyday Dutch that a learner could comfortably reuse."
+        }
+      },
+      {
+        "id": "coverage",
+        "label": "Coverage",
+        "scale": "0-2",
+        "scores": {
+          "0": "Misses or materially misrepresents a central common meaning, construction, or usage needed for this case.",
+          "1": "Covers the main point but misses a useful common sense, contrast, or construction identified by the case rubric.",
+          "2": "Covers the important common meanings and usage points for this case without unnecessary detail."
+        }
+      },
+      {
+        "id": "usefulness",
+        "label": "Learner usefulness",
+        "scale": "0-2",
+        "scores": {
+          "0": "Adds little practical value beyond a bare translation or gives advice a learner cannot safely use.",
+          "1": "Contains some useful explanation or examples, but misses a high-value learner insight or practical pattern.",
+          "2": "Gives practical, reusable explanation, examples, or tips that help the learner form or understand real sentences."
+        }
+      },
+      {
+        "id": "level_fit",
+        "label": "A2-B1 fit",
+        "scale": "0-2",
+        "scores": {
+          "0": "Too confusing, advanced, dense, or poorly explained for the intended A2-B1 learner.",
+          "1": "Mostly accessible but includes avoidable complexity, vagueness, or explanation burden.",
+          "2": "Clear, concise, and comfortably understandable for an A2-B1 learner."
+        }
+      }
+    ],
+    "overall_label_rules": [
+      "FAIL if factual_correctness is 0 or any critical failure occurs.",
+      "NEEDS_REVIEW when factual_correctness is 1 but one or more softer dimensions reveal a meaningful quality problem or incomplete answer.",
+      "PASS when factual_correctness is 1 and the answer is natural, sufficiently complete, useful, and appropriate for the learner.",
+      "Do not add the dimension scores into one automatic total yet; keep them diagnostic until more real eval runs show which thresholds are stable."
+    ]
+  },
   "cases": [
     {
       "id": "vervangen-separability",
