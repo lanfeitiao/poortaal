@@ -65,13 +65,38 @@ The first dataset deliberately mixes factual and qualitative risks:
 
 This small set is meant to grow from real failures. When Poortaal produces a clearly bad answer that represents a reusable failure pattern, add a case or criterion rather than adding random vocabulary for coverage.
 
+## First feedback loop
+
+The first live baseline immediately caught a real quality failure:
+
+- `vervangen` — PASS; the output correctly described the verb as inseparable.
+- `bezighouden` — FAIL; the examples correctly used `houd ... bezig`, but the Tips field incorrectly claimed that `bezighouden` is inseparable.
+- `gezellig` — PASS with minor wording quality issues.
+- `afspraak` — NEEDS_REVIEW because the appointment sense was useful but the broader agreement/arrangement sense was incomplete and one playdate example was awkward.
+
+That failure led to a production prompt change. The separability guidance now says to inspect actual conjugation, stress and morphological structure rather than inferring the rule from the first letters of a verb. It explicitly contrasts `vervangen` (inseparable `ver-`) with `bezighouden` (separable particle `bezig`).
+
+A second live run after that change produced:
+
+- `vervangen` — PASS; the inseparable rule remained correct.
+- `bezighouden` — PASS; the Tips field now correctly says it is separable and gives `ik houd me bezig` / `ik heb me beziggehouden`.
+- `gezellig` — PASS; examples remained natural and the Tips field captured the broader social/togetherness meaning.
+- `afspraak` — NEEDS_REVIEW; the output remained broadly useful but still leaned toward the appointment/meeting sense and some phrasing was less idiomatic than ideal.
+
+This is the intended feedback loop:
+
+```text
+baseline eval
+→ observe a real quality failure
+→ change prompt/model/context
+→ rerun the same cases
+→ confirm the target improved without obvious regression elsewhere
+```
+
 ## What comes later
 
-A later step can build on this manual runner by:
+Do not automate every criterion just because it can be encoded. First collect a few real failures and see which checks are stable.
 
-- storing eval runs so prompt/model changes can be compared over time,
-- applying deterministic checks where they are genuinely reliable,
-- optionally asking an LLM judge to score subjective criteria,
-- reporting regressions across prompt or model changes.
+Good candidates for later automation are crisp factual failures where a deterministic check can be made robustly. Subjective criteria such as naturalness, usefulness and A2-B1 suitability may remain human-reviewed or later use an LLM judge with a clear rubric.
 
 Automation should build on the human-readable dataset and rubric rather than replacing the definition of quality.
