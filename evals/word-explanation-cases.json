@@ -8,7 +8,7 @@
         "label": "Factual correctness",
         "scale": "0-1",
         "scores": {
-          "0": "A material Dutch fact is wrong, a critical failure occurs, or the answer contradicts itself on an important grammar or meaning point.",
+          "0": "A material Dutch grammar, meaning, or usage claim is wrong, or the answer contradicts itself on an important factual point.",
           "1": "No material factual error is present and the important reference facts are correct."
         }
       },
@@ -54,9 +54,9 @@
       }
     ],
     "overall_label_rules": [
-      "FAIL if factual_correctness is 0 or any critical failure occurs.",
-      "NEEDS_REVIEW when factual_correctness is 1 but one or more softer dimensions reveal a meaningful quality problem or incomplete answer.",
-      "PASS when factual_correctness is 1 and the answer is natural, sufficiently complete, useful, and appropriate for the learner.",
+      "FAIL if factual_correctness is 0 or any case-specific critical failure occurs.",
+      "NEEDS_REVIEW when factual_correctness is 1, no critical failure occurs, but one or more softer dimensions reveal a meaningful quality problem or incomplete answer.",
+      "PASS when factual_correctness is 1, no critical failure occurs, and the answer is natural, sufficiently complete, useful, and appropriate for the learner.",
       "Do not add the dimension scores into one automatic total yet; keep them diagnostic until more real eval runs show which thresholds are stable."
     ]
   },
