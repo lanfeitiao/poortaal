@@ -1,0 +1,144 @@
+{
+  "version": 2,
+  "purpose": "Small golden dataset for judging the quality of Dutch word explanations. These cases define what a good answer should get right without requiring one exact wording.",
+  "scoring_rubric": {
+    "dimensions": [
+      {
+        "id": "factual_correctness",
+        "label": "Factual correctness",
+        "scale": "0-1",
+        "scores": {
+          "0": "A material Dutch grammar, meaning, or usage claim is wrong, or the answer contradicts itself on an important factual point.",
+          "1": "No material factual error is present and the important reference facts are correct."
+        }
+      },
+      {
+        "id": "naturalness",
+        "label": "Naturalness",
+        "scale": "0-2",
+        "scores": {
+          "0": "Dutch wording or examples are clearly unidiomatic or misleading enough that a learner should not copy them.",
+          "1": "Understandable and mostly grammatical, but some wording, collocation, or word order is noticeably awkward.",
+          "2": "Natural, idiomatic everyday Dutch that a learner could comfortably reuse."
+        }
+      },
+      {
+        "id": "coverage",
+        "label": "Coverage",
+        "scale": "0-2",
+        "scores": {
+          "0": "Misses or materially misrepresents a central common meaning, construction, or usage needed for this case.",
+          "1": "Covers the main point but misses a useful common sense, contrast, or construction identified by the case rubric.",
+          "2": "Covers the important common meanings and usage points for this case without unnecessary detail."
+        }
+      },
+      {
+        "id": "usefulness",
+        "label": "Learner usefulness",
+        "scale": "0-2",
+        "scores": {
+          "0": "Adds little practical value beyond a bare translation or gives advice a learner cannot safely use.",
+          "1": "Contains some useful explanation or examples, but misses a high-value learner insight or practical pattern.",
+          "2": "Gives practical, reusable explanation, examples, or tips that help the learner form or understand real sentences."
+        }
+      },
+      {
+        "id": "level_fit",
+        "label": "A2-B1 fit",
+        "scale": "0-2",
+        "scores": {
+          "0": "Too confusing, advanced, dense, or poorly explained for the intended A2-B1 learner.",
+          "1": "Mostly accessible but includes avoidable complexity, vagueness, or explanation burden.",
+          "2": "Clear, concise, and comfortably understandable for an A2-B1 learner."
+        }
+      }
+    ],
+    "overall_label_rules": [
+      "FAIL if factual_correctness is 0 or any case-specific critical failure occurs.",
+      "NEEDS_REVIEW when factual_correctness is 1, no critical failure occurs, but one or more softer dimensions reveal a meaningful quality problem or incomplete answer.",
+      "PASS when factual_correctness is 1, no critical failure occurs, and the answer is natural, sufficiently complete, useful, and appropriate for the learner.",
+      "Do not add the dimension scores into one automatic total yet; keep them diagnostic until more real eval runs show which thresholds are stable."
+    ]
+  },
+  "cases": [
+    {
+      "id": "vervangen-separability",
+      "input": "vervangen",
+      "risk": "A model may incorrectly infer separability from the spelling and teach a false conjugation pattern.",
+      "reference_facts": [
+        "vervangen is an inseparable verb",
+        "the finite form stays together, for example: ik vervang de lamp",
+        "the past participle is vervangen, for example: ik heb de lamp vervangen",
+        "the verb does not split as ik vang ... ver"
+      ],
+      "critical_failures": [
+        "claims that vervangen is separable",
+        "recommends a split form such as ik vang ... ver",
+        "recommends an incorrect past participle formed by adding ge- to vervangen"
+      ],
+      "quality_criteria": [
+        "explains the useful conjugation consequence clearly",
+        "uses natural Dutch examples",
+        "keeps the explanation understandable for an A2-B1 learner"
+      ]
+    },
+    {
+      "id": "bezighouden-separability",
+      "input": "bezighouden",
+      "risk": "A model may treat bezighouden like an inseparable be- verb even though bezig is the separable particle here.",
+      "reference_facts": [
+        "bezighouden is separable",
+        "a common reflexive construction is zich bezighouden met",
+        "a correct present-tense example is: ik houd me bezig met Nederlands",
+        "a correct perfect example is: ik heb me met Nederlands beziggehouden"
+      ],
+      "critical_failures": [
+        "claims that bezighouden is inseparable",
+        "recommends keeping bezighouden together in a finite main-clause form where it should split",
+        "gives a past participle that omits the correct beziggehouden form"
+      ],
+      "quality_criteria": [
+        "shows the separation in a useful sentence rather than only naming the grammar rule",
+        "handles the reflexive pronoun naturally when using zich bezighouden met",
+        "uses natural Dutch word order"
+      ]
+    },
+    {
+      "id": "gezellig-context",
+      "input": "gezellig",
+      "risk": "A model may reduce gezellig to one English gloss such as cozy and miss how broadly it is used in Dutch.",
+      "reference_facts": [
+        "gezellig is context-dependent and can describe a pleasant, sociable or cozy atmosphere, activity, place or company",
+        "there is no single English translation that fits every use"
+      ],
+      "critical_failures": [
+        "presents gezellig as having one fixed English meaning in every context",
+        "gives Dutch examples that are grammatically wrong or clearly unnatural"
+      ],
+      "quality_criteria": [
+        "uses examples that demonstrate at least two natural contexts when possible",
+        "explains the idea more helpfully than a bare dictionary translation",
+        "keeps examples conversational and suitable for an A2-B1 learner"
+      ]
+    },
+    {
+      "id": "afspraak-usage",
+      "input": "afspraak",
+      "risk": "A model may give a technically possible translation without teaching the common everyday constructions learners actually need.",
+      "reference_facts": [
+        "afspraak commonly refers to an appointment or an agreement/arrangement depending on context",
+        "een afspraak maken is a common construction",
+        "een afspraak hebben bij de huisarts is a natural everyday use"
+      ],
+      "critical_failures": [
+        "gives a materially wrong core meaning",
+        "teaches an unidiomatic construction as the normal way to make or have an appointment"
+      ],
+      "quality_criteria": [
+        "includes at least one common collocation or construction",
+        "makes the context-dependent meaning clear without overcomplicating it",
+        "uses practical natural Dutch examples"
+      ]
+    }
+  ]
+}

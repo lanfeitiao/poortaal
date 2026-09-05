@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -p tsconfig.app.json && vite build --base=/poortaal/",
-    "test": "node --test \"src/**/*.test.ts\"",
+    "test": "node --test \"src/**/*.test.ts\" \"evals/**/*.test.ts\"",
+    "eval:words": "node evals/run-word-explanation-evals.ts",
     "preview": "vite preview --base=/poortaal/"
   },
   "devDependencies": {
