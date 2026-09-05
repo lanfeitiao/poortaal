@@ -24,6 +24,8 @@ npm run eval:words -- --live
 
 The live runner calls the same `generateWordExplanation()` use case used by the app, through the existing Poortaal OpenAI client. It prints the generated `WordExplanation` next to that case's reference facts, critical failures, quality criteria, and manual scorecard.
 
+For the two separability cases, the live runner also applies a deliberately narrow deterministic check for explicit high-confidence contradictions such as `bezighouden is an inseparable verb` or `vervangen is a separable verb`. A detected match is a known critical failure. No match is **not** a PASS; it only means that these few known hard-failure patterns were not found, so human review still continues.
+
 By default the live runner uses the production Poortaal Worker endpoint. To evaluate another compatible endpoint, set `POORTAAL_API_BASE` before running it.
 
 ## Scoring dimensions
@@ -52,7 +54,7 @@ For each case in `word-explanation-cases.json`:
 
 1. Generate a normal Poortaal word explanation for the `input`.
 2. Compare the output with `reference_facts`.
-3. Check for any `critical_failures`.
+3. Check for any `critical_failures`, including any known deterministic finding printed by the runner.
 4. Review the case-specific `quality_criteria`.
 5. Score factual correctness, naturalness, coverage, learner usefulness, and A2-B1 fit.
 6. Assign PASS, NEEDS_REVIEW or FAIL and add short notes explaining the important score deductions.
@@ -113,10 +115,14 @@ naturalness still weak
 
 That distinction is the reason to keep scoring dimensions separate.
 
+## Deterministic checks stay narrow
+
+The first automatic checks are intentionally high-precision rather than broad. They recognize a few explicit wrong separability claims in English or Dutch. Tests also cover the important negation case so text such as `bezighouden is not inseparable` is not mistaken for the original failure.
+
+This is not a general Dutch grammar judge. It will miss differently worded mistakes, and it deliberately does not try to score `gezellig` naturalness or `afspraak` coverage. The purpose is to catch a known regression cheaply without creating false confidence about the rest of the answer.
+
 ## What comes later
 
-Do not automate every criterion just because it can be encoded. First collect a few more real failures and see which checks are stable.
-
-Good candidates for later automation are crisp factual failures where a deterministic check can be made robustly. Subjective criteria such as naturalness, usefulness and A2-B1 suitability may remain human-reviewed or later use an LLM judge with the same rubric.
+Add deterministic checks only when repeated real failures reveal another crisp pattern that can be recognized with high confidence. Subjective criteria such as naturalness, usefulness and A2-B1 suitability should remain human-reviewed unless there is enough evidence to justify an LLM judge using the same rubric.
 
 Automation should build on the human-readable dataset and scoring contract rather than replacing the definition of quality.
