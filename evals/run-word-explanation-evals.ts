@@ -1,9 +1,11 @@
 import { readFileSync } from 'node:fs';
 
+import { findKnownCriticalFactFailures } from './critical-fact-checks.ts';
 import { requestOpenAIChat } from '../src/openai-client.ts';
 import {
   generateWordExplanation,
   type ChatMessage,
+  type WordExplanation,
 } from '../src/word-explanation.ts';
 
 type EvalScoreDimension = {
@@ -65,6 +67,21 @@ function printCaseRubric(evalCase: EvalCase) {
   printList('Case-specific quality criteria:', evalCase.quality_criteria);
 }
 
+function printKnownCriticalFactChecks(evalCase: EvalCase, output: WordExplanation) {
+  const findings = findKnownCriticalFactFailures(evalCase.id, output);
+  console.log('\nKnown deterministic critical-fact checks:');
+
+  if (findings.length === 0) {
+    console.log('- no known hard failure detected (this is not a PASS; continue human review)');
+    return;
+  }
+
+  for (const finding of findings) {
+    console.log(`- DETECTED KNOWN CRITICAL FAILURE [${finding.id}]: ${finding.message}`);
+    console.log(`  evidence: ${finding.evidence}`);
+  }
+}
+
 function printManualScorecard() {
   console.log('\nManual scorecard:');
   for (const dimension of dataset.scoring_rubric.dimensions) {
@@ -104,6 +121,7 @@ async function runLive() {
     try {
       const output = await generateWordExplanation(evalCase.input, completeChat);
       console.log(JSON.stringify(output, null, 2));
+      printKnownCriticalFactChecks(evalCase, output);
     } catch (error) {
       console.log(`GENERATION_ERROR: ${error instanceof Error ? `${error.name}: ${error.message}` : String(error)}`);
     }
