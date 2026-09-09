@@ -19,3 +19,4 @@ jobs:
       - run: npm test
       - run: npm run eval:words
       - run: npm run build
+      - run: grep -q "__poortaal_refresh" dist/index.html
