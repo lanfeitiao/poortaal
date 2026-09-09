@@ -139,3 +139,5 @@ document.addEventListener('DOMContentLoaded', () => {
     if (target) event.stopPropagation();
   }, true);
 });
+
+window.dispatchEvent(new Event('poortaal:booted'));
