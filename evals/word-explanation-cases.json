@@ -139,6 +139,41 @@
         "makes the context-dependent meaning clear without overcomplicating it",
         "uses practical natural Dutch examples"
       ]
+    },
+    {
+      "id": "ledikant-etymology",
+      "input": "ledikant",
+      "risk": "A model may confidently invent an unsupported etymology or word-origin explanation from the apparent modern spelling.",
+      "reference_facts": [
+        "ledikant historically derives from French lit de camp"
+      ],
+      "critical_failures": [
+        "presents a false or unsupported etymology as factual information"
+      ],
+      "quality_criteria": [
+        "if a learning note is provided, it gives the learner a reliable mental hook that helps them understand or remember the word",
+        "does not speculate when a reliable and useful word-origin or learning note is unavailable",
+        "keeps any learning note concise and understandable for an A2-B1 learner"
+      ]
+    },
+    {
+      "id": "schoolplein-word-formation",
+      "input": "schoolplein",
+      "risk": "A model made more cautious about etymology may become over-conservative and miss a transparent, reliable word-formation pattern that would help the learner remember the word.",
+      "reference_facts": [
+        "schoolplein is a transparent compound of school and plein",
+        "plein refers to a square or open area",
+        "schoolplein refers to the outdoor playground or yard associated with a school"
+      ],
+      "critical_failures": [
+        "invents an unsupported historical origin for the word",
+        "gives a materially wrong decomposition or core meaning"
+      ],
+      "quality_criteria": [
+        "uses the transparent school + plein structure as a useful learning hook when providing a learning note",
+        "distinguishes a helpful modern word-formation explanation from a claim about historical etymology",
+        "keeps the explanation concise, memorable and understandable for an A2-B1 learner"
+      ]
     }
   ]
 }
