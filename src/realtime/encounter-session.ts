@@ -1,6 +1,6 @@
-import { detectsTargetProduction } from './production-evaluator';
-import { nextSupportLevel, strongerSupport } from './scaffolding';
-import type { Encounter, ProductionEvidence, SupportLevel } from './types';
+import { detectsTargetProduction } from './production-evaluator.ts';
+import { nextSupportLevel, strongerSupport } from './scaffolding.ts';
+import type { Encounter, ProductionEvidence, SupportLevel } from './types.ts';
 
 export class EncounterSession {
   readonly evidence: ProductionEvidence;
