@@ -21,7 +21,13 @@ export class RealtimeClient {
 
   async connect(): Promise<void> {
     this.options.onStateChange?.('requesting-microphone');
-    this.localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    this.localStream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      },
+    });
     this.options.onStateChange?.('connecting');
 
     try {
