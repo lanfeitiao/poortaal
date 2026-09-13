@@ -12,11 +12,26 @@ interface Env {
   CORS_ORIGIN: string;
 }
 
-function corsHeaders(origin: string, allowedOrigin: string): HeadersInit {
+function allowedCorsOrigin(origin: string, configuredOrigin: string): string | null {
+  if (configuredOrigin === '*') return '*';
+  if (origin === configuredOrigin) return origin;
+
+  // Allow Poortaal's Vercel branch previews so Realtime V2 can be tested
+  // before merging to GitHub Pages. Keep this scoped to this Vercel project.
+  if (/^https:\/\/poortaal-git-[a-z0-9-]+-lanfeitiaos-projects\.vercel\.app$/.test(origin)) {
+    return origin;
+  }
+
+  return null;
+}
+
+function corsHeaders(origin: string, configuredOrigin: string): HeadersInit {
+  const allowedOrigin = allowedCorsOrigin(origin, configuredOrigin);
   return {
-    'Access-Control-Allow-Origin': allowedOrigin === '*' ? '*' : origin,
+    ...(allowedOrigin ? { 'Access-Control-Allow-Origin': allowedOrigin } : {}),
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
+    'Vary': 'Origin',
   };
 }
 
