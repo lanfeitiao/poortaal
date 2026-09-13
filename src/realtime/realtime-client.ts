@@ -9,12 +9,15 @@ type RealtimeClientOptions = {
 };
 
 export class RealtimeClient {
+  private readonly options: RealtimeClientOptions;
   private peerConnection: RTCPeerConnection | null = null;
   private dataChannel: RTCDataChannel | null = null;
   private localStream: MediaStream | null = null;
   private remoteAudio: HTMLAudioElement | null = null;
 
-  constructor(private readonly options: RealtimeClientOptions) {}
+  constructor(options: RealtimeClientOptions) {
+    this.options = options;
+  }
 
   async connect(): Promise<void> {
     this.options.onStateChange?.('requesting-microphone');
