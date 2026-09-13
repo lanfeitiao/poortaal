@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "build": "tsc -p tsconfig.app.json && vite build --base=/poortaal/",
+    "build": "tsc -p tsconfig.app.json && vite build",
     "test": "node --test \"src/**/*.test.ts\" \"evals/**/*.test.ts\"",
     "eval:words": "node evals/run-word-explanation-evals.ts",
     "preview": "vite preview --base=/poortaal/"
