@@ -3,13 +3,15 @@ import { nextSupportLevel, strongerSupport } from './scaffolding.ts';
 import type { Encounter, ProductionEvidence, SupportLevel } from './types.ts';
 
 export class EncounterSession {
+  readonly encounter: Encounter;
   readonly evidence: ProductionEvidence;
   currentSupport: SupportLevel;
 
   constructor(
-    readonly encounter: Encounter,
+    encounter: Encounter,
     initialSupport: SupportLevel = 'none',
   ) {
+    this.encounter = encounter;
     this.currentSupport = initialSupport;
     this.evidence = {
       targetWord: encounter.targetWord,
