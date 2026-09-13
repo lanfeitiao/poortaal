@@ -1,3 +1,4 @@
+import { detectsTargetProduction } from './production-evaluator';
 import { nextSupportLevel, strongerSupport } from './scaffolding';
 import type { Encounter, ProductionEvidence, SupportLevel } from './types';
 
@@ -32,9 +33,7 @@ export class EncounterSession {
   }
 
   recordProduction(transcript: string): boolean {
-    const normalized = transcript.toLocaleLowerCase('nl-NL');
-    const target = this.encounter.targetWord.toLocaleLowerCase('nl-NL');
-    const usedTarget = normalized.includes(target);
+    const usedTarget = detectsTargetProduction(this.encounter.targetWord, transcript);
     if (usedTarget) {
       this.evidence.successfulProduction = true;
       this.evidence.learnerSentence = transcript.trim();
