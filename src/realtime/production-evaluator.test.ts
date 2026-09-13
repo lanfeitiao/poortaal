@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { detectsTargetProduction } from './production-evaluator';
+import { detectsTargetProduction } from './production-evaluator.ts';
 
 test('detects exact target word', () => {
   assert.equal(detectsTargetProduction('afspreken', 'We kunnen morgen afspreken.'), true);
