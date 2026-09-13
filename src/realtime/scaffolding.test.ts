@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { nextSupportLevel, previousSupportLevel, strongerSupport } from './scaffolding';
+import { nextSupportLevel, previousSupportLevel, strongerSupport } from './scaffolding.ts';
 
 test('rescue ladder increases support one step at a time', () => {
   assert.equal(nextSupportLevel('none'), 'meaning');
