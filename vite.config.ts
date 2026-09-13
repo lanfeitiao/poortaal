@@ -75,6 +75,7 @@ const startupRecoveryScript = String.raw`
 `;
 
 export default defineConfig({
+  base: process.env.VERCEL ? '/' : '/poortaal/',
   plugins: [
     {
       name: 'poortaal-startup-recovery',
