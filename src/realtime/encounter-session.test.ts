@@ -13,7 +13,13 @@ test('session records support escalation independently from current UI support',
   assert.equal(session.evidence.maxSupportUsed, 'chunks');
 });
 
-test('session records a learner sentence containing the target word', () => {
+test('MVP exact-match detector records an explicit target-word production', () => {
+  const session = new EncounterSession(createMvpEncounter('tegenvallen'));
+  assert.equal(session.recordProduction('Ik wil tegenvallen hier gebruiken.'), true);
+  assert.equal(session.evidence.successfulProduction, true);
+});
+
+test('MVP exact-match detector does not pretend to understand inflection yet', () => {
   const session = new EncounterSession(createMvpEncounter('tegenvallen'));
   assert.equal(session.recordProduction('De taart viel een beetje tegen.'), false);
 });
