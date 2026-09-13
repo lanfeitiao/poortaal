@@ -81,7 +81,7 @@ async function handleRealtimeToken(request: Request, env: Env): Promise<Response
               threshold: 0.5,
               prefix_padding_ms: 300,
               silence_duration_ms: 1200,
-              create_response: false,
+              create_response: true,
             },
             transcription: { model: 'whisper-1' },
           },
