@@ -1,4 +1,4 @@
-import { SUPPORT_LEVELS, type Encounter, type SupportLevel } from './types';
+import { SUPPORT_LEVELS, type Encounter, type SupportLevel } from './types.ts';
 
 export function nextSupportLevel(level: SupportLevel): SupportLevel {
   const index = SUPPORT_LEVELS.indexOf(level);
