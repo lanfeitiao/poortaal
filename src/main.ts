@@ -25,9 +25,9 @@ import {
   startReviewSession,
   switchPracticeMode,
   toggleHistory,
-  toggleVoiceSession,
   trySuggestion,
 } from './app';
+import { stopRealtimeEncounter, toggleRealtimeEncounter } from './realtime/encounter-controller';
 
 assertRequiredDom();
 
@@ -109,10 +109,13 @@ document.addEventListener('DOMContentLoaded', () => {
   onClick('searchBtn', lookupWord);
   onClick('practiceStartBtn', startPracticeWithInput);
   onClick('practiceBackBtn', showPracticePicker);
-  onClick('textModeBtn', () => switchPracticeMode('text'));
+  onClick('textModeBtn', () => {
+    stopRealtimeEncounter();
+    switchPracticeMode('text');
+  });
   onClick('voiceModeBtn', () => switchPracticeMode('voice'));
   onClick('chatSendBtn', sendChat);
-  onClick('voiceStartBtn', toggleVoiceSession);
+  onClick('voiceStartBtn', toggleRealtimeEncounter);
   onClick('overlay', toggleHistory);
   onClick('historyCloseBtn', toggleHistory);
   onClick('googleLoginBtn', signInWithGoogle);

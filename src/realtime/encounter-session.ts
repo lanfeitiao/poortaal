@@ -1,0 +1,45 @@
+import { detectsTargetProduction } from './production-evaluator.ts';
+import { nextSupportLevel, strongerSupport } from './scaffolding.ts';
+import type { Encounter, ProductionEvidence, SupportLevel } from './types.ts';
+
+export class EncounterSession {
+  readonly encounter: Encounter;
+  readonly evidence: ProductionEvidence;
+  currentSupport: SupportLevel;
+
+  constructor(
+    encounter: Encounter,
+    initialSupport: SupportLevel = 'none',
+  ) {
+    this.encounter = encounter;
+    this.currentSupport = initialSupport;
+    this.evidence = {
+      targetWord: encounter.targetWord,
+      initialSupport,
+      maxSupportUsed: initialSupport,
+      successfulProduction: false,
+    };
+  }
+
+  requestMoreSupport(): SupportLevel {
+    this.currentSupport = nextSupportLevel(this.currentSupport);
+    this.evidence.maxSupportUsed = strongerSupport(
+      this.evidence.maxSupportUsed,
+      this.currentSupport,
+    );
+    return this.currentSupport;
+  }
+
+  hideSupport(): void {
+    this.currentSupport = 'none';
+  }
+
+  recordProduction(transcript: string): boolean {
+    const usedTarget = detectsTargetProduction(this.encounter.targetWord, transcript);
+    if (usedTarget) {
+      this.evidence.successfulProduction = true;
+      this.evidence.learnerSentence = transcript.trim();
+    }
+    return usedTarget;
+  }
+}
