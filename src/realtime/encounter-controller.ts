@@ -11,6 +11,8 @@ let client: RealtimeClient | null = null;
 let session: EncounterSession | null = null;
 let active = false;
 let completionShown = false;
+let pendingUserMessage: HTMLElement | null = null;
+let pendingTutorMessage: HTMLElement | null = null;
 
 function el(id: string): HTMLElement | null {
   return document.getElementById(id);
@@ -41,15 +43,26 @@ function setVisualizer(visible: boolean): void {
   if (visualizer) visualizer.style.display = visible ? '' : 'none';
 }
 
-function appendMessage(role: 'tutor' | 'user' | 'system', text: string): void {
+function createMessage(role: 'tutor' | 'user' | 'system', text: string): HTMLElement | null {
   const root = transcriptRoot();
-  if (!root || !text.trim()) return;
+  if (!root) return null;
   root.style.display = 'flex';
   const node = document.createElement('div');
   node.className = `chat-msg ${role}`;
-  node.textContent = text.trim();
+  node.textContent = text;
   root.appendChild(node);
   root.scrollTop = root.scrollHeight;
+  return node;
+}
+
+function appendMessage(role: 'tutor' | 'user' | 'system', text: string): void {
+  if (!text.trim()) return;
+  createMessage(role, text.trim());
+}
+
+function resetPendingTranscriptMessages(): void {
+  pendingUserMessage = null;
+  pendingTutorMessage = null;
 }
 
 function renderEncounterIntro(): void {
@@ -57,6 +70,7 @@ function renderEncounterIntro(): void {
   const root = transcriptRoot();
   if (!root) return;
   const encounter = session.encounter;
+  resetPendingTranscriptMessages();
   root.style.display = 'flex';
   root.innerHTML = `
     <div style="align-self:stretch;background:#fff;border:1px solid #DBEAFE;border-radius:14px;padding:14px 16px;margin-bottom:4px;">
@@ -148,27 +162,44 @@ function handleRealtimeEvent(event: RealtimeServerEvent): void {
     case 'input_audio_buffer.speech_started':
       setStatus('Ik luister…');
       setVisualizer(true);
+      // Reserve the learner's visual turn immediately. Transcription can finish
+      // after the assistant has already started responding, so appending only
+      // when transcription completes can scramble the conversation order.
+      if (!pendingUserMessage) pendingUserMessage = createMessage('user', '…');
       return;
     case 'input_audio_buffer.speech_stopped':
       setStatus('Even denken…');
       setVisualizer(false);
       return;
     case 'conversation.item.input_audio_transcription.completed': {
-      const text = eventText(event, 'transcript', 'text');
-      if (text) {
+      const text = eventText(event, 'transcript', 'text').trim();
+      if (pendingUserMessage) {
+        if (text) pendingUserMessage.textContent = text;
+        else pendingUserMessage.remove();
+        pendingUserMessage = null;
+      } else if (text) {
         appendMessage('user', text);
-        session.recordProduction(text);
       }
+      if (text) session.recordProduction(text);
       return;
     }
     case 'response.audio_transcript.done':
     case 'response.output_audio_transcript.done': {
-      const text = eventText(event, 'transcript', 'text');
-      if (text) appendMessage('tutor', text);
+      const text = eventText(event, 'transcript', 'text').trim();
+      if (pendingTutorMessage) {
+        if (text) pendingTutorMessage.textContent = text;
+        else pendingTutorMessage.remove();
+        pendingTutorMessage = null;
+      } else if (text) {
+        appendMessage('tutor', text);
+      }
       return;
     }
     case 'response.created':
       setStatus('Poortaal antwoordt…');
+      // Reserve the tutor's turn before its transcript arrives. This keeps the
+      // message anchored before a learner starts speaking over/after the audio.
+      if (!pendingTutorMessage) pendingTutorMessage = createMessage('tutor', '…');
       return;
     case 'response.done':
       setStatus('Jij bent aan de beurt');
@@ -255,6 +286,7 @@ export function stopRealtimeEncounter(resetStatus = true): void {
   client?.disconnect();
   client = null;
   active = false;
+  resetPendingTranscriptMessages();
   setVisualizer(false);
   setButton('🎙️ Start encounter');
   if (resetStatus) setStatus('Klaar voor een korte encounter');
