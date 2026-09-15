@@ -14,12 +14,14 @@ export class RealtimeClient {
   private dataChannel: RTCDataChannel | null = null;
   private localStream: MediaStream | null = null;
   private remoteAudio: HTMLAudioElement | null = null;
+  private debugStartedAt = 0;
 
   constructor(options: RealtimeClientOptions) {
     this.options = options;
   }
 
   async connect(): Promise<void> {
+    this.debugStartedAt = performance.now();
     this.options.onStateChange?.('requesting-microphone');
     this.localStream = await navigator.mediaDevices.getUserMedia({
       audio: {
@@ -60,17 +62,21 @@ export class RealtimeClient {
       const dc = pc.createDataChannel('oai-events');
       this.dataChannel = dc;
       dc.addEventListener('open', () => {
+        console.debug('[realtime]', Math.round(performance.now() - this.debugStartedAt), 'data_channel.open');
         // Let the fresh microphone/WebRTC pipeline settle before the AI-first
         // opening turn. Hoiland naturally gets this gap while waiting for user input.
         window.setTimeout(() => {
           if (this.dataChannel === dc && dc.readyState === 'open') {
+            console.debug('[realtime]', Math.round(performance.now() - this.debugStartedAt), 'ready');
             this.options.onStateChange?.('ready');
           }
         }, 1200);
       });
       dc.addEventListener('message', event => {
         try {
-          this.options.onEvent?.(JSON.parse(event.data) as RealtimeServerEvent);
+          const parsed = JSON.parse(event.data) as RealtimeServerEvent;
+          console.debug('[realtime]', Math.round(performance.now() - this.debugStartedAt), parsed.type);
+          this.options.onEvent?.(parsed);
         } catch {
           // Ignore malformed diagnostic events instead of breaking the session.
         }
@@ -106,6 +112,7 @@ export class RealtimeClient {
     if (!this.dataChannel || this.dataChannel.readyState !== 'open') {
       throw new Error('Realtime data channel is not open');
     }
+    console.debug('[realtime]', Math.round(performance.now() - this.debugStartedAt), `send:${String(event.type || 'unknown')}`);
     this.dataChannel.send(JSON.stringify(event));
   }
 
