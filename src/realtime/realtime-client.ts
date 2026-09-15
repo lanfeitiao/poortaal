@@ -16,6 +16,8 @@ export class RealtimeClient {
   private localStream: MediaStream | null = null;
   private remoteAudio: HTMLAudioElement | null = null;
   private debugStartedAt = 0;
+  private openerTimer: number | null = null;
+  private openerSuppressed = false;
 
   constructor(options: RealtimeClientOptions) {
     this.options = options;
@@ -27,8 +29,20 @@ export class RealtimeClient {
     this.options.onDebug?.(line);
   }
 
+  private suppressDelayedOpener(reason: string): void {
+    if (this.openerSuppressed) return;
+    this.openerSuppressed = true;
+    if (this.openerTimer !== null) {
+      window.clearTimeout(this.openerTimer);
+      this.openerTimer = null;
+    }
+    this.debug(`delayed_opener.suppressed:${reason}`);
+  }
+
   async connect(): Promise<void> {
     this.debugStartedAt = performance.now();
+    this.openerSuppressed = false;
+    this.openerTimer = null;
     this.options.onStateChange?.('requesting-microphone');
     this.localStream = await navigator.mediaDevices.getUserMedia({
       audio: {
@@ -71,9 +85,11 @@ export class RealtimeClient {
       dc.addEventListener('open', () => {
         this.debug('data_channel.open');
         // Let the fresh microphone/WebRTC pipeline settle before the AI-first
-        // opening turn. Hoiland naturally gets this gap while waiting for user input.
-        window.setTimeout(() => {
-          if (this.dataChannel === dc && dc.readyState === 'open') {
+        // opening turn. If VAD or the server becomes active first, do not add a
+        // second forced response on top of that activity.
+        this.openerTimer = window.setTimeout(() => {
+          this.openerTimer = null;
+          if (!this.openerSuppressed && this.dataChannel === dc && dc.readyState === 'open') {
             this.debug('ready');
             this.options.onStateChange?.('ready');
           }
@@ -83,6 +99,9 @@ export class RealtimeClient {
         try {
           const parsed = JSON.parse(event.data) as RealtimeServerEvent;
           this.debug(parsed.type);
+          if (parsed.type === 'input_audio_buffer.speech_started' || parsed.type === 'response.created') {
+            this.suppressDelayedOpener(parsed.type);
+          }
           this.options.onEvent?.(parsed);
         } catch {
           // Ignore malformed diagnostic events instead of breaking the session.
@@ -124,6 +143,11 @@ export class RealtimeClient {
   }
 
   disconnect(): void {
+    if (this.openerTimer !== null) {
+      window.clearTimeout(this.openerTimer);
+      this.openerTimer = null;
+    }
+    this.openerSuppressed = true;
     this.dataChannel?.close();
     this.peerConnection?.close();
     this.localStream?.getTracks().forEach(track => track.stop());
