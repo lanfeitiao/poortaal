@@ -10,6 +10,8 @@ const API_BASE = 'https://poortaal-api.weilin1990.workers.dev';
 let client: RealtimeClient | null = null;
 let session: EncounterSession | null = null;
 let active = false;
+let generating = false;
+let generationId = 0;
 let completionShown = false;
 let pendingUserMessage: HTMLElement | null = null;
 let pendingTutorMessage: HTMLElement | null = null;
@@ -20,18 +22,14 @@ function transcriptRoot(): HTMLElement | null { return el('voiceTranscript'); }
 function setStatus(text: string): void { const status = el('voiceStatus'); if (status) status.textContent = text; }
 function setButton(text: string): void { const button = el('voiceStartBtn'); if (button) button.textContent = text; }
 function setVisualizer(visible: boolean): void { const visualizer = el('voiceVisualizer'); if (visualizer) visualizer.style.display = visible ? '' : 'none'; }
-
-function createMessage(role: 'tutor' | 'user' | 'system', text: string): HTMLElement | null {
-  const root = transcriptRoot(); if (!root) return null;
-  root.style.display = 'flex'; const node = document.createElement('div'); node.className = `chat-msg ${role}`; node.textContent = text; root.appendChild(node); root.scrollTop = root.scrollHeight; return node;
-}
+function createMessage(role: 'tutor' | 'user' | 'system', text: string): HTMLElement | null { const root = transcriptRoot(); if (!root) return null; root.style.display = 'flex'; const node = document.createElement('div'); node.className = `chat-msg ${role}`; node.textContent = text; root.appendChild(node); root.scrollTop = root.scrollHeight; return node; }
 function appendMessage(role: 'tutor' | 'user' | 'system', text: string): void { if (text.trim()) createMessage(role, text.trim()); }
 function resetPendingTranscriptMessages(): void { pendingUserMessage = null; pendingTutorMessage = null; }
 
 function renderEncounterIntro(): void {
   if (!session) return; const root = transcriptRoot(); if (!root) return; const encounter = session.encounter;
   resetPendingTranscriptMessages(); root.style.display = 'flex';
-  root.innerHTML = `<div style="align-self:stretch;background:#fff;border:1px solid #DBEAFE;border-radius:14px;padding:14px 16px;margin-bottom:4px;"><div style="font-size:1.35rem;margin-bottom:4px;">${encounter.emoji} <strong>${escapeHtml(encounter.title)}</strong></div><div style="font-size:.9rem;color:#4B5563;margin-bottom:8px;">${escapeHtml(encounter.setup)}</div><div style="font-size:.82rem;color:#6B7280;">Try to use <strong>${escapeHtml(encounter.targetWord)}</strong> naturally.</div></div><div id="encounterSupport" style="align-self:stretch;"></div><div id="encounterActions" style="align-self:stretch;display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 8px;"></div>`;
+  root.innerHTML = `<div style="align-self:stretch;background:#fff;border:1px solid #DBEAFE;border-radius:14px;padding:14px 16px;margin-bottom:4px;"><div style="font-size:1.35rem;margin-bottom:4px;">${escapeHtml(encounter.emoji)} <strong>${escapeHtml(encounter.title)}</strong></div><div style="font-size:.9rem;color:#4B5563;margin-bottom:8px;">${escapeHtml(encounter.setup)}</div><div style="font-size:.82rem;color:#6B7280;">Try to use <strong>${escapeHtml(encounter.targetWord)}</strong> naturally.</div></div><div id="encounterSupport" style="align-self:stretch;"></div><div id="encounterActions" style="align-self:stretch;display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 8px;"></div>`;
   renderSupport();
 }
 function supportLabel(level: SupportLevel): string { switch (level) { case 'none': return ''; case 'meaning': return '💡 Thought'; case 'chunks': return '🧩 Pieces'; case 'frame': return '✍️ Sentence frame'; case 'model': return '🗣️ Borrow a line'; } }
@@ -60,27 +58,18 @@ function handleRealtimeEvent(event: RealtimeServerEvent): void {
     case 'error': setStatus('Er ging iets mis. Probeer opnieuw.'); return;
   }
 }
-function handleStateChange(state: RealtimeConnectionState): void {
-  switch (state) {
-    case 'requesting-microphone': setStatus('Microfoon openen…'); break; case 'connecting': setStatus('Verbinding maken…'); break;
-    case 'ready': setStatus('De situatie begint…'); try { client?.send({ type: 'response.create', response: { instructions: `Start now with exactly this opening line: ${session?.encounter.openingLine || ''}` } }); } catch (error) { console.error('Could not start encounter:', error); } break;
-    case 'error': setStatus('Verbinding mislukt. Probeer opnieuw.'); break; case 'closed': if (active) setStatus('Sessie beëindigd'); break;
-  }
-}
-function showCompletion(): void {
-  if (!session) return; completionShown = true; const evidence = session.evidence; const independent = evidence.maxSupportUsed === 'none';
-  appendMessage('system', independent ? `🌼 ${evidence.targetWord} bloeit — you used it on your own.` : `🌿 Nice — you used ${evidence.targetWord} with some support.`);
-  if (evidence.learnerSentence) appendMessage('system', `“${evidence.learnerSentence}”`); setStatus('Mooi gedaan. Je kunt stoppen of nog even doorgaan.');
-}
+function handleStateChange(state: RealtimeConnectionState): void { switch (state) { case 'requesting-microphone': setStatus('Microfoon openen…'); break; case 'connecting': setStatus('Verbinding maken…'); break; case 'ready': setStatus('De situatie begint…'); try { client?.send({ type: 'response.create', response: { instructions: `Start now with exactly this opening line: ${session?.encounter.openingLine || ''}` } }); } catch (error) { console.error('Could not start encounter:', error); } break; case 'error': setStatus('Verbinding mislukt. Probeer opnieuw.'); break; case 'closed': if (active) setStatus('Sessie beëindigd'); break; } }
+function showCompletion(): void { if (!session) return; completionShown = true; const evidence = session.evidence; const independent = evidence.maxSupportUsed === 'none'; appendMessage('system', independent ? `🌼 ${evidence.targetWord} bloeit — you used it on your own.` : `🌿 Nice — you used ${evidence.targetWord} with some support.`); if (evidence.learnerSentence) appendMessage('system', `“${evidence.learnerSentence}”`); setStatus('Mooi gedaan. Je kunt stoppen of nog even doorgaan.'); }
 
 export async function toggleRealtimeEncounter(): Promise<void> {
-  if (active) { stopRealtimeEncounter(); return; }
+  if (active || generating) { stopRealtimeEncounter(); return; }
   const word = el('voicePracticeWord')?.textContent?.trim() || ''; if (!word) { setStatus('Kies eerst een woord.'); return; }
 
-  setStatus('Een situatie bedenken…'); setButton('Even wachten…');
+  const requestId = ++generationId; generating = true; setStatus('Een situatie bedenken…'); setButton('Annuleren');
   const encounter = await createGeneratedEncounter(word);
-  session = new EncounterSession(encounter, 'none'); completionShown = false; renderEncounterIntro(); setButton('■ Stop encounter'); active = true;
+  if (requestId !== generationId) return;
+  generating = false; session = new EncounterSession(encounter, 'none'); completionShown = false; renderEncounterIntro(); setButton('■ Stop encounter'); active = true;
   client = new RealtimeClient({ apiBase: API_BASE, word, instructions: buildTutorInstructions(encounter), onEvent: handleRealtimeEvent, onStateChange: handleStateChange });
   try { await client.connect(); } catch (error) { console.error('Realtime V2 connection failed:', error); appendMessage('system', 'Could not start the voice encounter. Please try again.'); stopRealtimeEncounter(false); }
 }
-export function stopRealtimeEncounter(resetStatus = true): void { client?.disconnect(); client = null; active = false; resetPendingTranscriptMessages(); setVisualizer(false); setButton('🎙️ Start encounter'); if (resetStatus) setStatus('Klaar voor een korte encounter'); }
+export function stopRealtimeEncounter(resetStatus = true): void { generationId += 1; generating = false; client?.disconnect(); client = null; active = false; resetPendingTranscriptMessages(); setVisualizer(false); setButton('🎙️ Start encounter'); if (resetStatus) setStatus('Klaar voor een korte encounter'); }
