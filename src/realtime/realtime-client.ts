@@ -6,6 +6,7 @@ type RealtimeClientOptions = {
   instructions: string;
   onEvent?: (event: RealtimeServerEvent) => void;
   onStateChange?: (state: RealtimeConnectionState) => void;
+  onDebug?: (line: string) => void;
 };
 
 export class RealtimeClient {
@@ -18,6 +19,12 @@ export class RealtimeClient {
 
   constructor(options: RealtimeClientOptions) {
     this.options = options;
+  }
+
+  private debug(label: string): void {
+    const line = `+${Math.round(performance.now() - this.debugStartedAt)}ms ${label}`;
+    console.debug('[realtime]', line);
+    this.options.onDebug?.(line);
   }
 
   async connect(): Promise<void> {
@@ -62,12 +69,12 @@ export class RealtimeClient {
       const dc = pc.createDataChannel('oai-events');
       this.dataChannel = dc;
       dc.addEventListener('open', () => {
-        console.debug('[realtime]', Math.round(performance.now() - this.debugStartedAt), 'data_channel.open');
+        this.debug('data_channel.open');
         // Let the fresh microphone/WebRTC pipeline settle before the AI-first
         // opening turn. Hoiland naturally gets this gap while waiting for user input.
         window.setTimeout(() => {
           if (this.dataChannel === dc && dc.readyState === 'open') {
-            console.debug('[realtime]', Math.round(performance.now() - this.debugStartedAt), 'ready');
+            this.debug('ready');
             this.options.onStateChange?.('ready');
           }
         }, 1200);
@@ -75,7 +82,7 @@ export class RealtimeClient {
       dc.addEventListener('message', event => {
         try {
           const parsed = JSON.parse(event.data) as RealtimeServerEvent;
-          console.debug('[realtime]', Math.round(performance.now() - this.debugStartedAt), parsed.type);
+          this.debug(parsed.type);
           this.options.onEvent?.(parsed);
         } catch {
           // Ignore malformed diagnostic events instead of breaking the session.
@@ -112,7 +119,7 @@ export class RealtimeClient {
     if (!this.dataChannel || this.dataChannel.readyState !== 'open') {
       throw new Error('Realtime data channel is not open');
     }
-    console.debug('[realtime]', Math.round(performance.now() - this.debugStartedAt), `send:${String(event.type || 'unknown')}`);
+    this.debug(`send:${String(event.type || 'unknown')}`);
     this.dataChannel.send(JSON.stringify(event));
   }
 
