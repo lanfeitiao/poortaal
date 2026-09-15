@@ -59,7 +59,15 @@ export class RealtimeClient {
 
       const dc = pc.createDataChannel('oai-events');
       this.dataChannel = dc;
-      dc.addEventListener('open', () => this.options.onStateChange?.('ready'));
+      dc.addEventListener('open', () => {
+        // Let the fresh microphone/WebRTC pipeline settle before the AI-first
+        // opening turn. Hoiland naturally gets this gap while waiting for user input.
+        window.setTimeout(() => {
+          if (this.dataChannel === dc && dc.readyState === 'open') {
+            this.options.onStateChange?.('ready');
+          }
+        }, 1200);
+      });
       dc.addEventListener('message', event => {
         try {
           this.options.onEvent?.(JSON.parse(event.data) as RealtimeServerEvent);
