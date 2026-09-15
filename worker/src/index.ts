@@ -99,7 +99,7 @@ async function handleRealtimeToken(request: Request, env: Env): Promise<Response
               silence_duration_ms: 1500,
               create_response: true,
             },
-            transcription: { model: 'whisper-1' },
+            transcription: { model: 'gpt-realtime-whisper' },
           },
           output: {
             voice: 'alloy',
