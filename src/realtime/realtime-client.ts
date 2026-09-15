@@ -39,6 +39,18 @@ export class RealtimeClient {
     this.debug(`delayed_opener.suppressed:${reason}`);
   }
 
+  private setMicEnabled(enabled: boolean, reason: string): void {
+    const tracks = this.localStream?.getAudioTracks() ?? [];
+    let changed = false;
+    tracks.forEach(track => {
+      if (track.enabled !== enabled) {
+        track.enabled = enabled;
+        changed = true;
+      }
+    });
+    if (changed) this.debug(`mic.${enabled ? 'unmuted' : 'muted'}:${reason}`);
+  }
+
   async connect(): Promise<void> {
     this.debugStartedAt = performance.now();
     this.openerSuppressed = false;
@@ -99,6 +111,18 @@ export class RealtimeClient {
         try {
           const parsed = JSON.parse(event.data) as RealtimeServerEvent;
           this.debug(parsed.type);
+
+          // iPhone speaker playback can leak back into the microphone strongly
+          // enough to trigger server VAD. The server then treats the echo as a
+          // barge-in and clears/truncates the assistant audio. Temporarily stop
+          // sending microphone audio for the exact playout window; re-enable it
+          // as soon as the output buffer reports that playback has stopped.
+          if (parsed.type === 'output_audio_buffer.started') {
+            this.setMicEnabled(false, 'assistant_playback');
+          } else if (parsed.type === 'output_audio_buffer.stopped') {
+            this.setMicEnabled(true, 'assistant_playback_stopped');
+          }
+
           if (parsed.type === 'input_audio_buffer.speech_started' || parsed.type === 'response.created') {
             this.suppressDelayedOpener(parsed.type);
           }
