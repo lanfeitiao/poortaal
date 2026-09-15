@@ -1,5 +1,5 @@
-import { requestOpenAIChat } from '../openai-client';
-import type { Encounter } from './types';
+import { requestOpenAIChat } from '../openai-client.ts';
+import type { Encounter } from './types.ts';
 
 const API_BASE = 'https://poortaal-api.weilin1990.workers.dev';
 
@@ -45,8 +45,8 @@ function fallbackEncounter(targetWord: string): Encounter {
 function parseGeneratedEncounter(content: string): GeneratedEncounter | null {
   try {
     const cleaned = content.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
-    const value = JSON.parse(cleaned) as Partial<GeneratedEncounter>;
-    const support = value.support;
+    const value = JSON.parse(cleaned) as Record<string, unknown>;
+    const support = value.support as Record<string, unknown> | undefined;
     if (
       typeof value.title !== 'string' ||
       typeof value.emoji !== 'string' ||
@@ -61,7 +61,21 @@ function parseGeneratedEncounter(content: string): GeneratedEncounter | null {
       typeof support.model !== 'string'
     ) return null;
 
-    return value as GeneratedEncounter;
+    // Copy only the fields the app trusts. Extra model-generated keys such as
+    // id or targetWord must never override learner-selected state.
+    return {
+      title: value.title,
+      emoji: value.emoji,
+      setup: value.setup,
+      objective: value.objective,
+      openingLine: value.openingLine,
+      support: {
+        meaning: support.meaning,
+        chunks: support.chunks as string[],
+        frame: support.frame,
+        model: support.model,
+      },
+    };
   } catch {
     return null;
   }
@@ -81,9 +95,9 @@ export async function createGeneratedEncounter(targetWord: string): Promise<Enco
     if (!generated) return fallbackEncounter(targetWord);
 
     return {
+      ...generated,
       id: `encounter-${Date.now()}`,
       targetWord,
-      ...generated,
     };
   } catch (error) {
     console.error('Could not generate encounter:', error);
