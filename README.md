@@ -18,14 +18,20 @@ Poortaal is a Dutch vocabulary learning app built around a simple idea: looking 
 
 ## A look at Poortaal
 
-<p align="center">
-  <img src="docs/screenshots/word-explorer.png" alt="Explore a Dutch word in Poortaal" width="210">
-  <img src="docs/screenshots/word-growth.png" alt="Vocabulary growth and learning history in Poortaal" width="210">
-  <img src="docs/screenshots/review.png" alt="Spaced-repetition review in Poortaal" width="210">
-  <img src="docs/screenshots/practice.png" alt="Realtime contextual practice in Poortaal" width="210">
-</p>
-
-<p align="center"><sub>Explore · Grow · Review · Practise</sub></p>
+<table>
+  <tr>
+    <td align="center"><strong>Explore</strong></td>
+    <td align="center"><strong>Grow</strong></td>
+    <td align="center"><strong>Review</strong></td>
+    <td align="center"><strong>Practise</strong></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/word-explorer.png" alt="Explore a Dutch word in Poortaal" width="190"></td>
+    <td><img src="docs/screenshots/word-growth.png" alt="Vocabulary growth and learning history in Poortaal" width="190"></td>
+    <td><img src="docs/screenshots/review.png" alt="Spaced-repetition review in Poortaal" width="190"></td>
+    <td><img src="docs/screenshots/practice.png" alt="Realtime contextual practice in Poortaal" width="190"></td>
+  </tr>
+</table>
 
 ## How it works
 
