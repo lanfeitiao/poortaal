@@ -18,13 +18,14 @@ Poortaal is a Dutch vocabulary learning app built around a simple idea: looking 
 
 ## A look at Poortaal
 
-> Screenshots are coming next. The README is structured so the product can be understood at a glance once they are added.
+<p align="center">
+  <img src="docs/screenshots/word-explorer.png" alt="Explore a Dutch word in Poortaal" width="210">
+  <img src="docs/screenshots/word-growth.png" alt="Vocabulary growth and learning history in Poortaal" width="210">
+  <img src="docs/screenshots/review.png" alt="Spaced-repetition review in Poortaal" width="210">
+  <img src="docs/screenshots/practice.png" alt="Realtime contextual practice in Poortaal" width="210">
+</p>
 
-| Explore a word | Review what is due |
-| --- | --- |
-| ![Poortaal word exploration](docs/screenshots/word-explorer.png) | ![Poortaal spaced-repetition review](docs/screenshots/review.png) |
-
-![Poortaal contextual practice](docs/screenshots/practice.png)
+<p align="center"><sub>Explore · Grow · Review · Practise</sub></p>
 
 ## How it works
 
