@@ -54,7 +54,9 @@ function handleRealtimeEvent(event: RealtimeServerEvent): void {
     case 'conversation.item.input_audio_transcription.completed': { const text = eventText(event, 'transcript', 'text').trim(); if (pendingUserMessage) { if (text) pendingUserMessage.textContent = text; else pendingUserMessage.remove(); pendingUserMessage = null; } else if (text) appendMessage('user', text); if (text) session.recordProduction(text); return; }
     case 'response.audio_transcript.done': case 'response.output_audio_transcript.done': { const text = eventText(event, 'transcript', 'text').trim(); if (pendingTutorMessage) { if (text) pendingTutorMessage.textContent = text; else pendingTutorMessage.remove(); pendingTutorMessage = null; } else if (text) appendMessage('tutor', text); return; }
     case 'response.created': setStatus('Poortaal antwoordt…'); if (!pendingTutorMessage) pendingTutorMessage = createMessage('tutor', '…'); return;
-    case 'response.done': setStatus('Jij bent aan de beurt'); if (session.evidence.successfulProduction && !completionShown) showCompletion(); return;
+    case 'output_audio_buffer.started': setStatus('Poortaal spreekt…'); return;
+    case 'output_audio_buffer.stopped': setStatus('Jij bent aan de beurt'); return;
+    case 'response.done': if (session.evidence.successfulProduction && !completionShown) showCompletion(); return;
     case 'error': setStatus('Er ging iets mis. Probeer opnieuw.'); return;
   }
 }
