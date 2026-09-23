@@ -108,7 +108,10 @@ document.addEventListener('DOMContentLoaded', () => {
   onClick('historyBtn', toggleHistory);
   onClick('searchBtn', lookupWord);
   onClick('practiceStartBtn', startPracticeWithInput);
-  onClick('practiceBackBtn', showPracticePicker);
+  onClick('practiceBackBtn', () => {
+    stopRealtimeEncounter();
+    showPracticePicker();
+  });
   onClick('textModeBtn', () => {
     stopRealtimeEncounter();
     switchPracticeMode('text');

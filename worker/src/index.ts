@@ -4,7 +4,7 @@
  * Endpoints:
  * - POST /openai         — Proxy chat completions to OpenAI
  * - GET  /tts            — Proxy TTS via Google Translate
- * - POST /realtime-token — Generate ephemeral token for OpenAI Realtime API
+ * - POST /live-session   — Create an OpenAI GPT-Live WebRTC session
  */
 
 interface Env {
@@ -71,49 +71,54 @@ async function handleTTS(request: Request): Promise<Response> {
   });
 }
 
-async function handleRealtimeToken(request: Request, env: Env): Promise<Response> {
-  const body = await request.json() as { word?: string; instructions?: string };
+async function handleLiveSession(request: Request, env: Env): Promise<Response> {
+  const body = await request.json() as {
+    sdp?: string;
+    word?: string;
+    instructions?: string;
+    backendInstructions?: string;
+  };
+  if (!body.sdp) {
+    return new Response(JSON.stringify({ error: 'Missing WebRTC offer SDP' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   const word = body.word || '';
   const instructions = body.instructions || `You are a Dutch conversation partner. Create one short, achievable opportunity for the learner to use “${word}”. Keep turns short and do not volunteer hints; the client UI owns scaffolding.`;
+  const backendInstructions = body.backendInstructions || `Support a short Dutch practice encounter for the target word “${word}”. Return concise, accurate Dutch-language guidance only when the live model delegates a request.`;
 
-  const response = await fetch('https://api.openai.com/v1/realtime/client_secrets', {
+  const response = await fetch('https://api.openai.com/v1/live/sessions', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${env.OPENAI_API_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      expires_after: { anchor: 'created_at', seconds: 120 },
       session: {
-        type: 'realtime',
-        model: 'gpt-realtime-1.5',
+        model: 'gpt-live-1',
         instructions,
-        max_output_tokens: 160,
         audio: {
-          input: {
-            noise_reduction: { type: 'far_field' },
-            turn_detection: {
-              type: 'server_vad',
-              threshold: 0.8,
-              prefix_padding_ms: 500,
-              silence_duration_ms: 1500,
-              create_response: true,
-              interrupt_response: false,
-            },
-            transcription: { model: 'gpt-realtime-whisper' },
-          },
-          output: {
-            voice: 'alloy',
-            speed: 0.9,
+          output: { voice: 'marin' },
+        },
+        delegation: {
+          type: 'responses',
+          responses: {
+            model: 'gpt-5.6-terra',
+            instructions: backendInstructions,
+            reasoning: { effort: 'none' },
+            max_output_tokens: 160,
           },
         },
       },
+      transport: { type: 'webrtc', sdp: body.sdp },
     }),
   });
 
   if (!response.ok) {
     const details = await response.text();
-    return new Response(JSON.stringify({ error: 'Failed to create realtime session', details }), {
+    return new Response(JSON.stringify({ error: 'Failed to create GPT-Live session', details }), {
       status: 502,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -136,7 +141,7 @@ export default {
     try {
       if (path === '/openai' && request.method === 'POST') response = await handleOpenAI(request, env);
       else if (path === '/tts' && request.method === 'GET') response = await handleTTS(request);
-      else if (path === '/realtime-token' && request.method === 'POST') response = await handleRealtimeToken(request, env);
+      else if (path === '/live-session' && request.method === 'POST') response = await handleLiveSession(request, env);
       else response = new Response(JSON.stringify({ error: 'Not found' }), {
         status: 404,
         headers: { 'Content-Type': 'application/json' },

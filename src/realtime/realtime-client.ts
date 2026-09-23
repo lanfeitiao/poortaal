@@ -4,6 +4,7 @@ type RealtimeClientOptions = {
   apiBase: string;
   word: string;
   instructions: string;
+  backendInstructions?: string;
   onEvent?: (event: RealtimeServerEvent) => void;
   onStateChange?: (state: RealtimeConnectionState) => void;
 };
@@ -31,23 +32,6 @@ export class RealtimeClient {
     this.options.onStateChange?.('connecting');
 
     try {
-      const tokenResponse = await fetch(`${this.options.apiBase}/realtime-token`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          word: this.options.word,
-          instructions: this.options.instructions,
-        }),
-      });
-      if (!tokenResponse.ok) throw new Error(`Realtime token failed (${tokenResponse.status})`);
-
-      const tokenData = await tokenResponse.json() as {
-        value?: string;
-        client_secret?: { value?: string };
-      };
-      const ephemeralKey = tokenData.value ?? tokenData.client_secret?.value;
-      if (!ephemeralKey) throw new Error('Realtime token response did not contain a client secret');
-
       const pc = new RTCPeerConnection();
       this.peerConnection = pc;
 
@@ -59,10 +43,12 @@ export class RealtimeClient {
 
       const dc = pc.createDataChannel('oai-events');
       this.dataChannel = dc;
-      dc.addEventListener('open', () => this.options.onStateChange?.('ready'));
       dc.addEventListener('message', event => {
         try {
-          this.options.onEvent?.(JSON.parse(event.data) as RealtimeServerEvent);
+          const parsed = JSON.parse(event.data) as RealtimeServerEvent;
+          if (parsed.type === 'session.started') this.options.onStateChange?.('ready');
+          if (parsed.type === 'session.closed') this.options.onStateChange?.('closed');
+          this.options.onEvent?.(parsed);
         } catch {
           // Ignore malformed diagnostic events instead of breaking the session.
         }
@@ -75,18 +61,29 @@ export class RealtimeClient {
 
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
+      await this.waitForIceGatheringComplete(pc);
 
-      const sdpResponse = await fetch('https://api.openai.com/v1/realtime/calls', {
+      const sessionResponse = await fetch(`${this.options.apiBase}/live-session`, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${ephemeralKey}`,
-          'Content-Type': 'application/sdp',
+          'Content-Type': 'application/json',
         },
-        body: offer.sdp,
+        body: JSON.stringify({
+          sdp: pc.localDescription?.sdp,
+          word: this.options.word,
+          instructions: this.options.instructions,
+          backendInstructions: this.options.backendInstructions ?? this.options.instructions,
+        }),
       });
-      if (!sdpResponse.ok) throw new Error(`Realtime WebRTC handshake failed (${sdpResponse.status})`);
+      if (!sessionResponse.ok) throw new Error(`GPT-Live session failed (${sessionResponse.status})`);
 
-      await pc.setRemoteDescription({ type: 'answer', sdp: await sdpResponse.text() });
+      const data = await sessionResponse.json() as {
+        transport?: { type?: string; sdp?: string };
+      };
+      if (data.transport?.type !== 'webrtc' || !data.transport.sdp) {
+        throw new Error('GPT-Live response did not contain a WebRTC answer');
+      }
+      await pc.setRemoteDescription({ type: 'answer', sdp: data.transport.sdp });
     } catch (error) {
       this.disconnect();
       this.options.onStateChange?.('error');
@@ -102,6 +99,9 @@ export class RealtimeClient {
   }
 
   disconnect(): void {
+    if (this.dataChannel?.readyState === 'open') {
+      this.dataChannel.send(JSON.stringify({ type: 'session.close' }));
+    }
     this.dataChannel?.close();
     this.peerConnection?.close();
     this.localStream?.getTracks().forEach(track => track.stop());
@@ -110,5 +110,17 @@ export class RealtimeClient {
     this.peerConnection = null;
     this.localStream = null;
     this.remoteAudio = null;
+  }
+
+  private waitForIceGatheringComplete(pc: RTCPeerConnection): Promise<void> {
+    if (pc.iceGatheringState === 'complete') return Promise.resolve();
+    return new Promise(resolve => {
+      const onStateChange = () => {
+        if (pc.iceGatheringState !== 'complete') return;
+        pc.removeEventListener('icegatheringstatechange', onStateChange);
+        resolve();
+      };
+      pc.addEventListener('icegatheringstatechange', onStateChange);
+    });
   }
 }
