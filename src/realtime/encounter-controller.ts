@@ -96,3 +96,5 @@ export async function toggleRealtimeEncounter(): Promise<void> {
   try { await client.connect(); } catch (error) { console.error('GPT-Live connection failed:', error); appendMessage('system', 'Could not start the voice encounter. Please try again.'); stopRealtimeEncounter(false); }
 }
 export function stopRealtimeEncounter(resetStatus = true): void { generationId += 1; generating = false; if (inputActivityTimer) clearTimeout(inputActivityTimer); inputActivityTimer = null; client?.disconnect(); client = null; active = false; resetPendingTranscriptMessages(); setVisualizer(false); setButton('🎙️ Start encounter'); if (resetStatus) setStatus('Klaar voor een korte encounter'); }
+export function consumeRealtimePracticeCompletion(): boolean { const completed = completionShown; completionShown = false; return completed; }
+export function resetRealtimeEncounterUi(): void { const root = transcriptRoot(); if (root) { root.innerHTML = ''; root.style.display = 'none'; } session = null; completionShown = false; resetPendingTranscriptMessages(); setVisualizer(false); setButton('🎙️ Start encounter'); setStatus('Druk op de knop om te beginnen'); }
