@@ -47,17 +47,15 @@ function renderSupport(): void {
 function requestMoreSupport(): void { if (!session) return; session.requestMoreSupport(); renderSupport(); }
 function hideSupport(): void { if (!session) return; session.hideSupport(); renderSupport(); }
 function eventText(event: RealtimeServerEvent, ...keys: string[]): string { for (const key of keys) { const value = event[key]; if (typeof value === 'string') return value; } return ''; }
-function eventNumber(event: RealtimeServerEvent, key: string): number { const value = event[key]; return typeof value === 'number' ? value : 0; }
 function appendTranscriptDelta(role: 'tutor' | 'user', event: RealtimeServerEvent): string {
   const delta = eventText(event, 'delta'); if (!delta) return '';
-  const startMs = eventNumber(event, 'start_ms'); const endMs = eventNumber(event, 'end_ms');
   let track = role === 'user' ? userTranscript : tutorTranscript;
-  if (!track || (startMs > 0 && track.endMs > 0 && startMs - track.endMs > 1200)) {
+  if (!track) {
     const element = createMessage(role, ''); if (!element) return '';
     track = { element, text: '', endMs: 0 };
     if (role === 'user') userTranscript = track; else tutorTranscript = track;
   }
-  track.text += delta; track.endMs = Math.max(track.endMs, endMs); track.element.textContent = track.text;
+  track.text += delta; track.element.textContent = track.text;
   track.element.parentElement?.scrollTo({ top: track.element.parentElement.scrollHeight });
   return track.text;
 }
@@ -77,6 +75,10 @@ function handleRealtimeEvent(event: RealtimeServerEvent): void {
       if (inputActivityTimer) clearTimeout(inputActivityTimer);
       inputActivityTimer = null; setVisualizer(false); setStatus('Poortaal spreekt…');
       appendTranscriptDelta('tutor', event); return;
+    case 'session.input_transcript.completed':
+      userTranscript = null; return;
+    case 'session.output_transcript.done':
+      tutorTranscript = null; return;
     case 'session.delegation.created': setStatus('Even denken…'); return;
     case 'error': setStatus('Er ging iets mis. Probeer opnieuw.'); return;
   }
