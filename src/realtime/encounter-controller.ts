@@ -64,7 +64,6 @@ function handleRealtimeEvent(event: RealtimeServerEvent): void {
   if (!session) return;
   switch (event.type) {
     case 'session.input_transcript.delta': {
-      tutorTranscript = null;
       setStatus('Ik luister…'); setVisualizer(true);
       if (inputActivityTimer) clearTimeout(inputActivityTimer);
       inputActivityTimer = setTimeout(() => { setVisualizer(false); setStatus('Even denken…'); }, 900);
@@ -73,10 +72,13 @@ function handleRealtimeEvent(event: RealtimeServerEvent): void {
       return;
     }
     case 'session.output_transcript.delta':
-      userTranscript = null;
       if (inputActivityTimer) clearTimeout(inputActivityTimer);
       inputActivityTimer = null; setVisualizer(false); setStatus('Poortaal spreekt…');
       appendTranscriptDelta('tutor', event); return;
+    case 'session.input_transcript.completed':
+      userTranscript = null; return;
+    case 'session.output_transcript.done':
+      tutorTranscript = null; return;
     case 'session.delegation.created': setStatus('Even denken…'); return;
     case 'error': setStatus('Er ging iets mis. Probeer opnieuw.'); return;
   }
