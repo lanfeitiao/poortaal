@@ -14,7 +14,7 @@ let generating = false;
 let generationId = 0;
 let completionShown = false;
 type TranscriptRole = 'tutor' | 'user';
-type TranscriptMessage = { role: TranscriptRole; text: string };
+type TranscriptMessage = { role: TranscriptRole; text: string; key?: string; interrupted?: boolean };
 let transcriptMessages: TranscriptMessage[] = [];
 let currentTranscript: TranscriptMessage | null = null;
 let inputActivityTimer: ReturnType<typeof setTimeout> | null = null;
@@ -66,15 +66,28 @@ function renderSupport(): void {
 function requestMoreSupport(): void { if (!session) return; session.requestMoreSupport(); renderSupport(); }
 function hideSupport(): void { if (!session) return; session.hideSupport(); renderSupport(); }
 function eventText(event: RealtimeServerEvent, ...keys: string[]): string { for (const key of keys) { const value = event[key]; if (typeof value === 'string') return value; } return ''; }
+function transcriptKey(event: RealtimeServerEvent): string | undefined {
+  return eventText(event, 'item_id', 'itemId', 'response_id', 'responseId') || undefined;
+}
 function appendTranscriptDelta(role: TranscriptRole, event: RealtimeServerEvent): string {
   const delta = eventText(event, 'delta'); if (!delta) return '';
-  // Hoiland-style transcript state: finalized messages are separate from one streaming message.
-  // A speaker change commits the previous message; late completion events cannot mutate history.
-  if (currentTranscript && currentTranscript.role !== role) commitCurrentTranscript();
-  if (!currentTranscript) currentTranscript = { role, text: '' };
+  const key = transcriptKey(event);
+  // GPT-Live deliberately has no per-spoken-response turnComplete event. Keep one streaming
+  // message and finalize on an observable boundary: speaker change or a changed item/response id.
+  if (currentTranscript && (currentTranscript.role !== role || (key && currentTranscript.key && key !== currentTranscript.key))) {
+    commitCurrentTranscript();
+  }
+  if (!currentTranscript) currentTranscript = { role, text: '', key };
+  if (!currentTranscript.key && key) currentTranscript.key = key;
   currentTranscript.text += delta;
   renderTranscriptMessages();
   return currentTranscript.text;
+}
+function flushCurrentTranscript(interrupted = false): void {
+  if (!currentTranscript) return;
+  currentTranscript.interrupted = interrupted || currentTranscript.interrupted;
+  commitCurrentTranscript();
+  renderTranscriptMessages();
 }
 
 function handleRealtimeEvent(event: RealtimeServerEvent): void {
@@ -93,10 +106,15 @@ function handleRealtimeEvent(event: RealtimeServerEvent): void {
       inputActivityTimer = null; setVisualizer(false); setStatus('Poortaal spreekt…');
       appendTranscriptDelta('tutor', event); return;
     case 'session.input_transcript.completed':
-    case 'session.output_transcript.done':
-      // GPT-Live completion events are not keyed to our UI turn. Speaker changes are the
-      // authoritative boundary, so a stale completion event cannot split a newer message.
+    case 'session.output_transcript.done': {
+      // GPT-Live does not guarantee these as a turnComplete equivalent. Only finalize when
+      // the completion can be matched to the currently streaming item/response.
+      const key = transcriptKey(event);
+      if (currentTranscript && key && currentTranscript.key === key) flushCurrentTranscript();
       return;
+    }
+    case 'session.interrupted':
+      flushCurrentTranscript(true); return;
     case 'session.delegation.created': setStatus('Even denken…'); return;
     case 'error': setStatus('Er ging iets mis. Probeer opnieuw.'); return;
   }
@@ -115,6 +133,6 @@ export async function toggleRealtimeEncounter(): Promise<void> {
   client = new RealtimeClient({ apiBase: API_BASE, word, instructions: buildTutorInstructions(encounter), backendInstructions: buildBackendInstructions(encounter), onEvent: handleRealtimeEvent, onStateChange: handleStateChange });
   try { await client.connect(); } catch (error) { console.error('GPT-Live connection failed:', error); appendMessage('system', 'Could not start the voice encounter. Please try again.'); stopRealtimeEncounter(false); }
 }
-export function stopRealtimeEncounter(resetStatus = true): void { generationId += 1; generating = false; if (inputActivityTimer) clearTimeout(inputActivityTimer); inputActivityTimer = null; client?.disconnect(); client = null; active = false; resetTranscriptState(); setVisualizer(false); setButton('🎙️ Start encounter'); if (resetStatus) setStatus('Klaar voor een korte encounter'); }
+export function stopRealtimeEncounter(resetStatus = true): void { generationId += 1; generating = false; if (inputActivityTimer) clearTimeout(inputActivityTimer); inputActivityTimer = null; flushCurrentTranscript(); client?.disconnect(); client = null; active = false; setVisualizer(false); setButton('🎙️ Start encounter'); if (resetStatus) setStatus('Klaar voor een korte encounter'); }
 export function consumeRealtimePracticeCompletion(): boolean { const completed = completionShown; completionShown = false; return completed; }
 export function resetRealtimeEncounterUi(): void { const root = transcriptRoot(); if (root) { root.innerHTML = ''; root.style.display = 'none'; } session = null; completionShown = false; resetPendingTranscriptMessages(); setVisualizer(false); setButton('🎙️ Start encounter'); setStatus('Druk op de knop om te beginnen'); }
