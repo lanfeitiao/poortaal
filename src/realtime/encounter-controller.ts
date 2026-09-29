@@ -80,9 +80,10 @@ function handleRealtimeEvent(event: RealtimeServerEvent): void {
       inputActivityTimer = null; setVisualizer(false); setStatus('Poortaal spreekt…');
       appendTranscriptDelta('tutor', event); return;
     case 'session.input_transcript.completed':
-      userTranscript = null; return;
     case 'session.output_transcript.done':
-      tutorTranscript = null; return;
+      // Role switches already close transcript tracks. A delayed completion event may belong
+      // to an older turn, so it must not clear a newer same-role track.
+      return;
     case 'session.delegation.created': setStatus('Even denken…'); return;
     case 'error': setStatus('Er ging iets mis. Probeer opnieuw.'); return;
   }
