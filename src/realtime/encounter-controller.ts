@@ -49,6 +49,10 @@ function hideSupport(): void { if (!session) return; session.hideSupport(); rend
 function eventText(event: RealtimeServerEvent, ...keys: string[]): string { for (const key of keys) { const value = event[key]; if (typeof value === 'string') return value; } return ''; }
 function appendTranscriptDelta(role: 'tutor' | 'user', event: RealtimeServerEvent): string {
   const delta = eventText(event, 'delta'); if (!delta) return '';
+  // A role switch is a turn boundary even if the provider's previous done/completed event arrives late.
+  // Close the opposite track so a later turn can never append into an older speech bubble.
+  if (role === 'user') tutorTranscript = null;
+  else userTranscript = null;
   let track = role === 'user' ? userTranscript : tutorTranscript;
   if (!track) {
     const element = createMessage(role, ''); if (!element) return '';
