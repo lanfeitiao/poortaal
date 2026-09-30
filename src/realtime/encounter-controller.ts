@@ -13,9 +13,10 @@ let active = false;
 let generating = false;
 let generationId = 0;
 let completionShown = false;
-type TranscriptTrack = { element: HTMLElement; text: string; endMs: number };
-let userTranscript: TranscriptTrack | null = null;
-let tutorTranscript: TranscriptTrack | null = null;
+type TranscriptRole = 'tutor' | 'user';
+type TranscriptMessage = { role: TranscriptRole; text: string; key?: string; interrupted?: boolean };
+let transcriptMessages: TranscriptMessage[] = [];
+let currentTranscript: TranscriptMessage | null = null;
 let inputActivityTimer: ReturnType<typeof setTimeout> | null = null;
 
 function el(id: string): HTMLElement | null { return document.getElementById(id); }
@@ -26,11 +27,29 @@ function setButton(text: string): void { const button = el('voiceStartBtn'); if 
 function setVisualizer(visible: boolean): void { const visualizer = el('voiceVisualizer'); if (visualizer) visualizer.style.display = visible ? '' : 'none'; }
 function createMessage(role: 'tutor' | 'user' | 'system', text: string): HTMLElement | null { const root = transcriptRoot(); if (!root) return null; root.style.display = 'flex'; const node = document.createElement('div'); node.className = `chat-msg ${role}`; node.textContent = text; root.appendChild(node); root.scrollTop = root.scrollHeight; return node; }
 function appendMessage(role: 'tutor' | 'user' | 'system', text: string): void { if (text.trim()) createMessage(role, text.trim()); }
-function resetPendingTranscriptMessages(): void { userTranscript = null; tutorTranscript = null; }
+function resetTranscriptState(): void { transcriptMessages = []; currentTranscript = null; }
+function commitCurrentTranscript(): void {
+  if (!currentTranscript) return;
+  const text = currentTranscript.text.trim();
+  if (text) transcriptMessages.push({ ...currentTranscript, text });
+  currentTranscript = null;
+}
+function renderTranscriptMessages(): void {
+  const root = transcriptRoot(); if (!root) return;
+  root.querySelectorAll('[data-transcript-message]').forEach(node => node.remove());
+  for (const message of transcriptMessages) {
+    const node = createMessage(message.role, message.text);
+    node?.setAttribute('data-transcript-message', 'final');
+  }
+  if (currentTranscript?.text) {
+    const node = createMessage(currentTranscript.role, currentTranscript.text);
+    node?.setAttribute('data-transcript-message', 'current');
+  }
+}
 
 function renderEncounterIntro(): void {
   if (!session) return; const root = transcriptRoot(); if (!root) return; const encounter = session.encounter;
-  resetPendingTranscriptMessages(); root.style.display = 'flex';
+  resetTranscriptState(); root.style.display = 'flex';
   root.innerHTML = `<div style="align-self:stretch;background:#fff;border:1px solid #DBEAFE;border-radius:14px;padding:14px 16px;margin-bottom:4px;"><div style="font-size:1.35rem;margin-bottom:4px;">${escapeHtml(encounter.emoji)} <strong>${escapeHtml(encounter.title)}</strong></div><div style="font-size:.9rem;color:#4B5563;margin-bottom:8px;">${escapeHtml(encounter.setup)}</div><div style="font-size:.82rem;color:#6B7280;">Try to use <strong>${escapeHtml(encounter.targetWord)}</strong> naturally.</div></div><div id="encounterSupport" style="align-self:stretch;"></div><div id="encounterActions" style="align-self:stretch;display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 8px;"></div>`;
   renderSupport();
 }
@@ -47,17 +66,28 @@ function renderSupport(): void {
 function requestMoreSupport(): void { if (!session) return; session.requestMoreSupport(); renderSupport(); }
 function hideSupport(): void { if (!session) return; session.hideSupport(); renderSupport(); }
 function eventText(event: RealtimeServerEvent, ...keys: string[]): string { for (const key of keys) { const value = event[key]; if (typeof value === 'string') return value; } return ''; }
-function appendTranscriptDelta(role: 'tutor' | 'user', event: RealtimeServerEvent): string {
+function transcriptKey(event: RealtimeServerEvent): string | undefined {
+  return eventText(event, 'item_id', 'itemId', 'response_id', 'responseId') || undefined;
+}
+function appendTranscriptDelta(role: TranscriptRole, event: RealtimeServerEvent): string {
   const delta = eventText(event, 'delta'); if (!delta) return '';
-  let track = role === 'user' ? userTranscript : tutorTranscript;
-  if (!track) {
-    const element = createMessage(role, ''); if (!element) return '';
-    track = { element, text: '', endMs: 0 };
-    if (role === 'user') userTranscript = track; else tutorTranscript = track;
+  const key = transcriptKey(event);
+  // GPT-Live deliberately has no per-spoken-response turnComplete event. Keep one streaming
+  // message and finalize on an observable boundary: speaker change or a changed item/response id.
+  if (currentTranscript && (currentTranscript.role !== role || (key && currentTranscript.key && key !== currentTranscript.key))) {
+    commitCurrentTranscript();
   }
-  track.text += delta; track.element.textContent = track.text;
-  track.element.parentElement?.scrollTo({ top: track.element.parentElement.scrollHeight });
-  return track.text;
+  if (!currentTranscript) currentTranscript = { role, text: '', key };
+  if (!currentTranscript.key && key) currentTranscript.key = key;
+  currentTranscript.text += delta;
+  renderTranscriptMessages();
+  return currentTranscript.text;
+}
+function flushCurrentTranscript(interrupted = false): void {
+  if (!currentTranscript) return;
+  currentTranscript.interrupted = interrupted || currentTranscript.interrupted;
+  commitCurrentTranscript();
+  renderTranscriptMessages();
 }
 
 function handleRealtimeEvent(event: RealtimeServerEvent): void {
@@ -76,9 +106,15 @@ function handleRealtimeEvent(event: RealtimeServerEvent): void {
       inputActivityTimer = null; setVisualizer(false); setStatus('Poortaal spreekt…');
       appendTranscriptDelta('tutor', event); return;
     case 'session.input_transcript.completed':
-      userTranscript = null; return;
-    case 'session.output_transcript.done':
-      tutorTranscript = null; return;
+    case 'session.output_transcript.done': {
+      // GPT-Live does not guarantee these as a turnComplete equivalent. Only finalize when
+      // the completion can be matched to the currently streaming item/response.
+      const key = transcriptKey(event);
+      if (currentTranscript && key && currentTranscript.key === key) flushCurrentTranscript();
+      return;
+    }
+    case 'session.interrupted':
+      flushCurrentTranscript(true); return;
     case 'session.delegation.created': setStatus('Even denken…'); return;
     case 'error': setStatus('Er ging iets mis. Probeer opnieuw.'); return;
   }
@@ -97,6 +133,6 @@ export async function toggleRealtimeEncounter(): Promise<void> {
   client = new RealtimeClient({ apiBase: API_BASE, word, instructions: buildTutorInstructions(encounter), backendInstructions: buildBackendInstructions(encounter), onEvent: handleRealtimeEvent, onStateChange: handleStateChange });
   try { await client.connect(); } catch (error) { console.error('GPT-Live connection failed:', error); appendMessage('system', 'Could not start the voice encounter. Please try again.'); stopRealtimeEncounter(false); }
 }
-export function stopRealtimeEncounter(resetStatus = true): void { generationId += 1; generating = false; if (inputActivityTimer) clearTimeout(inputActivityTimer); inputActivityTimer = null; client?.disconnect(); client = null; active = false; resetPendingTranscriptMessages(); setVisualizer(false); setButton('🎙️ Start encounter'); if (resetStatus) setStatus('Klaar voor een korte encounter'); }
+export function stopRealtimeEncounter(resetStatus = true): void { generationId += 1; generating = false; if (inputActivityTimer) clearTimeout(inputActivityTimer); inputActivityTimer = null; flushCurrentTranscript(); client?.disconnect(); client = null; active = false; setVisualizer(false); setButton('🎙️ Start encounter'); if (resetStatus) setStatus('Klaar voor een korte encounter'); }
 export function consumeRealtimePracticeCompletion(): boolean { const completed = completionShown; completionShown = false; return completed; }
-export function resetRealtimeEncounterUi(): void { const root = transcriptRoot(); if (root) { root.innerHTML = ''; root.style.display = 'none'; } session = null; completionShown = false; resetPendingTranscriptMessages(); setVisualizer(false); setButton('🎙️ Start encounter'); setStatus('Druk op de knop om te beginnen'); }
+export function resetRealtimeEncounterUi(): void { const root = transcriptRoot(); if (root) { root.innerHTML = ''; root.style.display = 'none'; } session = null; completionShown = false; resetTranscriptState(); setVisualizer(false); setButton('🎙️ Start encounter'); setStatus('Druk op de knop om te beginnen'); }
