@@ -14,7 +14,7 @@ let generating = false;
 let generationId = 0;
 let completionShown = false;
 type TranscriptRole = 'tutor' | 'user';
-type TranscriptMessage = { role: TranscriptRole; text: string; key?: string; interrupted?: boolean };
+type TranscriptMessage = { role: TranscriptRole; text: string; key?: string; interrupted?: boolean; node: HTMLElement | null };
 let transcriptMessages: TranscriptMessage[] = [];
 let currentTranscript: TranscriptMessage | null = null;
 let inputActivityTimer: ReturnType<typeof setTimeout> | null = null;
@@ -32,19 +32,8 @@ function commitCurrentTranscript(): void {
   if (!currentTranscript) return;
   const text = currentTranscript.text.trim();
   if (text) transcriptMessages.push({ ...currentTranscript, text });
+  currentTranscript.node?.setAttribute('data-transcript-message', 'final');
   currentTranscript = null;
-}
-function renderTranscriptMessages(): void {
-  const root = transcriptRoot(); if (!root) return;
-  root.querySelectorAll('[data-transcript-message]').forEach(node => node.remove());
-  for (const message of transcriptMessages) {
-    const node = createMessage(message.role, message.text);
-    node?.setAttribute('data-transcript-message', 'final');
-  }
-  if (currentTranscript?.text) {
-    const node = createMessage(currentTranscript.role, currentTranscript.text);
-    node?.setAttribute('data-transcript-message', 'current');
-  }
 }
 
 function renderEncounterIntro(): void {
@@ -77,17 +66,21 @@ function appendTranscriptDelta(role: TranscriptRole, event: RealtimeServerEvent)
   if (currentTranscript && (currentTranscript.role !== role || (key && currentTranscript.key && key !== currentTranscript.key))) {
     commitCurrentTranscript();
   }
-  if (!currentTranscript) currentTranscript = { role, text: '', key };
+  if (!currentTranscript) {
+    const node = createMessage(role, '');
+    node?.setAttribute('data-transcript-message', 'current');
+    currentTranscript = { role, text: '', key, node };
+  }
   if (!currentTranscript.key && key) currentTranscript.key = key;
   currentTranscript.text += delta;
-  renderTranscriptMessages();
+  if (currentTranscript.node) currentTranscript.node.textContent = currentTranscript.text;
+  const root = transcriptRoot(); if (root) root.scrollTop = root.scrollHeight;
   return currentTranscript.text;
 }
 function flushCurrentTranscript(interrupted = false): void {
   if (!currentTranscript) return;
   currentTranscript.interrupted = interrupted || currentTranscript.interrupted;
   commitCurrentTranscript();
-  renderTranscriptMessages();
 }
 
 function handleRealtimeEvent(event: RealtimeServerEvent): void {
