@@ -94,7 +94,8 @@ function updateTranscriptActivity(role: TranscriptRole, event: RealtimeServerEve
       if (latestTranscriptActivityMs !== activityMs) return;
       setVisualizer(false);
       transcriptIdleTimer = null;
-      if (!session?.evidence.successfulProduction) setStatus('Even denken…');
+      if (completionShown) setStatus('Mooi gedaan. Je kunt stoppen of nog even doorgaan.');
+      else if (!session?.evidence.successfulProduction) setStatus('Even denken…');
     }, 900);
   }
 }
