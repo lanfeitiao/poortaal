@@ -2,7 +2,7 @@ import { EncounterSession } from './encounter-session';
 import { createGeneratedEncounter } from './encounter';
 import { RealtimeClient } from './realtime-client';
 import { supportContent } from './scaffolding';
-import { findTranscriptGroupIndex, type TimedTranscript } from './transcript-grouping';
+import { groupTranscriptFragments, type TranscriptFragment } from './transcript-grouping';
 import { buildBackendInstructions, buildTutorInstructions } from './tutor-policy';
 import type { RealtimeConnectionState, RealtimeServerEvent, SupportLevel } from './types';
 
@@ -15,8 +15,9 @@ let generating = false;
 let generationId = 0;
 let completionShown = false;
 type TranscriptRole = 'tutor' | 'user';
-type TimelineTranscriptMessage = TimedTranscript & { text: string; node: HTMLElement | null };
-const timelineTranscriptMessages: TimelineTranscriptMessage[] = [];
+const timelineTranscriptFragments: TranscriptFragment[] = [];
+const transcriptNodes = new Map<number, HTMLElement>();
+let transcriptSequence = 0;
 let latestTranscriptActivityMs = -1;
 
 function el(id: string): HTMLElement | null { return document.getElementById(id); }
@@ -27,7 +28,7 @@ function setButton(text: string): void { const button = el('voiceStartBtn'); if 
 function setVisualizer(visible: boolean): void { const visualizer = el('voiceVisualizer'); if (visualizer) visualizer.style.display = visible ? '' : 'none'; }
 function createMessage(role: 'tutor' | 'user' | 'system', text: string): HTMLElement | null { const root = transcriptRoot(); if (!root) return null; root.style.display = 'flex'; const node = document.createElement('div'); node.className = `chat-msg ${role}`; node.textContent = text; root.appendChild(node); root.scrollTop = root.scrollHeight; return node; }
 function appendMessage(role: 'tutor' | 'user' | 'system', text: string): void { if (text.trim()) createMessage(role, text.trim()); }
-function resetTranscriptState(): void { timelineTranscriptMessages.length = 0; latestTranscriptActivityMs = -1; }
+function resetTranscriptState(): void { timelineTranscriptFragments.length = 0; transcriptNodes.clear(); transcriptSequence = 0; latestTranscriptActivityMs = -1; }
 
 function renderEncounterIntro(): void {
   if (!session) return; const root = transcriptRoot(); if (!root) return; const encounter = session.encounter;
@@ -58,30 +59,47 @@ function updateTranscriptActivity(role: TranscriptRole, event: RealtimeServerEve
 }
 function appendTimelineTranscriptDelta(role: TranscriptRole, event: RealtimeServerEvent): string {
   const delta = eventText(event, 'delta'); if (!delta) return '';
-  const fallbackMs = timelineTranscriptMessages.reduce((max, message) => Math.max(max, message.endMs), 0) + 1;
-  const startMs = eventNumber(event, 'start_ms', 'startMs') ?? fallbackMs;
-  const endMs = eventNumber(event, 'end_ms', 'endMs') ?? startMs;
-  const fragment: TimedTranscript = { role, startMs, endMs };
-  const groupIndex = findTranscriptGroupIndex(timelineTranscriptMessages, fragment);
-  let message = groupIndex >= 0 ? timelineTranscriptMessages[groupIndex] : undefined;
-  if (!message) {
-    const node = createMessage(role, '');
-    node?.setAttribute('data-transcript-message', 'current');
-    message = { ...fragment, text: '', node };
-    const insertAt = timelineTranscriptMessages.findIndex(existing => existing.startMs > startMs);
-    if (insertAt < 0) timelineTranscriptMessages.push(message);
-    else {
-      timelineTranscriptMessages.splice(insertAt, 0, message);
-      const nextNode = timelineTranscriptMessages[insertAt + 1]?.node;
-      if (node && nextNode) transcriptRoot()?.insertBefore(node, nextNode);
+  const fallbackMs = timelineTranscriptFragments.reduce((max, item) => Math.max(max, item.endMs), 0) + 1;
+  const sequence = transcriptSequence++;
+  timelineTranscriptFragments.push({
+    role,
+    startMs: eventNumber(event, 'start_ms', 'startMs') ?? fallbackMs,
+    endMs: eventNumber(event, 'end_ms', 'endMs') ?? fallbackMs,
+    text: delta,
+    sequence,
+  });
+
+  const groups = groupTranscriptFragments(timelineTranscriptFragments);
+  const root = transcriptRoot(); if (!root) return '';
+  const activeKeys = new Set<number>();
+  const orderedNodes: HTMLElement[] = [];
+  let currentText = '';
+
+  for (const group of groups) {
+    const key = Math.min(...group.sequences);
+    activeKeys.add(key);
+    let node = transcriptNodes.get(key);
+    if (!node) {
+      node = createMessage(group.role, '') || undefined;
+      if (!node) continue;
+      node.setAttribute('data-transcript-message', 'current');
+      transcriptNodes.set(key, node);
     }
+    node.className = `chat-msg ${group.role}`;
+    node.textContent = group.text;
+    orderedNodes.push(node);
+    if (group.sequences.includes(sequence)) currentText = group.text;
   }
-  message.text += delta;
-  message.startMs = Math.min(message.startMs, startMs);
-  message.endMs = Math.max(message.endMs, endMs);
-  if (message.node) message.node.textContent = message.text;
-  const root = transcriptRoot(); if (root) root.scrollTop = root.scrollHeight;
-  return message.text;
+
+  for (const [key, node] of transcriptNodes) {
+    if (!activeKeys.has(key)) { node.remove(); transcriptNodes.delete(key); }
+  }
+  for (let index = orderedNodes.length - 2; index >= 0; index -= 1) {
+    const node = orderedNodes[index]; const next = orderedNodes[index + 1];
+    if (node.compareDocumentPosition(next) & Node.DOCUMENT_POSITION_PRECEDING) root.insertBefore(node, next);
+  }
+  root.scrollTop = root.scrollHeight;
+  return currentText;
 }
 function handleRealtimeEvent(event: RealtimeServerEvent): void {
   if (!session) return;
