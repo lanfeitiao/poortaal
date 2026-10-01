@@ -2,7 +2,7 @@ import { EncounterSession } from './encounter-session';
 import { createGeneratedEncounter } from './encounter';
 import { RealtimeClient } from './realtime-client';
 import { supportContent } from './scaffolding';
-import { groupTranscriptFragments, type TranscriptFragment } from './transcript-grouping';
+import { groupTranscriptFragments, type TranscriptFragment, type TranscriptGroup } from './transcript-grouping';
 import { buildBackendInstructions, buildTutorInstructions } from './tutor-policy';
 import type { RealtimeConnectionState, RealtimeServerEvent, SupportLevel } from './types';
 
@@ -20,6 +20,8 @@ const transcriptNodes = new Map<number, HTMLElement>();
 let transcriptSequence = 0;
 let latestTranscriptActivityMs = -1;
 let transcriptIdleTimer: ReturnType<typeof setTimeout> | null = null;
+let completionBannerNode: HTMLElement | null = null;
+let completionSentenceNode: HTMLElement | null = null;
 
 function el(id: string): HTMLElement | null { return document.getElementById(id); }
 function escapeHtml(value: string): string { return value.replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char] || char)); }
@@ -29,7 +31,7 @@ function setButton(text: string): void { const button = el('voiceStartBtn'); if 
 function setVisualizer(visible: boolean): void { const visualizer = el('voiceVisualizer'); if (visualizer) visualizer.style.display = visible ? '' : 'none'; }
 function createMessage(role: 'tutor' | 'user' | 'system', text: string): HTMLElement | null { const root = transcriptRoot(); if (!root) return null; root.style.display = 'flex'; const node = document.createElement('div'); node.className = `chat-msg ${role}`; node.textContent = text; root.appendChild(node); root.scrollTop = root.scrollHeight; return node; }
 function appendMessage(role: 'tutor' | 'user' | 'system', text: string): void { if (text.trim()) createMessage(role, text.trim()); }
-function resetTranscriptState(): void { timelineTranscriptFragments.length = 0; transcriptNodes.clear(); transcriptSequence = 0; latestTranscriptActivityMs = -1; if (transcriptIdleTimer) clearTimeout(transcriptIdleTimer); transcriptIdleTimer = null; }
+function resetTranscriptState(): void { timelineTranscriptFragments.length = 0; transcriptNodes.clear(); transcriptSequence = 0; latestTranscriptActivityMs = -1; if (transcriptIdleTimer) clearTimeout(transcriptIdleTimer); transcriptIdleTimer = null; completionBannerNode = null; completionSentenceNode = null; }
 
 function renderEncounterIntro(): void {
   if (!session) return; const root = transcriptRoot(); if (!root) return; const encounter = session.encounter;
@@ -61,12 +63,34 @@ function updateTranscriptActivity(role: TranscriptRole, event: RealtimeServerEve
   setStatus(role === 'user' ? 'Ik luister…' : 'Poortaal spreekt…');
   if (role === 'user') {
     transcriptIdleTimer = setTimeout(() => {
-      if (latestTranscriptActivityMs !== activityMs || completionShown) return;
+      if (latestTranscriptActivityMs !== activityMs) return;
       setVisualizer(false);
-      setStatus('Even denken…');
       transcriptIdleTimer = null;
+      if (session?.evidence.successfulProduction) showCompletion();
+      else setStatus('Even denken…');
     }, 900);
   }
+}
+function clearCompletion(): void {
+  completionBannerNode?.remove();
+  completionSentenceNode?.remove();
+  completionBannerNode = null;
+  completionSentenceNode = null;
+  completionShown = false;
+}
+function reconcileProduction(groups: TranscriptGroup[]): void {
+  if (!session) return;
+  const previousSentence = session.evidence.learnerSentence;
+  session.evidence.successfulProduction = false;
+  session.evidence.learnerSentence = undefined;
+  for (const group of groups) {
+    if (group.role === 'user' && session.recordProduction(group.text)) break;
+  }
+  if (!session.evidence.successfulProduction) {
+    if (completionShown) clearCompletion();
+    return;
+  }
+  if (completionShown && previousSentence !== session.evidence.learnerSentence) showCompletion();
 }
 function appendTimelineTranscriptDelta(role: TranscriptRole, event: RealtimeServerEvent): string {
   const delta = eventText(event, 'delta'); if (!delta) return '';
@@ -81,6 +105,7 @@ function appendTimelineTranscriptDelta(role: TranscriptRole, event: RealtimeServ
   });
 
   const groups = groupTranscriptFragments(timelineTranscriptFragments);
+  reconcileProduction(groups);
   const root = transcriptRoot(); if (!root) return '';
   const activeKeys = new Set<number>();
   const orderedNodes: HTMLElement[] = [];
@@ -115,12 +140,10 @@ function appendTimelineTranscriptDelta(role: TranscriptRole, event: RealtimeServ
 function handleRealtimeEvent(event: RealtimeServerEvent): void {
   if (!session) return;
   switch (event.type) {
-    case 'session.input_transcript.delta': {
+    case 'session.input_transcript.delta':
       updateTranscriptActivity('user', event);
-      const text = appendTimelineTranscriptDelta('user', event);
-      if (text && session.recordProduction(text) && !completionShown) showCompletion();
+      appendTimelineTranscriptDelta('user', event);
       return;
-    }
     case 'session.output_transcript.delta':
       updateTranscriptActivity('tutor', event);
       appendTimelineTranscriptDelta('tutor', event); return;
@@ -129,7 +152,26 @@ function handleRealtimeEvent(event: RealtimeServerEvent): void {
   }
 }
 function handleStateChange(state: RealtimeConnectionState): void { switch (state) { case 'requesting-microphone': setStatus('Microfoon openen…'); break; case 'connecting': setStatus('Verbinding maken…'); break; case 'ready': setStatus('De situatie begint…'); try { client?.send({ type: 'session.instructions.append', delegation_id: null, content: `Speak first in Dutch with exactly this opening line, then listen: ${session?.encounter.openingLine || ''}` }); } catch (error) { console.error('Could not start encounter:', error); } break; case 'error': setStatus('Verbinding mislukt. Probeer opnieuw.'); break; case 'closed': if (active) setStatus('Sessie beëindigd'); break; } }
-function showCompletion(): void { if (!session) return; completionShown = true; if (transcriptIdleTimer) clearTimeout(transcriptIdleTimer); transcriptIdleTimer = null; setVisualizer(false); const evidence = session.evidence; const independent = evidence.maxSupportUsed === 'none'; appendMessage('system', independent ? `🌼 ${evidence.targetWord} bloeit — you used it on your own.` : `🌿 Nice — you used ${evidence.targetWord} with some support.`); if (evidence.learnerSentence) appendMessage('system', `“${evidence.learnerSentence}”`); setStatus('Mooi gedaan. Je kunt stoppen of nog even doorgaan.'); }
+function showCompletion(): void {
+  if (!session || !session.evidence.successfulProduction) return;
+  completionShown = true;
+  if (transcriptIdleTimer) clearTimeout(transcriptIdleTimer);
+  transcriptIdleTimer = null;
+  setVisualizer(false);
+  const evidence = session.evidence;
+  const independent = evidence.maxSupportUsed === 'none';
+  const banner = independent ? `🌼 ${evidence.targetWord} bloeit — you used it on your own.` : `🌿 Nice — you used ${evidence.targetWord} with some support.`;
+  if (!completionBannerNode) completionBannerNode = createMessage('system', banner);
+  else completionBannerNode.textContent = banner;
+  if (evidence.learnerSentence) {
+    if (!completionSentenceNode) completionSentenceNode = createMessage('system', '');
+    if (completionSentenceNode) completionSentenceNode.textContent = `“${evidence.learnerSentence}”`;
+  } else {
+    completionSentenceNode?.remove();
+    completionSentenceNode = null;
+  }
+  setStatus('Mooi gedaan. Je kunt stoppen of nog even doorgaan.');
+}
 
 export async function toggleRealtimeEncounter(): Promise<void> {
   if (active || generating) { stopRealtimeEncounter(); return; }
