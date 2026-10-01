@@ -18,20 +18,6 @@ export type TranscriptGroup = {
 
 export const TRANSCRIPT_MERGE_GAP_MS = 1800;
 
-function hasOppositeSpeechInGap(
-  fragments: TranscriptFragment[],
-  role: TranscriptRole,
-  gapStartMs: number,
-  gapEndMs: number,
-): boolean {
-  if (gapEndMs <= gapStartMs) return false;
-  return fragments.some(fragment =>
-    fragment.role !== role
-    && fragment.startMs < gapEndMs
-    && fragment.endMs > gapStartMs,
-  );
-}
-
 export function groupTranscriptFragments(
   fragments: TranscriptFragment[],
   mergeGapMs = TRANSCRIPT_MERGE_GAP_MS,
@@ -40,33 +26,34 @@ export function groupTranscriptFragments(
     a.startMs - b.startMs || a.endMs - b.endMs || a.sequence - b.sequence,
   );
   const groups: TranscriptGroup[] = [];
+  const lastGroupByRole: Partial<Record<TranscriptRole, TranscriptGroup>> = {};
+  const maxEndByRole: Partial<Record<TranscriptRole, number>> = {};
 
   for (const fragment of ordered) {
-    const candidate = [...groups].reverse().find(group => {
-      if (group.role !== fragment.role) return false;
-      if (fragment.startMs <= group.endMs) return true;
-      if (fragment.startMs - group.endMs > mergeGapMs) return false;
-      return !hasOppositeSpeechInGap(fragments, fragment.role, group.endMs, fragment.startMs);
-    });
+    const candidate = lastGroupByRole[fragment.role];
+    const otherRole: TranscriptRole = fragment.role === 'user' ? 'tutor' : 'user';
+    const otherEndMs = maxEndByRole[otherRole] ?? Number.NEGATIVE_INFINITY;
+    const overlapsCandidate = !!candidate && fragment.startMs <= candidate.endMs;
+    const closeEnough = !!candidate && fragment.startMs - candidate.endMs <= mergeGapMs;
+    const oppositeSpeechInGap = !!candidate && otherEndMs > candidate.endMs;
 
-    if (!candidate) {
-      groups.push({
+    if (candidate && (overlapsCandidate || (closeEnough && !oppositeSpeechInGap))) {
+      candidate.endMs = Math.max(candidate.endMs, fragment.endMs);
+      candidate.text += fragment.text;
+      candidate.sequences.push(fragment.sequence);
+    } else {
+      const group: TranscriptGroup = {
         role: fragment.role,
         startMs: fragment.startMs,
         endMs: fragment.endMs,
         text: fragment.text,
         sequences: [fragment.sequence],
-      });
-      continue;
+      };
+      groups.push(group);
+      lastGroupByRole[fragment.role] = group;
     }
 
-    candidate.startMs = Math.min(candidate.startMs, fragment.startMs);
-    candidate.endMs = Math.max(candidate.endMs, fragment.endMs);
-    candidate.sequences.push(fragment.sequence);
-    candidate.text = ordered
-      .filter(item => candidate.sequences.includes(item.sequence))
-      .map(item => item.text)
-      .join('');
+    maxEndByRole[fragment.role] = Math.max(maxEndByRole[fragment.role] ?? Number.NEGATIVE_INFINITY, fragment.endMs);
   }
 
   return groups.sort((a, b) => a.startMs - b.startMs || Math.min(...a.sequences) - Math.min(...b.sequences));
