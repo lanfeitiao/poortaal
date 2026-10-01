@@ -90,7 +90,7 @@ function reconcileProduction(groups: TranscriptGroup[]): void {
     if (completionShown) clearCompletion();
     return;
   }
-  if (completionShown && previousSentence !== session.evidence.learnerSentence) showCompletion();
+  if (completionShown && previousSentence !== session.evidence.learnerSentence) refreshCompletionMessages();
 }
 function appendTimelineTranscriptDelta(role: TranscriptRole, event: RealtimeServerEvent): string {
   const delta = eventText(event, 'delta'); if (!delta) return '';
@@ -152,12 +152,8 @@ function handleRealtimeEvent(event: RealtimeServerEvent): void {
   }
 }
 function handleStateChange(state: RealtimeConnectionState): void { switch (state) { case 'requesting-microphone': setStatus('Microfoon openen…'); break; case 'connecting': setStatus('Verbinding maken…'); break; case 'ready': setStatus('De situatie begint…'); try { client?.send({ type: 'session.instructions.append', delegation_id: null, content: `Speak first in Dutch with exactly this opening line, then listen: ${session?.encounter.openingLine || ''}` }); } catch (error) { console.error('Could not start encounter:', error); } break; case 'error': setStatus('Verbinding mislukt. Probeer opnieuw.'); break; case 'closed': if (active) setStatus('Sessie beëindigd'); break; } }
-function showCompletion(): void {
-  if (!session || !session.evidence.successfulProduction) return;
-  completionShown = true;
-  if (transcriptIdleTimer) clearTimeout(transcriptIdleTimer);
-  transcriptIdleTimer = null;
-  setVisualizer(false);
+function refreshCompletionMessages(): void {
+  if (!session) return;
   const evidence = session.evidence;
   const independent = evidence.maxSupportUsed === 'none';
   const banner = independent ? `🌼 ${evidence.targetWord} bloeit — you used it on your own.` : `🌿 Nice — you used ${evidence.targetWord} with some support.`;
@@ -170,6 +166,14 @@ function showCompletion(): void {
     completionSentenceNode?.remove();
     completionSentenceNode = null;
   }
+}
+function showCompletion(): void {
+  if (!session || !session.evidence.successfulProduction) return;
+  completionShown = true;
+  if (transcriptIdleTimer) clearTimeout(transcriptIdleTimer);
+  transcriptIdleTimer = null;
+  setVisualizer(false);
+  refreshCompletionMessages();
   setStatus('Mooi gedaan. Je kunt stoppen of nog even doorgaan.');
 }
 
