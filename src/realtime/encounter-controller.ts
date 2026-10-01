@@ -19,7 +19,10 @@ const timelineTranscriptFragments: TranscriptFragment[] = [];
 const transcriptNodes = new Map<number, HTMLElement>();
 let transcriptSequence = 0;
 let latestTranscriptActivityMs = -1;
+let latestUserActivityMs = -1;
+let latestTranscriptRole: TranscriptRole | null = null;
 let transcriptIdleTimer: ReturnType<typeof setTimeout> | null = null;
+let completionTimer: ReturnType<typeof setTimeout> | null = null;
 let completionBannerNode: HTMLElement | null = null;
 let completionSentenceNode: HTMLElement | null = null;
 
@@ -31,7 +34,7 @@ function setButton(text: string): void { const button = el('voiceStartBtn'); if 
 function setVisualizer(visible: boolean): void { const visualizer = el('voiceVisualizer'); if (visualizer) visualizer.style.display = visible ? '' : 'none'; }
 function createMessage(role: 'tutor' | 'user' | 'system', text: string): HTMLElement | null { const root = transcriptRoot(); if (!root) return null; root.style.display = 'flex'; const node = document.createElement('div'); node.className = `chat-msg ${role}`; node.textContent = text; root.appendChild(node); root.scrollTop = root.scrollHeight; return node; }
 function appendMessage(role: 'tutor' | 'user' | 'system', text: string): void { if (text.trim()) createMessage(role, text.trim()); }
-function resetTranscriptState(): void { timelineTranscriptFragments.length = 0; transcriptNodes.clear(); transcriptSequence = 0; latestTranscriptActivityMs = -1; if (transcriptIdleTimer) clearTimeout(transcriptIdleTimer); transcriptIdleTimer = null; completionBannerNode = null; completionSentenceNode = null; }
+function resetTranscriptState(): void { timelineTranscriptFragments.length = 0; transcriptNodes.clear(); transcriptSequence = 0; latestTranscriptActivityMs = -1; latestUserActivityMs = -1; latestTranscriptRole = null; if (transcriptIdleTimer) clearTimeout(transcriptIdleTimer); transcriptIdleTimer = null; if (completionTimer) clearTimeout(completionTimer); completionTimer = null; completionBannerNode = null; completionSentenceNode = null; }
 
 function renderEncounterIntro(): void {
   if (!session) return; const root = transcriptRoot(); if (!root) return; const encounter = session.encounter;
@@ -55,8 +58,18 @@ function eventText(event: RealtimeServerEvent, ...keys: string[]): string { for 
 function eventNumber(event: RealtimeServerEvent, ...keys: string[]): number | undefined { for (const key of keys) { const value = event[key]; if (typeof value === 'number') return value; } return undefined; }
 function updateTranscriptActivity(role: TranscriptRole, event: RealtimeServerEvent): void {
   const activityMs = eventNumber(event, 'end_ms', 'endMs') ?? latestTranscriptActivityMs + 1;
+  if (role === 'user' && activityMs >= latestUserActivityMs) {
+    latestUserActivityMs = activityMs;
+    if (completionTimer) clearTimeout(completionTimer);
+    completionTimer = setTimeout(() => {
+      if (latestUserActivityMs !== activityMs) return;
+      completionTimer = null;
+      if (session?.evidence.successfulProduction) showCompletion();
+    }, 900);
+  }
   if (activityMs < latestTranscriptActivityMs) return;
   latestTranscriptActivityMs = activityMs;
+  latestTranscriptRole = role;
   if (transcriptIdleTimer) clearTimeout(transcriptIdleTimer);
   transcriptIdleTimer = null;
   setVisualizer(role === 'user');
@@ -66,8 +79,7 @@ function updateTranscriptActivity(role: TranscriptRole, event: RealtimeServerEve
       if (latestTranscriptActivityMs !== activityMs) return;
       setVisualizer(false);
       transcriptIdleTimer = null;
-      if (session?.evidence.successfulProduction) showCompletion();
-      else setStatus('Even denken…');
+      if (!session?.evidence.successfulProduction) setStatus('Even denken…');
     }, 900);
   }
 }
@@ -170,11 +182,13 @@ function refreshCompletionMessages(): void {
 function showCompletion(): void {
   if (!session || !session.evidence.successfulProduction) return;
   completionShown = true;
-  if (transcriptIdleTimer) clearTimeout(transcriptIdleTimer);
-  transcriptIdleTimer = null;
-  setVisualizer(false);
+  if (completionTimer) clearTimeout(completionTimer);
+  completionTimer = null;
   refreshCompletionMessages();
-  setStatus('Mooi gedaan. Je kunt stoppen of nog even doorgaan.');
+  if (latestTranscriptRole !== 'tutor') {
+    setVisualizer(false);
+    setStatus('Mooi gedaan. Je kunt stoppen of nog even doorgaan.');
+  }
 }
 
 export async function toggleRealtimeEncounter(): Promise<void> {
@@ -188,6 +202,6 @@ export async function toggleRealtimeEncounter(): Promise<void> {
   client = new RealtimeClient({ apiBase: API_BASE, word, instructions: buildTutorInstructions(encounter), backendInstructions: buildBackendInstructions(encounter), onEvent: handleRealtimeEvent, onStateChange: handleStateChange });
   try { await client.connect(); } catch (error) { console.error('GPT-Live connection failed:', error); appendMessage('system', 'Could not start the voice encounter. Please try again.'); stopRealtimeEncounter(false); }
 }
-export function stopRealtimeEncounter(resetStatus = true): void { generationId += 1; generating = false; if (transcriptIdleTimer) clearTimeout(transcriptIdleTimer); transcriptIdleTimer = null; client?.disconnect(); client = null; active = false; setVisualizer(false); setButton('🎙️ Start encounter'); if (resetStatus) setStatus('Klaar voor een korte encounter'); }
+export function stopRealtimeEncounter(resetStatus = true): void { generationId += 1; generating = false; if (transcriptIdleTimer) clearTimeout(transcriptIdleTimer); transcriptIdleTimer = null; if (completionTimer) clearTimeout(completionTimer); completionTimer = null; client?.disconnect(); client = null; active = false; setVisualizer(false); setButton('🎙️ Start encounter'); if (resetStatus) setStatus('Klaar voor een korte encounter'); }
 export function consumeRealtimePracticeCompletion(): boolean { const completed = completionShown; completionShown = false; return completed; }
 export function resetRealtimeEncounterUi(): void { const root = transcriptRoot(); if (root) { root.innerHTML = ''; root.style.display = 'none'; } session = null; completionShown = false; resetTranscriptState(); setVisualizer(false); setButton('🎙️ Start encounter'); setStatus('Druk op de knop om te beginnen'); }
