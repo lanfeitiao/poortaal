@@ -1,41 +1,63 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { findTranscriptGroupIndex, type TimedTranscript } from './transcript-grouping.ts';
+import { groupTranscriptFragments, type TranscriptFragment } from './transcript-grouping.ts';
 
-test('late earlier fragment rejoins its same-speaker bubble', () => {
-  const messages: TimedTranscript[] = [
-    { role: 'tutor', startMs: 900, endMs: 1400 },
-    { role: 'user', startMs: 1800, endMs: 2100 },
-  ];
-  assert.equal(findTranscriptGroupIndex(messages, { role: 'tutor', startMs: 500, endMs: 950 }), 0);
+function fragment(
+  role: 'tutor' | 'user',
+  startMs: number,
+  endMs: number,
+  text: string,
+  sequence: number,
+): TranscriptFragment {
+  return { role, startMs, endMs, text, sequence };
+}
+
+test('late opposite speech re-splits same-speaker fragments', () => {
+  const groups = groupTranscriptFragments([
+    fragment('user', 0, 1000, 'A', 0),
+    fragment('user', 1400, 1600, 'B', 1),
+    fragment('tutor', 900, 1300, 'T', 2),
+  ]);
+  assert.deepEqual(groups.map(group => [group.role, group.text]), [
+    ['user', 'A'],
+    ['tutor', 'T'],
+    ['user', 'B'],
+  ]);
 });
 
-test('opposite speech between fragments starts a new bubble', () => {
-  const messages: TimedTranscript[] = [
-    { role: 'user', startMs: 0, endMs: 1000 },
-    { role: 'tutor', startMs: 900, endMs: 1300 },
-  ];
-  assert.equal(findTranscriptGroupIndex(messages, { role: 'user', startMs: 1400, endMs: 1600 }), -1);
+test('late earlier text is rebuilt in timeline order', () => {
+  const groups = groupTranscriptFragments([
+    fragment('tutor', 900, 1400, 'wereld', 0),
+    fragment('tutor', 500, 950, 'Hallo ', 1),
+  ]);
+  assert.equal(groups[0].text, 'Hallo wereld');
 });
 
 test('overlapping same-speaker fragments stay together during full duplex speech', () => {
-  const messages: TimedTranscript[] = [
-    { role: 'user', startMs: 0, endMs: 1000 },
-    { role: 'tutor', startMs: 900, endMs: 1100 },
-  ];
-  assert.equal(findTranscriptGroupIndex(messages, { role: 'user', startMs: 950, endMs: 1400 }), 0);
+  const groups = groupTranscriptFragments([
+    fragment('user', 0, 1000, 'A', 0),
+    fragment('tutor', 900, 1100, 'T', 1),
+    fragment('user', 950, 1400, 'B', 2),
+  ]);
+  assert.deepEqual(groups.map(group => [group.role, group.text]), [
+    ['user', 'AB'],
+    ['tutor', 'T'],
+  ]);
 });
 
 test('a short pause without another speaker stays in one bubble', () => {
-  const messages: TimedTranscript[] = [
-    { role: 'user', startMs: 1000, endMs: 1500 },
-  ];
-  assert.equal(findTranscriptGroupIndex(messages, { role: 'user', startMs: 2600, endMs: 2900 }), 0);
+  const groups = groupTranscriptFragments([
+    fragment('user', 1000, 1500, 'A', 0),
+    fragment('user', 2600, 2900, 'B', 1),
+  ]);
+  assert.equal(groups.length, 1);
+  assert.equal(groups[0].text, 'AB');
 });
 
 test('a long silence starts a new bubble', () => {
-  const messages: TimedTranscript[] = [
-    { role: 'user', startMs: 1000, endMs: 1500 },
-  ];
-  assert.equal(findTranscriptGroupIndex(messages, { role: 'user', startMs: 4000, endMs: 4300 }), -1);
+  const groups = groupTranscriptFragments([
+    fragment('user', 1000, 1500, 'A', 0),
+    fragment('user', 4000, 4300, 'B', 1),
+  ]);
+  assert.equal(groups.length, 2);
 });
