@@ -17,7 +17,7 @@ let completionShown = false;
 type TranscriptRole = 'tutor' | 'user';
 type TimelineTranscriptMessage = TimedTranscript & { text: string; node: HTMLElement | null };
 const timelineTranscriptMessages: TimelineTranscriptMessage[] = [];
-let inputActivityTimer: ReturnType<typeof setTimeout> | null = null;
+let latestTranscriptActivityMs = -1;
 
 function el(id: string): HTMLElement | null { return document.getElementById(id); }
 function escapeHtml(value: string): string { return value.replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char] || char)); }
@@ -27,7 +27,7 @@ function setButton(text: string): void { const button = el('voiceStartBtn'); if 
 function setVisualizer(visible: boolean): void { const visualizer = el('voiceVisualizer'); if (visualizer) visualizer.style.display = visible ? '' : 'none'; }
 function createMessage(role: 'tutor' | 'user' | 'system', text: string): HTMLElement | null { const root = transcriptRoot(); if (!root) return null; root.style.display = 'flex'; const node = document.createElement('div'); node.className = `chat-msg ${role}`; node.textContent = text; root.appendChild(node); root.scrollTop = root.scrollHeight; return node; }
 function appendMessage(role: 'tutor' | 'user' | 'system', text: string): void { if (text.trim()) createMessage(role, text.trim()); }
-function resetTranscriptState(): void { timelineTranscriptMessages.length = 0; }
+function resetTranscriptState(): void { timelineTranscriptMessages.length = 0; latestTranscriptActivityMs = -1; }
 
 function renderEncounterIntro(): void {
   if (!session) return; const root = transcriptRoot(); if (!root) return; const encounter = session.encounter;
@@ -49,6 +49,13 @@ function requestMoreSupport(): void { if (!session) return; session.requestMoreS
 function hideSupport(): void { if (!session) return; session.hideSupport(); renderSupport(); }
 function eventText(event: RealtimeServerEvent, ...keys: string[]): string { for (const key of keys) { const value = event[key]; if (typeof value === 'string') return value; } return ''; }
 function eventNumber(event: RealtimeServerEvent, ...keys: string[]): number | undefined { for (const key of keys) { const value = event[key]; if (typeof value === 'number') return value; } return undefined; }
+function updateTranscriptActivity(role: TranscriptRole, event: RealtimeServerEvent): void {
+  const activityMs = eventNumber(event, 'end_ms', 'endMs') ?? latestTranscriptActivityMs + 1;
+  if (activityMs < latestTranscriptActivityMs) return;
+  latestTranscriptActivityMs = activityMs;
+  setVisualizer(role === 'user');
+  setStatus(role === 'user' ? 'Ik luister…' : 'Poortaal spreekt…');
+}
 function appendTimelineTranscriptDelta(role: TranscriptRole, event: RealtimeServerEvent): string {
   const delta = eventText(event, 'delta'); if (!delta) return '';
   const fallbackMs = timelineTranscriptMessages.reduce((max, message) => Math.max(max, message.endMs), 0) + 1;
@@ -80,16 +87,13 @@ function handleRealtimeEvent(event: RealtimeServerEvent): void {
   if (!session) return;
   switch (event.type) {
     case 'session.input_transcript.delta': {
-      setStatus('Ik luister…'); setVisualizer(true);
-      if (inputActivityTimer) clearTimeout(inputActivityTimer);
-      inputActivityTimer = setTimeout(() => { setVisualizer(false); setStatus('Even denken…'); }, 900);
+      updateTranscriptActivity('user', event);
       const text = appendTimelineTranscriptDelta('user', event);
       if (text && session.recordProduction(text) && !completionShown) showCompletion();
       return;
     }
     case 'session.output_transcript.delta':
-      if (inputActivityTimer) clearTimeout(inputActivityTimer);
-      inputActivityTimer = null; setVisualizer(false); setStatus('Poortaal spreekt…');
+      updateTranscriptActivity('tutor', event);
       appendTimelineTranscriptDelta('tutor', event); return;
     case 'session.delegation.created': setStatus('Even denken…'); return;
     case 'error': setStatus('Er ging iets mis. Probeer opnieuw.'); return;
@@ -109,6 +113,6 @@ export async function toggleRealtimeEncounter(): Promise<void> {
   client = new RealtimeClient({ apiBase: API_BASE, word, instructions: buildTutorInstructions(encounter), backendInstructions: buildBackendInstructions(encounter), onEvent: handleRealtimeEvent, onStateChange: handleStateChange });
   try { await client.connect(); } catch (error) { console.error('GPT-Live connection failed:', error); appendMessage('system', 'Could not start the voice encounter. Please try again.'); stopRealtimeEncounter(false); }
 }
-export function stopRealtimeEncounter(resetStatus = true): void { generationId += 1; generating = false; if (inputActivityTimer) clearTimeout(inputActivityTimer); inputActivityTimer = null; client?.disconnect(); client = null; active = false; setVisualizer(false); setButton('🎙️ Start encounter'); if (resetStatus) setStatus('Klaar voor een korte encounter'); }
+export function stopRealtimeEncounter(resetStatus = true): void { generationId += 1; generating = false; client?.disconnect(); client = null; active = false; setVisualizer(false); setButton('🎙️ Start encounter'); if (resetStatus) setStatus('Klaar voor een korte encounter'); }
 export function consumeRealtimePracticeCompletion(): boolean { const completed = completionShown; completionShown = false; return completed; }
 export function resetRealtimeEncounterUi(): void { const root = transcriptRoot(); if (root) { root.innerHTML = ''; root.style.display = 'none'; } session = null; completionShown = false; resetTranscriptState(); setVisualizer(false); setButton('🎙️ Start encounter'); setStatus('Druk op de knop om te beginnen'); }
