@@ -56,16 +56,31 @@ function requestMoreSupport(): void { if (!session) return; session.requestMoreS
 function hideSupport(): void { if (!session) return; session.hideSupport(); renderSupport(); }
 function eventText(event: RealtimeServerEvent, ...keys: string[]): string { for (const key of keys) { const value = event[key]; if (typeof value === 'string') return value; } return ''; }
 function eventNumber(event: RealtimeServerEvent, ...keys: string[]): number | undefined { for (const key of keys) { const value = event[key]; if (typeof value === 'number') return value; } return undefined; }
+function scheduleCompletion(delayMs = 900): void {
+  if (completionShown) return;
+  if (completionTimer) clearTimeout(completionTimer);
+  completionTimer = setTimeout(() => {
+    completionTimer = null;
+    if (session?.evidence.successfulProduction) showCompletion();
+  }, delayMs);
+}
+function restoreActivityStatus(): void {
+  if (latestTranscriptRole === 'tutor') {
+    setVisualizer(false);
+    setStatus('Poortaal spreekt…');
+  } else if (latestTranscriptRole === 'user' && transcriptIdleTimer) {
+    setVisualizer(true);
+    setStatus('Ik luister…');
+  } else {
+    setVisualizer(false);
+    setStatus('Even denken…');
+  }
+}
 function updateTranscriptActivity(role: TranscriptRole, event: RealtimeServerEvent): void {
   const activityMs = eventNumber(event, 'end_ms', 'endMs') ?? latestTranscriptActivityMs + 1;
   if (role === 'user' && activityMs >= latestUserActivityMs) {
     latestUserActivityMs = activityMs;
-    if (completionTimer) clearTimeout(completionTimer);
-    completionTimer = setTimeout(() => {
-      if (latestUserActivityMs !== activityMs) return;
-      completionTimer = null;
-      if (session?.evidence.successfulProduction) showCompletion();
-    }, 900);
+    scheduleCompletion();
   }
   if (activityMs < latestTranscriptActivityMs) return;
   latestTranscriptActivityMs = activityMs;
@@ -89,9 +104,13 @@ function clearCompletion(): void {
   completionBannerNode = null;
   completionSentenceNode = null;
   completionShown = false;
+  if (completionTimer) clearTimeout(completionTimer);
+  completionTimer = null;
+  restoreActivityStatus();
 }
 function reconcileProduction(groups: TranscriptGroup[]): void {
   if (!session) return;
+  const wasSuccessful = session.evidence.successfulProduction;
   const previousSentence = session.evidence.learnerSentence;
   session.evidence.successfulProduction = false;
   session.evidence.learnerSentence = undefined;
@@ -102,6 +121,7 @@ function reconcileProduction(groups: TranscriptGroup[]): void {
     if (completionShown) clearCompletion();
     return;
   }
+  if (!wasSuccessful && !completionShown && !completionTimer) scheduleCompletion();
   if (completionShown && previousSentence !== session.evidence.learnerSentence) refreshCompletionMessages();
 }
 function appendTimelineTranscriptDelta(role: TranscriptRole, event: RealtimeServerEvent): string {
