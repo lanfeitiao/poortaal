@@ -1,45 +1,73 @@
-export type TimedTranscript = {
-  role: 'tutor' | 'user';
+export type TranscriptRole = 'tutor' | 'user';
+
+export type TranscriptFragment = {
+  role: TranscriptRole;
   startMs: number;
   endMs: number;
+  text: string;
+  sequence: number;
+};
+
+export type TranscriptGroup = {
+  role: TranscriptRole;
+  startMs: number;
+  endMs: number;
+  text: string;
+  sequences: number[];
 };
 
 export const TRANSCRIPT_MERGE_GAP_MS = 1800;
 
-function intervalGapMs(a: TimedTranscript, b: TimedTranscript): number {
-  if (a.endMs < b.startMs) return b.startMs - a.endMs;
-  if (b.endMs < a.startMs) return a.startMs - b.endMs;
-  return 0;
-}
-
-function hasOppositeSpeechBetween(
-  messages: TimedTranscript[],
-  candidate: TimedTranscript,
-  fragment: TimedTranscript,
+function hasOppositeSpeechInGap(
+  fragments: TranscriptFragment[],
+  role: TranscriptRole,
+  gapStartMs: number,
+  gapEndMs: number,
 ): boolean {
-  const earlier = candidate.startMs <= fragment.startMs ? candidate : fragment;
-  const later = earlier === candidate ? fragment : candidate;
-  if (earlier.endMs >= later.startMs) return false;
-  return messages.some(message =>
-    message.role !== fragment.role
-    && message.startMs < later.startMs
-    && message.endMs > earlier.endMs,
+  if (gapEndMs <= gapStartMs) return false;
+  return fragments.some(fragment =>
+    fragment.role !== role
+    && fragment.startMs < gapEndMs
+    && fragment.endMs > gapStartMs,
   );
 }
 
-export function findTranscriptGroupIndex(
-  messages: TimedTranscript[],
-  fragment: TimedTranscript,
+export function groupTranscriptFragments(
+  fragments: TranscriptFragment[],
   mergeGapMs = TRANSCRIPT_MERGE_GAP_MS,
-): number {
-  let bestIndex = -1;
-  let bestGap = Number.POSITIVE_INFINITY;
-  for (let index = 0; index < messages.length; index += 1) {
-    const candidate = messages[index];
-    if (candidate.role !== fragment.role) continue;
-    const gapMs = intervalGapMs(candidate, fragment);
-    if (gapMs > mergeGapMs || hasOppositeSpeechBetween(messages, candidate, fragment)) continue;
-    if (gapMs < bestGap) { bestGap = gapMs; bestIndex = index; }
+): TranscriptGroup[] {
+  const ordered = [...fragments].sort((a, b) =>
+    a.startMs - b.startMs || a.endMs - b.endMs || a.sequence - b.sequence,
+  );
+  const groups: TranscriptGroup[] = [];
+
+  for (const fragment of ordered) {
+    const candidate = [...groups].reverse().find(group => {
+      if (group.role !== fragment.role) return false;
+      if (fragment.startMs <= group.endMs) return true;
+      if (fragment.startMs - group.endMs > mergeGapMs) return false;
+      return !hasOppositeSpeechInGap(fragments, fragment.role, group.endMs, fragment.startMs);
+    });
+
+    if (!candidate) {
+      groups.push({
+        role: fragment.role,
+        startMs: fragment.startMs,
+        endMs: fragment.endMs,
+        text: fragment.text,
+        sequences: [fragment.sequence],
+      });
+      continue;
+    }
+
+    candidate.startMs = Math.min(candidate.startMs, fragment.startMs);
+    candidate.endMs = Math.max(candidate.endMs, fragment.endMs);
+    candidate.sequences.push(fragment.sequence);
+    candidate.text = ordered
+      .filter(item => candidate.sequences.includes(item.sequence))
+      .map(item => item.text)
+      .join('');
   }
-  return bestIndex;
+
+  return groups.sort((a, b) => a.startMs - b.startMs || Math.min(...a.sequences) - Math.min(...b.sequences));
 }
