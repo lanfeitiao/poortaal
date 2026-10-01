@@ -1,4 +1,5 @@
 import type { Encounter } from './types';
+import { REALTIME_LANGUAGE_POLICY } from './language-policy.ts';
 
 export function buildTutorInstructions(encounter: Encounter): string {
   return `You are a warm, natural Dutch conversation partner for an A2-B1 learner in an ongoing speaking practice session.
@@ -9,6 +10,8 @@ LEARNER OBJECTIVE: ${encounter.objective}
 OPENING LINE: ${encounter.openingLine}
 
 Your job is to create a natural opportunity for the learner to use the current target word, while keeping the broader speaking session open and learner-led.
+
+${REALTIME_LANGUAGE_POLICY}
 
 Rules:
 - Speak primarily in Dutch.
@@ -44,6 +47,8 @@ export function buildBackendInstructions(encounter: Encounter): string {
 TARGET WORD: "${encounter.targetWord}"
 SCENARIO: ${encounter.setup}
 LEARNER OBJECTIVE: ${encounter.objective}
+
+${REALTIME_LANGUAGE_POLICY}
 
 Answer only when the live conversation model delegates a request that needs a language explanation or careful reasoning. Be concise, accurate, and concrete. Prefer simple Dutch, with a short English clarification only when it materially helps. Do not take over the conversation, add exercises, announce scores, or end the session.`;
 }

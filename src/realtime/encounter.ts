@@ -1,5 +1,6 @@
 import { requestOpenAIChat } from '../openai-client.ts';
 import type { Encounter } from './types.ts';
+import { REALTIME_LANGUAGE_POLICY } from './language-policy.ts';
 
 const API_BASE = 'https://poortaal-api.weilin1990.workers.dev';
 
@@ -8,6 +9,8 @@ type GeneratedEncounter = Omit<Encounter, 'id' | 'targetWord'>;
 const SYSTEM_PROMPT = `You design tiny spoken Dutch practice encounters for Poortaal, a language-learning app.
 
 Given one Dutch target word or expression, create a concrete everyday situation in which a learner could naturally use it.
+
+${REALTIME_LANGUAGE_POLICY}
 
 Rules:
 - The encounter should feel like a real situation, not an exercise about the word.
