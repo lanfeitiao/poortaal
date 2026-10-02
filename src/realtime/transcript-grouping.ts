@@ -31,7 +31,10 @@ export function groupTranscriptFragments(
     const otherRole: TranscriptRole = fragment.role === 'user' ? 'tutor' : 'user';
     const otherEndMs = maxEndByRole[otherRole] ?? Number.NEGATIVE_INFINITY;
     const overlapsCandidate = !!candidate && fragment.startMs <= candidate.endMs;
-    const oppositeSpeechInGap = !!candidate && otherEndMs > candidate.endMs;
+    // Opposite speech that extends into this fragment is concurrent speech,
+    // not a completed intervening reply. Keep both caption streams intact.
+    const oppositeSpeechInGap = !!candidate
+      && otherEndMs > candidate.endMs && otherEndMs <= fragment.startMs;
 
     // A learner can pause to find a word without starting another turn.
     if (candidate && (overlapsCandidate || !oppositeSpeechInGap)) {

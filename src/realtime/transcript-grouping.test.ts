@@ -77,3 +77,30 @@ test('a genuine reply after a long pause still starts a new bubble', () => {
   ]);
   assert.deepEqual(groups.map(group => group.text), ['Dank je.', 'Graag gedaan!', 'Tot ziens.']);
 });
+
+test('interleaved overlapping captions do not chop both speakers into word bubbles', () => {
+  const fragments = [
+    fragment('user', 0, 1000, 'Ah, ik ben verbaasd, dank je wel voor het ', 0),
+    fragment('tutor', 950, 1150, 'Graag ', 1),
+    fragment('user', 1100, 1400, 'cadeautje', 2),
+    fragment('tutor', 1300, 2400, 'gedaan! Ik dacht dat je dit leuk zou vinden.', 3),
+  ];
+  for (const delivery of [fragments, [fragments[0], fragments[2], fragments[1], fragments[3]]]) {
+    const groups = groupTranscriptFragments(delivery);
+    assert.deepEqual(groups.map(group => [group.role, group.text]), [
+      ['user', 'Ah, ik ben verbaasd, dank je wel voor het cadeautje'],
+      ['tutor', 'Graag gedaan! Ik dacht dat je dit leuk zou vinden.'],
+    ]);
+  }
+});
+
+test('a completed overlapping reply still separates the next real turn', () => {
+  const groups = groupTranscriptFragments([
+    fragment('user', 0, 1000, 'Dank je ', 0),
+    fragment('tutor', 950, 1150, 'Graag ', 1),
+    fragment('user', 1100, 1400, 'wel.', 2),
+    fragment('tutor', 1300, 2400, 'gedaan!', 3),
+    fragment('user', 3000, 3500, 'Tot ziens.', 4),
+  ]);
+  assert.deepEqual(groups.map(group => group.text), ['Dank je wel.', 'Graag gedaan!', 'Tot ziens.']);
+});
