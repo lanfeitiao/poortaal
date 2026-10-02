@@ -114,3 +114,15 @@ test('starting to answer during a later reply does not join an earlier turn', ()
   ]);
   assert.deepEqual(groups.map(group => group.text), ['Hallo.', 'Hallo! Hoe gaat het?', 'Goed.']);
 });
+
+for (const role of ['user', 'tutor'] as const) {
+  test(`${role} returning during a reply with an overlapping start is a new turn`, () => {
+    const other = role === 'user' ? 'tutor' : 'user';
+    const groups = groupTranscriptFragments([
+      fragment(role, 0, 1000, 'First turn.', 0),
+      fragment(other, 950, 2400, 'Intervening reply.', 1),
+      fragment(role, 2000, 2500, 'New turn.', 2),
+    ]);
+    assert.deepEqual(groups.map(group => group.text), ['First turn.', 'Intervening reply.', 'New turn.']);
+  });
+}

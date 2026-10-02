@@ -16,6 +16,10 @@ export type TranscriptGroup = {
   sequences: number[];
 };
 
+// Only bridge small caption gaps during concurrent speech. This is not a
+// silence cutoff: pauses without opposite speech never split a bubble.
+const CONCURRENT_CAPTION_GAP_MS = 300;
+
 export function groupTranscriptFragments(
   fragments: TranscriptFragment[],
 ): TranscriptGroup[] {
@@ -32,11 +36,13 @@ export function groupTranscriptFragments(
     const otherEndMs = maxEndByRole[otherRole] ?? Number.NEGATIVE_INFINITY;
     const otherGroup = lastGroupByRole[otherRole];
     const overlapsCandidate = !!candidate && fragment.startMs <= candidate.endMs;
-    // Keep concurrent streams intact, but a reply that began after this
-    // candidate ended still separates turns when the next answer overlaps it.
+    // Bridge brief concurrent caption gaps, without joining a later barge-in
+    // back into speech from before the intervening reply.
     const oppositeSpeechInGap = !!candidate
       && otherEndMs > candidate.endMs
-      && (otherEndMs <= fragment.startMs || (otherGroup && otherGroup.startMs >= candidate.endMs));
+      && (otherEndMs <= fragment.startMs
+        || (otherGroup && otherGroup.startMs >= candidate.endMs)
+        || fragment.startMs - candidate.endMs > CONCURRENT_CAPTION_GAP_MS);
 
     // A learner can pause to find a word without starting another turn.
     if (candidate && (overlapsCandidate || !oppositeSpeechInGap)) {
