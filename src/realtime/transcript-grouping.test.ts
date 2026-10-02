@@ -104,3 +104,13 @@ test('a completed overlapping reply still separates the next real turn', () => {
   ]);
   assert.deepEqual(groups.map(group => group.text), ['Dank je wel.', 'Graag gedaan!', 'Tot ziens.']);
 });
+
+test('starting to answer during a later reply does not join an earlier turn', () => {
+  const groups = groupTranscriptFragments([
+    fragment('user', 0, 500, 'Hallo.', 0),
+    fragment('tutor', 1000, 2000, 'Hallo! ', 1),
+    fragment('tutor', 2100, 4500, 'Hoe gaat het?', 2),
+    fragment('user', 4000, 5000, 'Goed.', 3),
+  ]);
+  assert.deepEqual(groups.map(group => group.text), ['Hallo.', 'Hallo! Hoe gaat het?', 'Goed.']);
+});
