@@ -54,10 +54,26 @@ test('a short pause without another speaker stays in one bubble', () => {
   assert.equal(groups[0].text, 'AB');
 });
 
-test('a long silence starts a new bubble', () => {
+for (const role of ['user', 'tutor'] as const) {
+  test(`${role} pauses without a speaker change stay in one bubble`, () => {
+    const fragments = [
+      fragment(role, 1000, 1500, 'Ik ben ', 0),
+      fragment(role, 4000, 4300, 'verbaasd, ', 1),
+      fragment(role, 12000, 13000, 'dank je wel.', 2),
+    ];
+    for (let count = 1; count <= fragments.length; count += 1) {
+      const groups = groupTranscriptFragments(fragments.slice(0, count));
+      assert.equal(groups.length, 1);
+      assert.equal(groups[0].text, fragments.slice(0, count).map(part => part.text).join(''));
+    }
+  });
+}
+
+test('a genuine reply after a long pause still starts a new bubble', () => {
   const groups = groupTranscriptFragments([
-    fragment('user', 1000, 1500, 'A', 0),
-    fragment('user', 4000, 4300, 'B', 1),
+    fragment('user', 0, 1000, 'Dank je.', 0),
+    fragment('tutor', 3000, 4500, 'Graag gedaan!', 1),
+    fragment('user', 12000, 13000, 'Tot ziens.', 2),
   ]);
-  assert.equal(groups.length, 2);
+  assert.deepEqual(groups.map(group => group.text), ['Dank je.', 'Graag gedaan!', 'Tot ziens.']);
 });
