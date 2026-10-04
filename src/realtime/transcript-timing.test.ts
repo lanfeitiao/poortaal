@@ -44,8 +44,8 @@ test('a late audio fragment anchors its following untimed continuation', () => {
   fragments.push(createTranscriptFragment(fragments, 'tutor', 'Wat wil je eten?', 0, 1000, 3000, 5000));
   fragments.push(createTranscriptFragment(fragments, 'user', 'Misschien ', 1, 9000, 1000, 2000));
   const tail = createTranscriptFragment(fragments, 'user', 'fruit', 2, 9100, undefined, undefined);
-  assert.equal(tail.startMs, 2100);
-  assert.equal(tail.endMs, 2100);
+  assert.equal(tail.startMs, 2000);
+  assert.equal(tail.endMs, 2000);
   assert.deepEqual(groupTranscriptFragments([...fragments, tail]).map(group => group.text), [
     'Misschien fruit', 'Wat wil je eten?',
   ]);
@@ -73,6 +73,20 @@ test('an untimed new same-speaker turn does not follow a stale fragment back in 
     assert.equal(next.startMs, 7100);
     assert.deepEqual(groupTranscriptFragments([...fragments, next]).map(group => group.text), [
       'Hallo. Wat wil je eten?', 'Fruit.', reply,
+    ]);
+  }
+});
+
+test('delivery delay cannot carry a continuation onto a later same-role turn', () => {
+  for (const text of ['fruit', 'fruit.']) {
+    const fragments: TranscriptFragment[] = [];
+    fragments.push(createTranscriptFragment(fragments, 'tutor', 'Ja.', 0, 1000, 2100, 2300));
+    fragments.push(createTranscriptFragment(fragments, 'user', 'Later.', 1, 3000, 3000, 3500));
+    fragments.push(createTranscriptFragment(fragments, 'user', 'Misschien ', 2, 9000, 1000, 2000));
+    const tail = createTranscriptFragment(fragments, 'user', text, 3, 10500, undefined, undefined);
+    assert.equal(tail.startMs, 2000);
+    assert.deepEqual(groupTranscriptFragments([...fragments, tail]).map(group => group.text), [
+      `Misschien ${text}`, 'Ja.', 'Later.',
     ]);
   }
 });
