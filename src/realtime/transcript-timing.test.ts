@@ -50,3 +50,15 @@ test('a late audio fragment anchors its following untimed continuation', () => {
     'Misschien fruit', 'Wat wil je eten?',
   ]);
 });
+
+test('an untimed speaker change after late delivery resumes at the timeline end', () => {
+  const fragments: TranscriptFragment[] = [];
+  fragments.push(createTranscriptFragment(fragments, 'tutor', 'Wat wil je eten?', 0, 1000, 3000, 5000));
+  fragments.push(createTranscriptFragment(fragments, 'user', 'Misschien fruit', 1, 9000, 1000, 2000));
+  const reply = createTranscriptFragment(fragments, 'tutor', ' Dat is gezond.', 2, 9100, undefined, undefined);
+  assert.equal(reply.startMs, 5100);
+  assert.equal(reply.endMs, 5100);
+  assert.deepEqual(groupTranscriptFragments([...fragments, reply]).map(group => group.text), [
+    'Misschien fruit', 'Wat wil je eten? Dat is gezond.',
+  ]);
+});
