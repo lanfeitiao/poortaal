@@ -24,9 +24,14 @@ const CONCURRENT_CAPTION_GAP_MS = 300;
 const LATE_TAIL_GAP_MS = 2000;
 const BACKCHANNEL_DURATION_MS = 1200;
 
-function isShortAcknowledgment(group: TranscriptGroup): boolean {
+export function isShortAcknowledgment(group: TranscriptGroup, allowIncomplete = false): boolean {
+  const text = group.text.trim().toLowerCase();
+  const complete = /^(?:ja|jazeker|hm+|mhm|ok(?:é|ay)?|precies|sure|yes)[.!?,…\s]*$/iu.test(text);
+  const incomplete = allowIncomplete && !!text
+    && ['ja', 'jazeker', 'hm', 'mhm', 'ok', 'oké', 'okay', 'precies', 'sure', 'yes']
+      .some(word => word.startsWith(text));
   return group.endMs - group.startMs <= BACKCHANNEL_DURATION_MS
-    && /^(?:ja|jazeker|hm+|mhm|ok(?:é|ay)?|precies|sure|yes)[.!?,…\s]*$/iu.test(group.text.trim());
+    && (complete || incomplete);
 }
 
 export function looksLikeCaptionContinuation(previousText: string, nextText: string): boolean {

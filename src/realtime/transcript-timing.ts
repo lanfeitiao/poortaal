@@ -1,5 +1,5 @@
 import type { TranscriptFragment, TranscriptRole } from './transcript-grouping.ts';
-import { looksLikeCaptionContinuation } from './transcript-grouping.ts';
+import { isShortAcknowledgment, looksLikeCaptionContinuation } from './transcript-grouping.ts';
 
 function audioTime(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : undefined;
@@ -23,10 +23,20 @@ export function createTranscriptFragment(
   // measure speech duration and must not carry a tail across a later turn.
   // Other untimed speech resumes at the timeline end with elapsed receipt time.
   const latest = fragments.at(-1);
-  const continuation = latest?.role === role
-    && receivedAtMs - (latest.receivedAtMs ?? receivedAtMs) <= 2000
-    && looksLikeCaptionContinuation(latest.text, text);
-  const anchorMs = continuation ? latest!.endMs
+  let prefixIndex = fragments.length - 1;
+  while (prefixIndex >= 0 && fragments[prefixIndex].role !== role) prefixIndex -= 1;
+  const prefix = fragments[prefixIndex];
+  const intervening = fragments.slice(prefixIndex + 1);
+  const acknowledgmentOnly = !intervening.length || isShortAcknowledgment({
+    role: latest!.role,
+    startMs: Math.min(...intervening.map(part => part.startMs)),
+    endMs: Math.max(...intervening.map(part => part.endMs)),
+    text: intervening.map(part => part.text).join(''), sequences: [],
+  }, true);
+  const continuation = !!prefix && acknowledgmentOnly
+    && receivedAtMs - (prefix.receivedAtMs ?? receivedAtMs) <= 2000
+    && looksLikeCaptionContinuation(prefix.text, text);
+  const anchorMs = continuation ? prefix.endMs
     : fragments.reduce((max, part) => Math.max(max, part.endMs), 0);
   const estimatedMs = continuation ? anchorMs : latest
     ? anchorMs + Math.max(0, receivedAtMs - (latest.receivedAtMs ?? receivedAtMs))

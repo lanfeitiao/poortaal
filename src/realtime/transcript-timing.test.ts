@@ -90,3 +90,32 @@ test('delivery delay cannot carry a continuation onto a later same-role turn', (
     ]);
   }
 });
+
+test('an acknowledgment delivery does not discard a delayed same-speaker prefix', () => {
+  for (const partial of [false, true]) {
+    const fragments: TranscriptFragment[] = [];
+    fragments.push(createTranscriptFragment(fragments, 'user', 'Later.', 0, 1000, 3000, 3500));
+    fragments.push(createTranscriptFragment(fragments, 'user', 'Misschien ', 1, 9000, 1000, 2000));
+    fragments.push(createTranscriptFragment(fragments, 'tutor', partial ? 'J' : 'Ja.', 2, 9200, 2100, partial ? 2150 : 2300));
+    const tail = createTranscriptFragment(fragments, 'user', 'fruit', 3, 9300, undefined, undefined);
+    assert.equal(tail.startMs, 2000);
+    fragments.push(tail);
+    if (partial) fragments.push(createTranscriptFragment(fragments, 'tutor', 'a.', 4, 9400, 2150, 2300));
+    assert.deepEqual(groupTranscriptFragments(fragments).map(group => group.text), [
+      'Misschien fruit', 'Ja.', 'Later.',
+    ]);
+  }
+});
+
+test('a full intervening reply retires the old same-speaker prefix', () => {
+  const fragments: TranscriptFragment[] = [];
+  fragments.push(createTranscriptFragment(fragments, 'tutor', 'Ja.', 0, 500, 2100, 2300));
+  fragments.push(createTranscriptFragment(fragments, 'user', 'Later.', 1, 1000, 3000, 3500));
+  fragments.push(createTranscriptFragment(fragments, 'user', 'Misschien ', 2, 9000, 1000, 2000));
+  fragments.push(createTranscriptFragment(fragments, 'tutor', 'Wat wil je eten?', 3, 9200, 3600, 4100));
+  const next = createTranscriptFragment(fragments, 'user', 'fruit', 4, 9300, undefined, undefined);
+  assert.equal(next.startMs, 4200);
+  assert.deepEqual(groupTranscriptFragments([...fragments, next]).map(group => group.text), [
+    'Misschien ', 'Ja.', 'Later.', 'Wat wil je eten?', 'fruit',
+  ]);
+});
