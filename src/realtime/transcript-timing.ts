@@ -18,8 +18,9 @@ export function createTranscriptFragment(
   if (start !== undefined && end !== undefined && end < start) start = end = undefined;
   // Missing audio timing cannot establish a real turn boundary. Estimate elapsed
   // session time, explicitly marked, rather than fabricating a 1 ms caption gap.
-  const anchor = fragments.reduce<TranscriptFragment | undefined>((latest, part) =>
-    !latest || part.endMs >= latest.endMs ? part : latest, undefined);
+  // A late audio-timed fragment reanchors its following untimed continuation.
+  // The greatest timeline end may belong to a much older-delivered reply.
+  const anchor = fragments.at(-1);
   const estimatedMs = anchor
     ? anchor.endMs + Math.max(0, receivedAtMs - (anchor.receivedAtMs ?? receivedAtMs))
     : 0;

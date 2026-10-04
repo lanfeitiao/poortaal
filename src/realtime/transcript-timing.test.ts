@@ -38,3 +38,15 @@ test('partial timestamps stay on the audio timeline and invalid intervals are es
     assert.equal(part.timingSource, 'estimated');
   }
 });
+
+test('a late audio fragment anchors its following untimed continuation', () => {
+  const fragments: TranscriptFragment[] = [];
+  fragments.push(createTranscriptFragment(fragments, 'tutor', 'Wat wil je eten?', 0, 1000, 3000, 5000));
+  fragments.push(createTranscriptFragment(fragments, 'user', 'Misschien ', 1, 9000, 1000, 2000));
+  const tail = createTranscriptFragment(fragments, 'user', 'fruit', 2, 9100, undefined, undefined);
+  assert.equal(tail.startMs, 2100);
+  assert.equal(tail.endMs, 2100);
+  assert.deepEqual(groupTranscriptFragments([...fragments, tail]).map(group => group.text), [
+    'Misschien fruit', 'Wat wil je eten?',
+  ]);
+});
