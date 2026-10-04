@@ -33,6 +33,34 @@ test('late earlier text is rebuilt in timeline order', () => {
   assert.equal(groups[0].text, 'Hallo wereld');
 });
 
+test('a delayed unfinished learner tail stays before a short acknowledgment', () => {
+  for (const tailStart of [2050, 2400]) {
+    const fragments = [
+      fragment('user', 1000, 2100, 'Ik vind um... Misschien ', 0),
+      fragment('tutor', 2150, 2350, 'Ja.', 1),
+      fragment('user', tailStart, tailStart + 200, 'fruit', 2),
+    ];
+    for (const delivery of [fragments, [fragments[0], fragments[2], fragments[1]]]) {
+      const groups = groupTranscriptFragments(delivery);
+      assert.deepEqual(groups.map(group => [group.role, group.text]), [
+        ['user', 'Ik vind um... Misschien fruit'], ['tutor', 'Ja.'],
+      ]);
+      assert.deepEqual(groups[0].sequences.sort(), [0, 2]);
+    }
+  }
+});
+
+test('a short acknowledgment does not absorb a completed sentence or a distant new turn', () => {
+  for (const [text, start] of [['Ik kies fruit.', 2400], ['Ik kies ', 5000]] as const) {
+    const groups = groupTranscriptFragments([
+      fragment('user', 1000, 2100, text, 0),
+      fragment('tutor', 2150, 2350, 'Ja.', 1),
+      fragment('user', start, start + 200, 'En jij?', 2),
+    ]);
+    assert.equal(groups.length, 3);
+  }
+});
+
 test('overlapping same-speaker fragments stay together during full duplex speech', () => {
   const groups = groupTranscriptFragments([
     fragment('user', 0, 1000, 'A', 0),
