@@ -49,7 +49,7 @@ export function groupTranscriptFragments(
     // Keep an unfinished sentence open briefly, but never bridge a full reply or
     // attach a fresh sentence to an already completed one.
     const lateTail = !!candidate && !!otherGroup
-      && !/[.!?…]["'”’)]*\s*$/u.test(candidate.text)
+      && !/(?<!\.)[.!?]["'”’)]*\s*$/u.test(candidate.text)
       && fragment.startMs - candidate.endMs <= LATE_TAIL_GAP_MS
       && isShortAcknowledgment(otherGroup);
     // Bridge brief concurrent caption gaps, without joining a later barge-in

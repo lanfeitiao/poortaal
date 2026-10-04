@@ -34,16 +34,19 @@ test('late earlier text is rebuilt in timeline order', () => {
 });
 
 test('a delayed unfinished learner tail stays before a short acknowledgment', () => {
-  for (const tailStart of [2050, 2400]) {
+  for (const [prefix, tailStart] of [
+    ['Ik vind um... Misschien ', 2050], ['Ik vind um... Misschien ', 2400],
+    ['Misschien... ', 2400], ['Misschien… ', 2400],
+  ] as const) {
     const fragments = [
-      fragment('user', 1000, 2100, 'Ik vind um... Misschien ', 0),
+      fragment('user', 1000, 2100, prefix, 0),
       fragment('tutor', 2150, 2350, 'Ja.', 1),
       fragment('user', tailStart, tailStart + 200, 'fruit', 2),
     ];
     for (const delivery of [fragments, [fragments[0], fragments[2], fragments[1]]]) {
       const groups = groupTranscriptFragments(delivery);
       assert.deepEqual(groups.map(group => [group.role, group.text]), [
-        ['user', 'Ik vind um... Misschien fruit'], ['tutor', 'Ja.'],
+        ['user', `${prefix}fruit`], ['tutor', 'Ja.'],
       ]);
       assert.deepEqual(groups[0].sequences.sort(), [0, 2]);
     }
