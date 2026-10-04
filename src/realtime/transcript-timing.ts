@@ -1,4 +1,5 @@
 import type { TranscriptFragment, TranscriptRole } from './transcript-grouping.ts';
+import { looksLikeCaptionContinuation } from './transcript-grouping.ts';
 
 function audioTime(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : undefined;
@@ -22,7 +23,10 @@ export function createTranscriptFragment(
   // instead resumes at the timeline end, using elapsed time since last delivery
   // so an old-delivered high timestamp does not add stale network latency.
   const latest = fragments.at(-1);
-  const anchorMs = latest?.role === role ? latest.endMs
+  const continuation = latest?.role === role
+    && receivedAtMs - (latest.receivedAtMs ?? receivedAtMs) <= 2000
+    && looksLikeCaptionContinuation(latest.text, text);
+  const anchorMs = continuation ? latest!.endMs
     : fragments.reduce((max, part) => Math.max(max, part.endMs), 0);
   const estimatedMs = latest
     ? anchorMs + Math.max(0, receivedAtMs - (latest.receivedAtMs ?? receivedAtMs))

@@ -29,13 +29,14 @@ function isShortAcknowledgment(group: TranscriptGroup): boolean {
     && /^(?:ja|jazeker|hm+|mhm|ok(?:é|ay)?|precies|sure|yes)[.!?,…\s]*$/iu.test(group.text.trim());
 }
 
-function looksLikeCaptionTail(candidate: TranscriptGroup, fragment: TranscriptFragment): boolean {
+export function looksLikeCaptionContinuation(previousText: string, nextText: string): boolean {
   // The independent delta stream preserves word-joining spaces. Require that
   // join plus a short lowercase continuation; a fresh question is not a tail.
-  return (/\s$/u.test(candidate.text) || /^\s/u.test(fragment.text))
-    && /^\s*\p{Ll}/u.test(fragment.text)
-    && !/[?!]/u.test(fragment.text)
-    && fragment.text.trim().split(/\s+/u).length <= 3;
+  return !/(?<!\.)[.!?]["'”’)]*\s*$/u.test(previousText)
+    && (/\s$/u.test(previousText) || /^\s/u.test(nextText))
+    && /^\s*\p{Ll}/u.test(nextText)
+    && !/[?!]/u.test(nextText)
+    && nextText.trim().split(/\s+/u).length <= 3;
 }
 
 export function groupTranscriptFragments(
@@ -58,8 +59,7 @@ export function groupTranscriptFragments(
     // Keep an unfinished sentence open briefly, but never bridge a full reply or
     // attach a fresh sentence to an already completed one.
     const lateTail = !!candidate && !!otherGroup
-      && !/(?<!\.)[.!?]["'”’)]*\s*$/u.test(candidate.text)
-      && looksLikeCaptionTail(candidate, fragment)
+      && looksLikeCaptionContinuation(candidate.text, fragment.text)
       && fragment.startMs - candidate.endMs <= (fragment.timingSource === 'estimated'
         ? LATE_TAIL_GAP_MS : CONCURRENT_CAPTION_GAP_MS)
       && isShortAcknowledgment(otherGroup);

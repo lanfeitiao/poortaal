@@ -62,3 +62,17 @@ test('an untimed speaker change after late delivery resumes at the timeline end'
     'Misschien fruit', 'Wat wil je eten? Dat is gezond.',
   ]);
 });
+
+test('an untimed new same-speaker turn does not follow a stale fragment back in time', () => {
+  for (const reply of ['Goed gedaan!', ' goed gedaan!']) {
+    const fragments: TranscriptFragment[] = [];
+    fragments.push(createTranscriptFragment(fragments, 'tutor', 'Wat wil je eten?', 0, 1000, 3000, 5000));
+    fragments.push(createTranscriptFragment(fragments, 'user', 'Fruit.', 1, 3000, 6000, 7000));
+    fragments.push(createTranscriptFragment(fragments, 'tutor', 'Hallo. ', 2, 9000, 1000, 2000));
+    const next = createTranscriptFragment(fragments, 'tutor', reply, 3, 9100, undefined, undefined);
+    assert.equal(next.startMs, 7100);
+    assert.deepEqual(groupTranscriptFragments([...fragments, next]).map(group => group.text), [
+      'Hallo. Wat wil je eten?', 'Fruit.', reply,
+    ]);
+  }
+});
