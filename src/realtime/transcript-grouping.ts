@@ -29,6 +29,15 @@ function isShortAcknowledgment(group: TranscriptGroup): boolean {
     && /^(?:ja|jazeker|hm+|mhm|ok(?:é|ay)?|precies|sure|yes)[.!?,…\s]*$/iu.test(group.text.trim());
 }
 
+function looksLikeCaptionTail(candidate: TranscriptGroup, fragment: TranscriptFragment): boolean {
+  // The independent delta stream preserves word-joining spaces. Require that
+  // join plus a short lowercase continuation; a fresh question is not a tail.
+  return (/\s$/u.test(candidate.text) || /^\s/u.test(fragment.text))
+    && /^\s*\p{Ll}/u.test(fragment.text)
+    && !/[?!]/u.test(fragment.text)
+    && fragment.text.trim().split(/\s+/u).length <= 3;
+}
+
 export function groupTranscriptFragments(
   fragments: TranscriptFragment[],
 ): TranscriptGroup[] {
@@ -50,7 +59,9 @@ export function groupTranscriptFragments(
     // attach a fresh sentence to an already completed one.
     const lateTail = !!candidate && !!otherGroup
       && !/(?<!\.)[.!?]["'”’)]*\s*$/u.test(candidate.text)
-      && fragment.startMs - candidate.endMs <= LATE_TAIL_GAP_MS
+      && looksLikeCaptionTail(candidate, fragment)
+      && fragment.startMs - candidate.endMs <= (fragment.timingSource === 'estimated'
+        ? LATE_TAIL_GAP_MS : CONCURRENT_CAPTION_GAP_MS)
       && isShortAcknowledgment(otherGroup);
     // Bridge brief concurrent caption gaps, without joining a later barge-in
     // back into speech from before the intervening reply.

@@ -64,6 +64,26 @@ test('a short acknowledgment does not absorb a completed sentence or a distant n
   }
 });
 
+test('a new answer after an unpunctuated caption is not a delayed tail', () => {
+  for (const text of ['En jij?', 'en jij?', 'ik weet het wel']) {
+    const groups = groupTranscriptFragments([
+      fragment('user', 1000, 2100, 'Ik weet het niet', 0),
+      fragment('tutor', 2150, 2350, 'Ja.', 1),
+      fragment('user', 2400, 2600, text, 2),
+    ]);
+    assert.deepEqual(groups.map(group => group.text), ['Ik weet het niet', 'Ja.', text]);
+  }
+});
+
+test('reliable timing beyond a small caption gap separates even short lowercase speech', () => {
+  const groups = groupTranscriptFragments([
+    fragment('user', 1000, 2100, 'Misschien ', 0),
+    fragment('tutor', 2150, 2350, 'Ja.', 1),
+    fragment('user', 3000, 3200, 'fruit', 2),
+  ]);
+  assert.equal(groups.length, 3);
+});
+
 test('overlapping same-speaker fragments stay together during full duplex speech', () => {
   const groups = groupTranscriptFragments([
     fragment('user', 0, 1000, 'A', 0),
