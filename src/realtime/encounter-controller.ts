@@ -3,6 +3,7 @@ import { createGeneratedEncounter } from './encounter';
 import { RealtimeClient } from './realtime-client';
 import { supportContent } from './scaffolding';
 import { groupTranscriptFragments, type TranscriptFragment, type TranscriptGroup } from './transcript-grouping';
+import { createTranscriptFragment } from './transcript-timing';
 import { buildBackendInstructions, buildTutorInstructions } from './tutor-policy';
 import type { RealtimeConnectionState, RealtimeServerEvent, SupportLevel } from './types';
 
@@ -127,17 +128,22 @@ function reconcileProduction(groups: TranscriptGroup[]): void {
 }
 function appendTimelineTranscriptDelta(role: TranscriptRole, event: RealtimeServerEvent): string {
   const delta = eventText(event, 'delta'); if (!delta) return '';
-  const fallbackMs = timelineTranscriptFragments.reduce((max, item) => Math.max(max, item.endMs), 0) + 1;
   const sequence = transcriptSequence++;
-  timelineTranscriptFragments.push({
-    role,
-    startMs: eventNumber(event, 'start_ms', 'startMs') ?? fallbackMs,
-    endMs: eventNumber(event, 'end_ms', 'endMs') ?? fallbackMs,
-    text: delta,
-    sequence,
-  });
+  const fragment = createTranscriptFragment(
+    timelineTranscriptFragments, role, delta, sequence, performance.now(),
+    event.start_ms ?? event.startMs, event.end_ms ?? event.endMs,
+  );
+  timelineTranscriptFragments.push(fragment);
 
   const groups = groupTranscriptFragments(timelineTranscriptFragments);
+  if ((import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV) {
+    console.debug('[Poortaal transcript]', {
+      role, delta, start_ms: event.start_ms ?? event.startMs,
+      end_ms: event.end_ms ?? event.endMs, receivedAtMs: fragment.receivedAtMs,
+      timingSource: fragment.timingSource,
+      groupSequences: groups.find(group => group.sequences.includes(sequence))?.sequences,
+    });
+  }
   reconcileProduction(groups);
   const root = transcriptRoot(); if (!root) return '';
   const activeKeys = new Set<number>();
