@@ -6,6 +6,8 @@ export type TranscriptFragment = {
   endMs: number;
   text: string;
   sequence: number;
+  receivedAtMs?: number;
+  timingSource?: 'audio' | 'partial' | 'estimated';
 };
 
 export type TranscriptGroup = {
