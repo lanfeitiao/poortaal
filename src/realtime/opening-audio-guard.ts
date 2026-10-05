@@ -8,8 +8,12 @@ export class OpeningAudioGuard {
   private source: MediaStreamAudioSourceNode | null = null;
   private interval: ReturnType<typeof setInterval> | null = null;
   private timeout: ReturnType<typeof setTimeout> | null = null;
+  private readonly stream: MediaStream;
+  private readonly onReleased: () => void;
 
-  constructor(private readonly stream: MediaStream, private readonly onReleased: () => void) {
+  constructor(stream: MediaStream, onReleased: () => void) {
+    this.stream = stream;
+    this.onReleased = onReleased;
     this.stream.getAudioTracks().forEach(track => { track.enabled = false; });
   }
 
