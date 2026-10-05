@@ -21,6 +21,7 @@ let transcriptSequence = 0;
 let latestTranscriptActivityMs = -1;
 let latestUserActivityMs = -1;
 let latestTranscriptRole: TranscriptRole | null = null;
+let microphoneReady = false;
 let transcriptIdleTimer: ReturnType<typeof setTimeout> | null = null;
 let completionTimer: ReturnType<typeof setTimeout> | null = null;
 let completionBannerNode: HTMLElement | null = null;
@@ -32,13 +33,16 @@ function transcriptRoot(): HTMLElement | null { return el('voiceTranscript'); }
 function setStatus(text: string): void { const status = el('voiceStatus'); if (status) status.textContent = text; }
 function setButton(text: string): void { const button = el('voiceStartBtn'); if (button) button.textContent = text; }
 function setVisualizer(visible: boolean): void { const visualizer = el('voiceVisualizer'); if (visualizer) visualizer.style.display = visible ? '' : 'none'; }
+// Captions are not playback-end events. Keep actual microphone availability
+// visible even if the opening's last caption arrives after input is restored.
+function tutorActivityStatus(): string { return microphoneReady ? 'Microfoon aan — je kunt spreken.' : 'Poortaal spreekt…'; }
 function createMessage(role: 'tutor' | 'user' | 'system', text: string): HTMLElement | null { const root = transcriptRoot(); if (!root) return null; root.style.display = 'flex'; const node = document.createElement('div'); node.className = `chat-msg ${role}`; node.textContent = text; root.appendChild(node); root.scrollTop = root.scrollHeight; return node; }
 function appendMessage(role: 'tutor' | 'user' | 'system', text: string): void { if (text.trim()) createMessage(role, text.trim()); }
 function resetTranscriptState(): void { timelineTranscriptFragments.length = 0; transcriptNodes.clear(); transcriptSequence = 0; latestTranscriptActivityMs = -1; latestUserActivityMs = -1; latestTranscriptRole = null; if (transcriptIdleTimer) clearTimeout(transcriptIdleTimer); transcriptIdleTimer = null; if (completionTimer) clearTimeout(completionTimer); completionTimer = null; completionBannerNode = null; completionSentenceNode = null; }
 
 function renderEncounterIntro(): void {
   if (!session) return; const root = transcriptRoot(); if (!root) return; const encounter = session.encounter;
-  resetTranscriptState(); root.style.display = 'flex';
+  microphoneReady = false; resetTranscriptState(); root.style.display = 'flex';
   root.innerHTML = `<div style="align-self:stretch;background:#fff;border:1px solid #DBEAFE;border-radius:14px;padding:14px 16px;margin-bottom:4px;"><div style="font-size:1.35rem;margin-bottom:4px;">${escapeHtml(encounter.emoji)} <strong>${escapeHtml(encounter.title)}</strong></div><div style="font-size:.9rem;color:#4B5563;margin-bottom:8px;">${escapeHtml(encounter.setup)}</div><div style="font-size:.82rem;color:#6B7280;">Try to use <strong>${escapeHtml(encounter.targetWord)}</strong> naturally.</div></div><div id="encounterSupport" style="align-self:stretch;"></div><div id="encounterActions" style="align-self:stretch;display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 8px;"></div>`;
   renderSupport();
 }
@@ -66,8 +70,8 @@ function scheduleCompletion(delayMs = 900): void {
 }
 function restoreActivityStatus(): void {
   if (latestTranscriptRole === 'tutor') {
-    setVisualizer(false);
-    setStatus('Poortaal spreekt…');
+    setVisualizer(microphoneReady);
+    setStatus(tutorActivityStatus());
   } else if (latestTranscriptRole === 'user' && transcriptIdleTimer) {
     setVisualizer(true);
     setStatus('Ik luister…');
@@ -87,8 +91,8 @@ function updateTranscriptActivity(role: TranscriptRole, event: RealtimeServerEve
   latestTranscriptRole = role;
   if (transcriptIdleTimer) clearTimeout(transcriptIdleTimer);
   transcriptIdleTimer = null;
-  setVisualizer(role === 'user');
-  setStatus(role === 'user' ? 'Ik luister…' : 'Poortaal spreekt…');
+  setVisualizer(role === 'user' || microphoneReady);
+  setStatus(role === 'user' ? 'Ik luister…' : tutorActivityStatus());
   if (role === 'user') {
     transcriptIdleTimer = setTimeout(() => {
       if (latestTranscriptActivityMs !== activityMs) return;
@@ -184,7 +188,22 @@ function handleRealtimeEvent(event: RealtimeServerEvent): void {
     case 'error': setStatus('Er ging iets mis. Probeer opnieuw.'); return;
   }
 }
-function handleStateChange(state: RealtimeConnectionState): void { switch (state) { case 'requesting-microphone': setStatus('Microfoon openen…'); break; case 'connecting': setStatus('Verbinding maken…'); break; case 'ready': setStatus('De situatie begint…'); try { client?.send({ type: 'session.instructions.append', delegation_id: null, content: `Speak first in Dutch with exactly this opening line, then listen: ${session?.encounter.openingLine || ''}` }); } catch (error) { console.error('Could not start encounter:', error); } break; case 'error': setStatus('Verbinding mislukt. Probeer opnieuw.'); break; case 'closed': if (active) setStatus('Sessie beëindigd'); break; } }
+function handleStateChange(state: RealtimeConnectionState): void {
+  switch (state) {
+    case 'requesting-microphone': setStatus('Microfoon openen…'); break;
+    case 'connecting': setStatus('Verbinding maken…'); break;
+    case 'ready':
+      setStatus('De situatie begint…');
+      try {
+        client?.send({ type: 'session.instructions.append', event_id: 'encounter-opening', delegation_id: null,
+          content: `Speak first now in Dutch with exactly this opening line, once, then listen silently: ${session?.encounter.openingLine || ''}` });
+      } catch (error) { console.error('Could not start encounter:', error); }
+      break;
+    case 'listening': microphoneReady = true; setVisualizer(true); setStatus('Ik luister…'); break;
+    case 'error': microphoneReady = false; setVisualizer(false); setStatus('Verbinding mislukt. Probeer opnieuw.'); break;
+    case 'closed': microphoneReady = false; setVisualizer(false); if (active) setStatus('Sessie beëindigd'); break;
+  }
+}
 function refreshCompletionMessages(): void {
   if (!session) return;
   const evidence = session.evidence;
