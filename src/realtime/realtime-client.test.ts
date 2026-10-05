@@ -62,3 +62,54 @@ test('the opening starts once and closed-session events cannot restart it', asyn
   assert.equal(fixture.states.filter(state => state === 'ready').length, 1);
   assert.equal(fixture.track.enabled, false);
 });
+
+test('a microphone granted after Stop is released without creating a new session', async (t) => {
+  const fixture = clientFixture(t);
+  let grant!: (stream: MediaStream) => void;
+  fixture.setMic(() => new Promise(resolve => { grant = resolve; }));
+  const connecting = fixture.client.connect();
+  fixture.client.disconnect();
+  grant(fixture.stream);
+  await connecting;
+  assert.equal(fixture.stopped(), 1);
+  assert.equal(fixture.remoteDescriptions(), 0);
+  assert.deepEqual(fixture.states, ['requesting-microphone']);
+});
+
+test('a canceled permission failure does not surface as a new-session error', async (t) => {
+  const fixture = clientFixture(t);
+  let deny!: (reason: Error) => void;
+  fixture.setMic(() => new Promise((_, reject) => { deny = reject; }));
+  const connecting = fixture.client.connect();
+  fixture.client.disconnect();
+  deny(new Error('Permission denied'));
+  await connecting;
+  assert.deepEqual(fixture.states, ['requesting-microphone']);
+});
+
+test('a late session response cannot attach audio after Stop', async (t) => {
+  const fixture = clientFixture(t);
+  let respond!: (response: Response) => void;
+  let requested!: () => void;
+  const requestStarted = new Promise<void>(resolve => { requested = resolve; });
+  fixture.setAnswer(() => new Promise(resolve => { respond = resolve; requested(); }));
+  const connecting = fixture.client.connect();
+  await requestStarted;
+  fixture.client.disconnect();
+  respond(Response.json({ transport: { type: 'webrtc', sdp: 'late-answer' } }));
+  await connecting;
+  assert.equal(fixture.stopped(), 1);
+  assert.equal(fixture.remoteDescriptions(), 0);
+});
+
+test('a server close cancels the opening guard and releases the microphone', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const fixture = clientFixture(t);
+  await fixture.client.connect();
+  fixture.channel.emit('session.started');
+  fixture.channel.emit('session.closed');
+  t.mock.timers.tick(25_000);
+  assert.equal(fixture.stopped(), 1);
+  assert.equal(fixture.track.enabled, false);
+  assert.equal(fixture.states.at(-1), 'closed');
+});
