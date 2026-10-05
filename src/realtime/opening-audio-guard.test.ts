@@ -57,3 +57,49 @@ test('a missing greeting has a bounded fallback instead of trapping the micropho
   t.mock.timers.tick(1);
   assert.equal(track.enabled, true);
 });
+
+test('the remote audio analyser releases the mic and cleans up after actual silence', (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout', 'setInterval'] });
+  let clock = 1000;
+  let amplitude = 0;
+  let closed = 0;
+  let disconnected = 0;
+  t.mock.method(performance, 'now', () => clock);
+  const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'AudioContext');
+  t.after(() => {
+    if (descriptor) Object.defineProperty(globalThis, 'AudioContext', descriptor);
+    else Reflect.deleteProperty(globalThis, 'AudioContext');
+  });
+  class AudioContextFixture {
+    state = 'running';
+    createAnalyser() {
+      return { fftSize: 1024, getFloatTimeDomainData: (samples: Float32Array) => samples.fill(amplitude) };
+    }
+    createMediaStreamSource() {
+      return { connect: () => {}, disconnect: () => { disconnected++; } };
+    }
+    resume() { return Promise.resolve(); }
+    close() { closed++; return Promise.resolve(); }
+  }
+  Object.defineProperty(globalThis, 'AudioContext', { configurable: true, value: AudioContextFixture });
+  const { track, stream } = microphone();
+  const guard = new OpeningAudioGuard(stream, () => {});
+  guard.watch(stream);
+  guard.start();
+  t.mock.timers.tick(500);
+  assert.equal(track.enabled, false);
+  amplitude = 0.1;
+  t.mock.timers.tick(50);
+  amplitude = 0;
+  clock = 1699;
+  t.mock.timers.tick(50);
+  assert.equal(track.enabled, false);
+  clock = 1700;
+  t.mock.timers.tick(50);
+  assert.equal(track.enabled, true);
+  assert.equal(closed, 1);
+  assert.equal(disconnected, 1);
+  guard.dispose();
+  t.mock.timers.tick(20_000);
+  assert.equal(closed, 1);
+});
