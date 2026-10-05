@@ -184,7 +184,22 @@ function handleRealtimeEvent(event: RealtimeServerEvent): void {
     case 'error': setStatus('Er ging iets mis. Probeer opnieuw.'); return;
   }
 }
-function handleStateChange(state: RealtimeConnectionState): void { switch (state) { case 'requesting-microphone': setStatus('Microfoon openen…'); break; case 'connecting': setStatus('Verbinding maken…'); break; case 'ready': setStatus('De situatie begint…'); try { client?.send({ type: 'session.instructions.append', delegation_id: null, content: `Speak first in Dutch with exactly this opening line, then listen: ${session?.encounter.openingLine || ''}` }); } catch (error) { console.error('Could not start encounter:', error); } break; case 'error': setStatus('Verbinding mislukt. Probeer opnieuw.'); break; case 'closed': if (active) setStatus('Sessie beëindigd'); break; } }
+function handleStateChange(state: RealtimeConnectionState): void {
+  switch (state) {
+    case 'requesting-microphone': setStatus('Microfoon openen…'); break;
+    case 'connecting': setStatus('Verbinding maken…'); break;
+    case 'ready':
+      setStatus('De situatie begint…');
+      try {
+        client?.send({ type: 'session.instructions.append', event_id: 'encounter-opening', delegation_id: null,
+          content: `Speak first now in Dutch with exactly this opening line, once, then listen silently: ${session?.encounter.openingLine || ''}` });
+      } catch (error) { console.error('Could not start encounter:', error); }
+      break;
+    case 'listening': setVisualizer(true); setStatus('Ik luister…'); break;
+    case 'error': setStatus('Verbinding mislukt. Probeer opnieuw.'); break;
+    case 'closed': if (active) setStatus('Sessie beëindigd'); break;
+  }
+}
 function refreshCompletionMessages(): void {
   if (!session) return;
   const evidence = session.evidence;
