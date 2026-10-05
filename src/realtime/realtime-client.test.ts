@@ -25,7 +25,10 @@ function clientFixture(t: TestContext) {
   }
   const channel = new Channel();
   let remoteDescriptions = 0;
+  let peer: Peer;
   class Peer extends EventTarget {
+    constructor() { super(); peer = this; }
+    ontrack: ((event: { streams: MediaStream[] }) => void) | null = null;
     iceGatheringState = 'complete';
     connectionState = 'new';
     localDescription = { type: 'offer', sdp: 'offer' };
@@ -44,6 +47,7 @@ function clientFixture(t: TestContext) {
   const client = new RealtimeClient({ apiBase: '/api', word: 'nieuwsgierig', instructions: 'prompt', onStateChange: state => states.push(state) });
   t.after(() => client.disconnect());
   return { client, channel, track, states, stream, stopped: () => stopped,
+    remoteTrack: () => peer.ontrack?.({ streams: [stream] }),
     remoteDescriptions: () => remoteDescriptions,
     setMic: (fn: typeof getMic) => { getMic = fn; },
     setAnswer: (fn: typeof answer) => { answer = fn; } };
@@ -112,4 +116,18 @@ test('a server close cancels the opening guard and releases the microphone', asy
   assert.equal(fixture.stopped(), 1);
   assert.equal(fixture.track.enabled, false);
   assert.equal(fixture.states.at(-1), 'closed');
+});
+
+test('an early audio-analysis fallback reports input availability after readiness, once', async (t) => {
+  const fixture = clientFixture(t);
+  replaceGlobal(t, 'AudioContext', undefined);
+  t.mock.method(console, 'warn', () => {});
+  await fixture.client.connect();
+  fixture.remoteTrack();
+  assert.equal(fixture.track.enabled, true);
+  assert.equal(fixture.states.includes('listening'), false);
+  fixture.channel.emit('session.started');
+  assert.deepEqual(fixture.states.slice(-2), ['ready', 'listening']);
+  fixture.channel.emit('session.started');
+  assert.equal(fixture.states.filter(state => state === 'listening').length, 1);
 });
