@@ -33,7 +33,11 @@ export class RealtimeClient {
         noiseSuppression: true,
         autoGainControl: true,
       },
+    }).catch((error: unknown) => {
+      if (connectionId !== this.connectionId) return null;
+      throw error;
     });
+    if (!localStream) return;
     if (connectionId !== this.connectionId) {
       localStream.getTracks().forEach(track => track.stop());
       return;
@@ -70,18 +74,26 @@ export class RealtimeClient {
             this.openingGuard?.start();
             this.options.onStateChange?.('ready');
           }
-          if (parsed.type === 'session.closed') this.options.onStateChange?.('closed');
+          if (parsed.type === 'session.closed') {
+            this.disconnect();
+            this.options.onStateChange?.('closed');
+          }
           this.options.onEvent?.(parsed);
         } catch {
           // Ignore malformed diagnostic events instead of breaking the session.
         }
       });
       dc.addEventListener('close', () => {
-        if (connectionId === this.connectionId) this.options.onStateChange?.('closed');
+        if (connectionId !== this.connectionId) return;
+        this.disconnect();
+        this.options.onStateChange?.('closed');
       });
 
       pc.addEventListener('connectionstatechange', () => {
-        if (pc.connectionState === 'failed') this.options.onStateChange?.('error');
+        if (connectionId === this.connectionId && pc.connectionState === 'failed') {
+          this.disconnect();
+          this.options.onStateChange?.('error');
+        }
       });
 
       const offer = await pc.createOffer();
@@ -147,14 +159,16 @@ export class RealtimeClient {
   }
 
   private waitForIceGatheringComplete(pc: RTCPeerConnection): Promise<void> {
-    if (pc.iceGatheringState === 'complete') return Promise.resolve();
+    if (pc.iceGatheringState === 'complete' || pc.connectionState === 'closed') return Promise.resolve();
     return new Promise(resolve => {
       const onStateChange = () => {
-        if (pc.iceGatheringState !== 'complete') return;
+        if (pc.iceGatheringState !== 'complete' && pc.connectionState !== 'closed') return;
         pc.removeEventListener('icegatheringstatechange', onStateChange);
+        pc.removeEventListener('connectionstatechange', onStateChange);
         resolve();
       };
       pc.addEventListener('icegatheringstatechange', onStateChange);
+      pc.addEventListener('connectionstatechange', onStateChange);
     });
   }
 }
