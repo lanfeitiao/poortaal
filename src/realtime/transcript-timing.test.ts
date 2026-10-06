@@ -11,6 +11,23 @@ test('raw audio timestamps survive delayed delivery unchanged', () => {
   assert.equal(part.timingSource, 'audio');
 });
 
+test('an untimed compound-word suffix can reconcile across an echoed reply', () => {
+  for (const arrival of [3300, 8000]) {
+    const fragments: TranscriptFragment[] = [];
+    fragments.push(createTranscriptFragment(fragments, 'user', 'Wat betekent rond', 0, 3000, 1000, 2100));
+    fragments.push(createTranscriptFragment(fragments, 'tutor', 'Rondlopen', 1, 3200, 2150, 2350));
+    const tail = createTranscriptFragment(fragments, 'user', 'lopen?', 2, arrival, undefined, undefined);
+    assert.equal(tail.timingSource, 'estimated');
+    fragments.push(tail);
+    const groups = groupTranscriptFragments(fragments);
+    assert.deepEqual(groups.map(group => group.text), arrival === 3300
+      ? ['Wat betekent rondlopen?', 'Rondlopen']
+      : ['Wat betekent rond', 'Rondlopen', 'lopen?']);
+    assert.equal(fragments[0].endMs, 2100);
+    assert.equal(fragments[1].startMs, 2150);
+  }
+});
+
 test('missing timing reconciles a delayed tail but retains elapsed time for a new turn', () => {
   const fragments: TranscriptFragment[] = [];
   fragments.push(createTranscriptFragment(fragments, 'user', 'Misschien ', 0, 3000, 1000, 2100));

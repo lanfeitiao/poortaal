@@ -86,6 +86,37 @@ test('both the echoed word and its delayed suffix may span several deltas', () =
   ]);
 });
 
+test('word-tail reconciliation preserves genuine new replies and completed questions', () => {
+  for (const [prefix, reply, tail, start] of [
+    ['Wat betekent rond?', 'Rondlopen', 'lopen', 2400],
+    ['Wat betekent rond', 'Rondlopen?', 'lopen', 2400],
+    ['Wat betekent rond', 'Wandelen', 'lopen', 2400],
+    ['Wat betekent rond', 'Rondlopen', 'lopen is leuk', 2400],
+    ['Wat betekent rond', 'Rondlopen', 'lopen', 2401],
+    ['Wat betekent rond', 'Rondlopen', 'Lopen', 2400],
+  ] as const) {
+    const groups = groupTranscriptFragments([
+      fragment('user', 1000, 2100, prefix, 0),
+      fragment('tutor', 2150, 2350, reply, 1),
+      fragment('user', start, start + 200, tail, 2),
+    ]);
+    assert.deepEqual(groups.map(group => group.text), [prefix, reply, tail]);
+  }
+});
+
+test('a repaired suffix does not consume the next independent learner turn', () => {
+  const groups = groupTranscriptFragments([
+    fragment('user', 1000, 2100, 'Wat betekent rond', 0),
+    fragment('tutor', 2150, 2350, 'Rondlopen', 1),
+    fragment('user', 2400, 2600, 'lopen?', 2),
+    fragment('tutor', 2650, 3500, ' is samen rondwandelen.', 3),
+    fragment('user', 4000, 4500, 'Dank je.', 4),
+  ]);
+  assert.deepEqual(groups.map(group => group.text), [
+    'Wat betekent rondlopen?', 'Rondlopen is samen rondwandelen.', 'Dank je.',
+  ]);
+});
+
 test('a short acknowledgment does not absorb a completed sentence or a distant new turn', () => {
   for (const [text, start] of [['Ik kies fruit.', 2400], ['Ik kies ', 5000]] as const) {
     const groups = groupTranscriptFragments([
