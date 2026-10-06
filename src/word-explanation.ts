@@ -1,3 +1,5 @@
+import { validateWordUsage, WORD_USAGE_RULES, type WordUsage } from './word-usage.ts';
+
 export type ChatMessage = {
   role: 'system' | 'user' | 'assistant';
   content: string;
@@ -16,6 +18,7 @@ export type WordExplanation = {
   examples: [WordExample, WordExample];
   tips: string;
   fun_fact: string | null;
+  usage?: WordUsage[];
 };
 
 type ChatCompletion = (
@@ -79,6 +82,12 @@ export function validateWordExplanation(value: unknown): WordExplanation {
     throw new InvalidWordExplanationError('fun_fact must be a string or null');
   }
 
+  let usage: WordUsage[] | undefined;
+  if (value.usage !== undefined) {
+    try { usage = validateWordUsage(value.usage); }
+    catch { throw new InvalidWordExplanationError('Invalid word usage'); }
+  }
+
   return {
     word: requireNonEmptyString(value, 'word'),
     type: requireNonEmptyString(value, 'type'),
@@ -87,6 +96,7 @@ export function validateWordExplanation(value: unknown): WordExplanation {
     examples,
     tips: requireNonEmptyString(value, 'tips'),
     fun_fact: funFact as string | null,
+    ...(usage === undefined ? {} : { usage }),
   };
 }
 
@@ -126,7 +136,7 @@ async function requestWordExplanation(
   let raw: string;
   try {
     raw = await completeChat([
-      { role: 'system', content: WORD_EXPLANATION_SYSTEM_PROMPT },
+      { role: 'system', content: `${WORD_EXPLANATION_SYSTEM_PROMPT}\n${WORD_USAGE_RULES}` },
       { role: 'user', content: word },
     ]);
   } catch (error) {
