@@ -2,7 +2,7 @@ import {
   OpenAIRequestError,
   requestOpenAIChat,
 } from './openai-client';
-import { consumeRealtimePracticeCompletion, resetRealtimeEncounterUi } from './realtime/encounter-controller';
+import { consumeRealtimePracticeCompletion, resetRealtimeEncounterUi, stopRealtimeEncounter } from './realtime/encounter-controller';
 import { enrichWordUsage } from './usage-generation';
 import { renderWordUsage, renderPracticeUsage } from './word-usage-ui';
 import { cloudWordLearning, getWordAttempts, learningOwner, setLearningOwner, clearWordLearning, recordWordAttempt } from './learning-store';
@@ -219,6 +219,7 @@ let reviewRevealed = false;
 let reviewSessionActive = false;
 let currentReviewPrompt: ReturnType<typeof wordReview> | null = null;
 let practiceLoading = false;
+let practiceGeneration = 0;
 let microReviewTimer: ReturnType<typeof setTimeout> | null = null;
 let microReviewInterval: ReturnType<typeof setInterval> | null = null;
 let microReviewPrompt: ReturnType<typeof wordReview> | null = null;
@@ -475,6 +476,7 @@ function handleRoute() {
   document.getElementById('nav-practice').classList.toggle('active', isPractice);
   document.getElementById('nav-review').classList.toggle('active', isReview);
   if (isPractice) renderPracticeHistoryList();
+  else { stopRealtimeEncounter(); resetPracticeFeedback(); practiceGeneration++; }
   if (isReview) renderReviewHome(); else resetReviewSessionIfActive();
 }
 window.addEventListener('hashchange', handleRoute);
@@ -673,12 +675,51 @@ function renderWordCard(data: WordExplanation) {
 }
 
 // --- Practice ---
-function goToPractice(word: string) { navigateTo('#practice'); setTimeout(() => startPracticeForWord(word), 50); }
+function goToPractice(word: string, usage?: number) { navigateTo('#practice'); setTimeout(() => { void startPracticeForWord(word, usage); }, 50); }
 function renderPracticeHistoryList() { const list = document.getElementById('practiceHistoryList'); const wordsWithData = searchHistory.filter(h => h.wordData); if (wordsWithData.length === 0) { list.innerHTML = '<div class="history-empty" style="padding:2rem 0;">Zoek eerst een woord op om mee te oefenen</div>'; return; } list.innerHTML = wordsWithData.map(entry => { const safe = escapeHtml(entry.word); const safeAttr = safe.replace(/"/g, '&quot;'); const plant = getPlantStage(entry.word); const status = escapeHtml(plant.hint || plant.label); return `<li data-action="start-practice-word" data-word="${safeAttr}"><span class="word-label">${safe}</span><span class="word-type-hint">${plant.emoji} ${status}</span></li>`; }).join(''); }
 function startPracticeWithInput() { const input = document.getElementById('practiceWordInput') as HTMLInputElement; const word = input.value.trim(); if (!word) return; input.value = ''; startPracticeForWord(word); }
-function showPracticePicker() { const practicedWord = document.getElementById('practiceChatWord')?.textContent?.toLowerCase()?.trim(); const textCompleted = practiceMessages.some(m => m.role === 'user'); const voiceCompleted = consumeRealtimePracticeCompletion(); if (practicedWord && (textCompleted || voiceCompleted)) { updateWordStats(practicedWord, 'practice'); renderHistory(); } document.getElementById('practicePickerSection').style.display = ''; document.getElementById('practiceChatSection').style.display = 'none'; switchPracticeMode('voice'); practiceMessages = []; resetRealtimeEncounterUi(); }
-function startPracticeForWord(word: string) {
-  const entry = searchHistory.find(h => h.word === word.toLowerCase()); const wordData = entry?.wordData || { word, meaning_en: '' }; document.getElementById('practicePickerSection').style.display = 'none'; document.getElementById('practiceChatSection').style.display = ''; document.getElementById('practiceChatWord').textContent = wordData.word; practiceMessages = []; resetRealtimeEncounterUi(); switchPracticeMode('voice');
+function showPracticePicker(recordCompletion = true) {
+  practiceGeneration++; resetPracticeFeedback();
+  const word = document.getElementById('practiceChatWord').textContent?.toLowerCase().trim();
+  const completed = consumeRealtimePracticeCompletion() || practiceMessages.some(m => m.role === 'user');
+  if (recordCompletion && word && completed) { updateWordStats(word, 'practice'); renderHistory(); }
+  document.getElementById('practicePickerSection').style.display = '';
+  document.getElementById('practiceChatSection').style.display = 'none';
+  practiceMessages = []; practiceLoading = false; clearPracticeContext();
+  resetRealtimeEncounterUi(); switchPracticeMode('voice');
+}
+window.addEventListener('poortaal:learning-owner', () => { stopRealtimeEncounter(); showPracticePicker(false); });
+
+async function startPracticeForWord(word: string, usage?: number) {
+  const ticket = ++practiceGeneration;
+  stopRealtimeEncounter(); resetPracticeFeedback(); clearPracticeContext();
+  const key = word.toLowerCase().trim();
+  let data = getCachedWord(key) || searchHistory.find(h => h.word === key)?.wordData;
+  document.getElementById('practicePickerSection').style.display = 'none';
+  document.getElementById('practiceChatSection').style.display = '';
+  document.getElementById('practiceChatWord').textContent = data?.word || word;
+  document.getElementById('practiceUsage')!.innerHTML = '';
+  practiceMessages = []; practiceLoading = false; resetRealtimeEncounterUi(); switchPracticeMode('voice');
+  const start = document.getElementById('voiceStartBtn') as HTMLButtonElement;
+  const textMode = document.getElementById('textModeBtn') as HTMLButtonElement;
+  start.disabled = true; textMode.disabled = true;
+  document.getElementById('voiceStatus').textContent = 'Een toepassing voorbereiden…';
+  try {
+    if (!data) {
+      data = await generateWordExplanation(word, callOpenAI);
+      if (ticket !== practiceGeneration) return;
+      setWordCache(key, data); addToHistory(key, data);
+    }
+    data = await loadWordUsage(data);
+  } catch { /* Basic word practice remains available if enrichment fails. */ }
+  finally {
+    if (ticket === practiceGeneration) {
+      setPracticeContext(data || { word }, getWordStats()[key]?.practices || 0, usage);
+      document.getElementById('practiceUsage')!.innerHTML = renderPracticeUsage(getPracticeContext());
+      start.disabled = false; textMode.disabled = false;
+      document.getElementById('voiceStatus').textContent = 'Druk op de knop om te beginnen';
+    }
+  }
 }
 async function startTextPracticeScenario() {
   if (practiceMessages.length > 0 || practiceLoading) return;
