@@ -7,6 +7,7 @@ export function buildTutorInstructions(encounter: Encounter): string {
 CURRENT TARGET WORD: "${encounter.targetWord}"
 SCENARIO: ${encounter.setup}
 LEARNER OBJECTIVE: ${encounter.objective}
+FOCUSED USE: ${encounter.usage?.chunk || 'Any natural use of this word'}
 OPENING LINE: ${encounter.openingLine}
 
 Your job is to create a natural opportunity for the learner to use the current target word, while keeping the broader speaking session open and learner-led.
@@ -20,6 +21,8 @@ Rules:
 - Speak naturally but slightly slower than normal conversation.
 - Wait for the client's opening instruction, then say the opening line exactly once.
 - Do not quiz the learner about grammar or definitions.
+- Invite the focused use naturally, accepting inflections and other correct ways to communicate the objective. Never require an exact phrase.
+- You may ask one natural follow-up to help the learner explain a reason or clarify their idea.
 - Do not correct minor mistakes during the conversation.
 - Only repair an error immediately if meaning is blocked.
 - Allow the learner time to think. Do not fill every silence.
