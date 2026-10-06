@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { validateWordUsage } from './word-usage.ts';
-import { validateWordExplanation, type WordExplanation } from './word-explanation.ts';
+import { readSavedWordExplanation, validateWordExplanation, type WordExplanation } from './word-explanation.ts';
 import { enrichWordUsage } from './usage-generation.ts';
 import { renderWordUsage } from './word-usage-ui.ts';
 
@@ -10,6 +10,10 @@ const legacy: WordExplanation = { word: 'afspraak', type: 'zelfstandig naamwoord
 
 test('legacy cached words remain valid without fabricated usage data', () => {
   assert.deepEqual(validateWordExplanation(legacy), legacy);
+});
+test('restoring history rejects corrupted usages before review or practice can read them', () => {
+  assert.deepEqual(readSavedWordExplanation(legacy), legacy);
+  assert.equal(readSavedWordExplanation({ ...legacy, usage: 'invalid' }), undefined);
 });
 test('new explanations validate attached uses and reject malformed or duplicated ones', () => {
   assert.deepEqual(validateWordExplanation({ ...legacy, usage: [use] }).usage, [use]);

@@ -14,6 +14,7 @@ import {
   InvalidWordExplanationError,
   WordExplanationRequestError,
   validateWordExplanation,
+  readSavedWordExplanation,
   type ChatMessage,
   type WordExplanation,
 } from './word-explanation';
@@ -28,7 +29,7 @@ type HistoryEntry = { word: string; timestamp: number; wordData?: WordExplanatio
 type ReviewItem = { entry: HistoryEntry; stats: Partial<WordStats>; level: number; isDue: boolean; isWilting: boolean; overdueDays: number };
 type DailyWord = { word: string; category: string; teaser: string };
 type CloudWord = { word: string; lookups?: number; practices?: number; reviews?: number[]; level?: number; last_seen?: number; word_data?: unknown };
-type CloudHistoryEntry = { word: string; timestamp?: number; word_data?: WordExplanation };
+type CloudHistoryEntry = { word: string; timestamp?: number; word_data?: unknown };
 type AuthSession = { user: AppUser } | null;
 
 // --- Supabase ---
@@ -104,9 +105,9 @@ async function syncFromCloud() {
           level: cw.level || 0,
           lastSeen: cw.last_seen || Date.now(),
         };
-        if (cw.word_data) {
+        const cloud = readSavedWordExplanation(cw.word_data);
+        if (cloud) {
           const local = getCachedWord(cw.word);
-          const cloud = cw.word_data as Partial<WordExplanation>;
           setWordCache(cw.word, { ...cloud, usage: cloud.usage ?? local?.usage });
         }
       }
@@ -116,6 +117,7 @@ async function syncFromCloud() {
       if (currentUser?.id !== userId) return;
       await saveWordStatsToCloud(word);
     }
+    if (currentUser?.id !== userId) return;
 
     {
       const cloudMap = new Map(cloudHistory.map(h => [h.word, h]));
@@ -123,7 +125,7 @@ async function syncFromCloud() {
       const merged: HistoryEntry[] = cloudHistory.map(h => ({
         word: h.word,
         timestamp: h.timestamp || Date.now(),
-        wordData: getCachedWord(h.word) || h.word_data || undefined,
+        wordData: getCachedWord(h.word) || readSavedWordExplanation(h.word_data),
       }));
       merged.push(...localOnly);
       merged.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
@@ -140,6 +142,7 @@ async function syncFromCloud() {
         await supabaseClient.from('user_history').upsert(rows, { onConflict: 'user_id,word' });
       }
       const cloudWordSet = new Set(cloudWords.map(w => w.word));
+      if (currentUser?.id !== userId) return;
       const localOnlyStats = Object.entries(localStats).filter(([w]) => !cloudWordSet.has(w));
       if (localOnlyStats.length > 0) {
         const rows = localOnlyStats.map(([w, s]) => ({
@@ -210,7 +213,9 @@ async function initAuth() {
 // --- State ---
 const API_BASE = 'https://poortaal-api.weilin1990.workers.dev';
 const storedHistory = JSON.parse(localStorage.getItem('poortaal_history') || '[]') as Array<HistoryEntry | string>;
-let searchHistory: HistoryEntry[] = storedHistory.map(item => typeof item === 'string' ? { word: item, timestamp: Date.now() } : item);
+let searchHistory: HistoryEntry[] = storedHistory.map(item => typeof item === 'string'
+  ? { word: item, timestamp: Date.now() }
+  : { ...item, wordData: readSavedWordExplanation(item.wordData) });
 if (storedHistory.some(item => typeof item === 'string')) {
   localStorage.setItem('poortaal_history', JSON.stringify(searchHistory));
 }

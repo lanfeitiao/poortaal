@@ -110,6 +110,11 @@ function parseWordExplanation(raw: string): WordExplanation {
   return validateWordExplanation(parsed);
 }
 
+export function readSavedWordExplanation(value: unknown): WordExplanation | undefined {
+  try { return validateWordExplanation(value); }
+  catch { return undefined; }
+}
+
 function cleanJsonResponse(raw: string): string {
   let cleaned = raw.trim();
   if (cleaned.startsWith('```')) {
