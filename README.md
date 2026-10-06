@@ -43,6 +43,21 @@ AI is used where context matters: generating structured word explanations and cr
 
 The realtime tutor is an experimental part of the project. It uses short generated encounters and progressive scaffolding so the learner gets support when needed without immediately being given the answer.
 
+Each word can also carry up to two common collocations or sentence frames. Older saved words are enriched when opened, keeping their original definition and examples. Review varies the task inside the same word card: meaning, collocation recall, or a short contextual response. Practice selects a use that needs attention and creates another everyday situation around it.
+
+After text or voice practice, a short reflection quotes the learner's own words, offers at most one correction, and invites a one-sentence retry. Optional naturalness suggestions are distinguished from errors. Learners can dismiss incorrect feedback. Hints and retries count as supported use; self-graded review does not count as independent conversation output. These observations stay attached to the word and inform later review and practice.
+
+Learning observations are saved locally per account and synced through the existing `user_words.word_data` JSON field; no database migration is needed. Voice finishing mutes input and briefly drains late captions before analysis. Unsettled or failed transcripts do not produce a learning assessment, and text analysis does not assess pronunciation.
+
+## Checking the learning loop
+
+Run `npm test`, `npm run eval:words` (offline fixture validation), and `npm run build` for the automated checks. To check the interaction locally with `npm run dev`:
+
+1. Look up **afspraak** and open its attached application, then start practice from the word.
+2. Try “Ik wil een afspraak doen” in text practice, finish, and inspect the quoted correction. Try again with **maken**; the retry should count as supported use.
+3. Dismiss feedback and check that its observation no longer appears in the next practice instructions. Review the same word: reveal before grading; a successful self-grade should not become an independent attempt.
+4. In voice practice, stop while a last caption is arriving. Check that input is muted, the final caption is included, and the microphone is released. Also leave during generation/analysis and switch accounts: no stale feedback should be saved to the next session or account.
+
 ## Built with
 
 **TypeScript · Vite · OpenAI · OpenAI Realtime · Cloudflare Workers · Supabase**
