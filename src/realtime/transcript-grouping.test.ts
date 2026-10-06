@@ -134,6 +134,35 @@ test('a repaired suffix does not consume a later independent tutor turn', () => 
   }
 });
 
+test('out-of-order word tails use the timing source at their chronological start', () => {
+  for (const firstSource of ['audio', 'estimated'] as const) {
+    const groups = groupTranscriptFragments([
+      fragment('user', 1000, 2100, 'Wat betekent rond', 0),
+      fragment('tutor', 2150, 2350, 'Rondlopen', 1),
+      { ...fragment('user', 4100, 4200, 'pen?', 2), timingSource: firstSource === 'audio' ? 'estimated' : 'audio' },
+      { ...fragment('user', 4000, 4050, 'lo', 3), timingSource: firstSource },
+    ]);
+    assert.deepEqual(groups.map(group => group.text), firstSource === 'audio'
+      ? ['Wat betekent rond', 'Rondlopen', 'lopen?']
+      : ['Wat betekent rondlopen?', 'Rondlopen']);
+  }
+});
+
+test('out-of-order reply tails use the timing source at their chronological start', () => {
+  for (const firstSource of ['audio', 'estimated'] as const) {
+    const groups = groupTranscriptFragments([
+      fragment('user', 1000, 2100, 'Wat betekent rond', 0),
+      fragment('tutor', 2150, 2350, 'Rondlopen', 1),
+      fragment('user', 2400, 2600, 'lopen?', 2),
+      { ...fragment('tutor', 4100, 4200, ' samen rondwandelen.', 3), timingSource: firstSource === 'audio' ? 'estimated' : 'audio' },
+      { ...fragment('tutor', 4000, 4050, ' is', 4), timingSource: firstSource },
+    ]);
+    assert.deepEqual(groups.map(group => group.text), firstSource === 'audio'
+      ? ['Wat betekent rondlopen?', 'Rondlopen', ' is samen rondwandelen.']
+      : ['Wat betekent rondlopen?', 'Rondlopen is samen rondwandelen.']);
+  }
+});
+
 test('a short acknowledgment does not absorb a completed sentence or a distant new turn', () => {
   for (const [text, start] of [['Ik kies fruit.', 2400], ['Ik kies ', 5000]] as const) {
     const groups = groupTranscriptFragments([

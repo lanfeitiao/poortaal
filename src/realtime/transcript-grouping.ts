@@ -63,13 +63,15 @@ function reconcileEchoedWordTails(
     const reply = groups[index - 1];
     const tail = groups[index];
     const nextReply = groups[index + 1];
-    const firstReply = nextReply && bySequence.get(Math.min(...nextReply.sequences));
+    // Membership is appended in timeline order; minimum sequence is a DOM key,
+    // not the source of the group's earliest audio interval.
+    const firstReply = nextReply && bySequence.get(nextReply.sequences[0]);
     const replyGapLimit = firstReply?.timingSource === 'estimated' ? LATE_TAIL_GAP_MS : CONCURRENT_CAPTION_GAP_MS;
     const replyContinues = nextReply && /[\p{L},:;…]\s*$/u.test(reply.text)
       && /^\s*\p{Ll}/u.test(nextReply.text);
     const replyTail = replyContinues && nextReply?.role === reply.role
       && nextReply.startMs - reply.endMs <= replyGapLimit ? nextReply : undefined;
-    const firstTail = bySequence.get(Math.min(...tail.sequences));
+    const firstTail = bySequence.get(tail.sequences[0]);
     const gapLimit = firstTail?.timingSource === 'estimated' ? LATE_TAIL_GAP_MS : CONCURRENT_CAPTION_GAP_MS;
     if (prefix.role !== tail.role || prefix.role === reply.role
       || tail.startMs - prefix.endMs > gapLimit
