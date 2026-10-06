@@ -33,6 +33,167 @@ test('late earlier text is rebuilt in timeline order', () => {
   assert.equal(groups[0].text, 'Hallo wereld');
 });
 
+test('a delayed unfinished learner tail stays before a short acknowledgment', () => {
+  for (const [prefix, tailStart] of [
+    ['Ik vind um... Misschien ', 2050], ['Ik vind um... Misschien ', 2400],
+    ['Misschien... ', 2400], ['Misschien… ', 2400],
+  ] as const) {
+    const fragments = [
+      fragment('user', 1000, 2100, prefix, 0),
+      fragment('tutor', 2150, 2350, 'Ja.', 1),
+      fragment('user', tailStart, tailStart + 200, 'fruit', 2),
+    ];
+    for (const delivery of [fragments, [fragments[0], fragments[2], fragments[1]]]) {
+      const groups = groupTranscriptFragments(delivery);
+      assert.deepEqual(groups.map(group => [group.role, group.text]), [
+        ['user', `${prefix}fruit`], ['tutor', 'Ja.'],
+      ]);
+      assert.deepEqual(groups[0].sequences.sort(), [0, 2]);
+    }
+  }
+});
+
+test('an echoed compound-word tail repairs both speakers without rewriting delta text', () => {
+  for (const tail of ['lopen', 'lopen?', ' lopen']) {
+    const fragments = [
+      fragment('user', 1000, 2100, 'Oh, wat betekent rond', 0),
+      fragment('tutor', 2150, 2350, 'Rondlopen', 1),
+      fragment('user', 2400, 2600, tail, 2),
+      fragment('tutor', 2650, 3500, ' is samen rondwandelen. Ja.', 3),
+    ];
+    for (const delivery of [fragments, [fragments[0], fragments[2], fragments[1], fragments[3]]]) {
+      const groups = groupTranscriptFragments(delivery);
+      assert.deepEqual(groups.map(group => [group.role, group.text]), [
+        ['user', `Oh, wat betekent rond${tail}`],
+        ['tutor', 'Rondlopen is samen rondwandelen. Ja.'],
+      ]);
+      assert.deepEqual(groups.map(group => group.sequences), [[0, 2], [1, 3]]);
+    }
+  }
+});
+
+test('both the echoed word and its delayed suffix may span several deltas', () => {
+  const fragments = [
+    fragment('user', 1000, 2100, 'Wat betekent rond', 0),
+    fragment('tutor', 2150, 2350, 'Rond', 1),
+    fragment('user', 2400, 2500, 'lo', 2),
+    fragment('tutor', 2550, 2700, 'lopen', 3),
+    fragment('user', 2750, 2850, 'pen?', 4),
+    fragment('tutor', 2900, 3500, ' is samen rondwandelen.', 5),
+  ];
+  assert.deepEqual(groupTranscriptFragments(fragments).map(group => group.text), [
+    'Wat betekent rondlopen?', 'Rondlopen is samen rondwandelen.',
+  ]);
+});
+
+test('word-tail reconciliation preserves genuine new replies and completed questions', () => {
+  for (const [prefix, reply, tail, start] of [
+    ['Wat betekent rond?', 'Rondlopen', 'lopen', 2400],
+    ['Wat betekent rond', 'Rondlopen?', 'lopen', 2400],
+    ['Wat betekent rond', 'Wandelen', 'lopen', 2400],
+    ['Wat betekent rond', 'Rondlopen', 'lopen is leuk', 2400],
+    ['Wat betekent rond', 'Rondlopen', 'lopen', 2401],
+    ['Wat betekent rond', 'Rondlopen', 'Lopen', 2400],
+  ] as const) {
+    const groups = groupTranscriptFragments([
+      fragment('user', 1000, 2100, prefix, 0),
+      fragment('tutor', 2150, 2350, reply, 1),
+      fragment('user', start, start + 200, tail, 2),
+    ]);
+    assert.deepEqual(groups.map(group => group.text), [prefix, reply, tail]);
+  }
+});
+
+test('a repaired suffix does not consume the next independent learner turn', () => {
+  const groups = groupTranscriptFragments([
+    fragment('user', 1000, 2100, 'Wat betekent rond', 0),
+    fragment('tutor', 2150, 2350, 'Rondlopen', 1),
+    fragment('user', 2400, 2600, 'lopen?', 2),
+    fragment('tutor', 2650, 3500, ' is samen rondwandelen.', 3),
+    fragment('user', 4000, 4500, 'Dank je.', 4),
+  ]);
+  assert.deepEqual(groups.map(group => group.text), [
+    'Wat betekent rondlopen?', 'Rondlopen is samen rondwandelen.', 'Dank je.',
+  ]);
+});
+
+test('a repaired suffix does not consume a later independent tutor turn', () => {
+  for (const [start, text] of [
+    [2400, 'Dat klopt.'], [2651, 'Dat klopt.'],
+    [6000, 'Dat klopt.'], [6000, ' dat klopt.'],
+  ] as const) {
+    const groups = groupTranscriptFragments([
+      fragment('user', 1000, 2100, 'Wat betekent rond', 0),
+      fragment('tutor', 2150, 2350, 'Rondlopen', 1),
+      fragment('user', 2400, 2600, 'lopen?', 2),
+      fragment('tutor', start, start + 400, text, 3),
+    ]);
+    assert.deepEqual(groups.map(group => group.text), [
+      'Wat betekent rondlopen?', 'Rondlopen', text,
+    ]);
+  }
+});
+
+test('out-of-order word tails use the timing source at their chronological start', () => {
+  for (const firstSource of ['audio', 'estimated'] as const) {
+    const groups = groupTranscriptFragments([
+      fragment('user', 1000, 2100, 'Wat betekent rond', 0),
+      fragment('tutor', 2150, 2350, 'Rondlopen', 1),
+      { ...fragment('user', 4100, 4200, 'pen?', 2), timingSource: firstSource === 'audio' ? 'estimated' : 'audio' },
+      { ...fragment('user', 4000, 4050, 'lo', 3), timingSource: firstSource },
+    ]);
+    assert.deepEqual(groups.map(group => group.text), firstSource === 'audio'
+      ? ['Wat betekent rond', 'Rondlopen', 'lopen?']
+      : ['Wat betekent rondlopen?', 'Rondlopen']);
+  }
+});
+
+test('out-of-order reply tails use the timing source at their chronological start', () => {
+  for (const firstSource of ['audio', 'estimated'] as const) {
+    const groups = groupTranscriptFragments([
+      fragment('user', 1000, 2100, 'Wat betekent rond', 0),
+      fragment('tutor', 2150, 2350, 'Rondlopen', 1),
+      fragment('user', 2400, 2600, 'lopen?', 2),
+      { ...fragment('tutor', 4100, 4200, ' samen rondwandelen.', 3), timingSource: firstSource === 'audio' ? 'estimated' : 'audio' },
+      { ...fragment('tutor', 4000, 4050, ' is', 4), timingSource: firstSource },
+    ]);
+    assert.deepEqual(groups.map(group => group.text), firstSource === 'audio'
+      ? ['Wat betekent rondlopen?', 'Rondlopen', ' is samen rondwandelen.']
+      : ['Wat betekent rondlopen?', 'Rondlopen is samen rondwandelen.']);
+  }
+});
+
+test('a short acknowledgment does not absorb a completed sentence or a distant new turn', () => {
+  for (const [text, start] of [['Ik kies fruit.', 2400], ['Ik kies ', 5000]] as const) {
+    const groups = groupTranscriptFragments([
+      fragment('user', 1000, 2100, text, 0),
+      fragment('tutor', 2150, 2350, 'Ja.', 1),
+      fragment('user', start, start + 200, 'En jij?', 2),
+    ]);
+    assert.equal(groups.length, 3);
+  }
+});
+
+test('a new answer after an unpunctuated caption is not a delayed tail', () => {
+  for (const text of ['En jij?', 'en jij?', 'ik weet het wel']) {
+    const groups = groupTranscriptFragments([
+      fragment('user', 1000, 2100, 'Ik weet het niet', 0),
+      fragment('tutor', 2150, 2350, 'Ja.', 1),
+      fragment('user', 2400, 2600, text, 2),
+    ]);
+    assert.deepEqual(groups.map(group => group.text), ['Ik weet het niet', 'Ja.', text]);
+  }
+});
+
+test('reliable timing beyond a small caption gap separates even short lowercase speech', () => {
+  const groups = groupTranscriptFragments([
+    fragment('user', 1000, 2100, 'Misschien ', 0),
+    fragment('tutor', 2150, 2350, 'Ja.', 1),
+    fragment('user', 3000, 3200, 'fruit', 2),
+  ]);
+  assert.equal(groups.length, 3);
+});
+
 test('overlapping same-speaker fragments stay together during full duplex speech', () => {
   const groups = groupTranscriptFragments([
     fragment('user', 0, 1000, 'A', 0),
