@@ -585,12 +585,45 @@ function getCachedWord(word: string): WordExplanation | null {
   }
 }
 
+const usageRequests = new Map<string, Promise<WordExplanation>>();
+function loadWordUsage(data: WordExplanation): Promise<WordExplanation> {
+  if (data.usage !== undefined) return Promise.resolve(data);
+  const key = data.word.toLowerCase().trim();
+  const existing = usageRequests.get(key);
+  if (existing) return existing;
+  const owner = learningOwner();
+  const request = enrichWordUsage(data, callOpenAI).then(enriched => {
+    setWordCache(key, enriched);
+    const entry = searchHistory.find(h => h.word === key);
+    if (entry) {
+      entry.wordData = enriched;
+      localStorage.setItem('poortaal_history', JSON.stringify(searchHistory));
+      if (owner === learningOwner()) { void saveHistoryToCloud(key, enriched); void saveWordStatsToCloud(key); }
+    }
+    if (currentWord?.toLowerCase().trim() === key) { currentWordData = enriched; renderWordCard(enriched); }
+    return enriched;
+  }).catch(() => data).finally(() => usageRequests.delete(key));
+  usageRequests.set(key, request);
+  return request;
+}
+window.addEventListener('poortaal:word-learning', event => {
+  const { word, owner } = (event as CustomEvent<{ word: string; owner: string }>).detail;
+  if (owner !== learningOwner()) return;
+  if (currentUser?.id === owner) void saveWordStatsToCloud(word);
+  if (currentWordData?.word.toLowerCase().trim() === word) renderWordCard(currentWordData);
+  updateReviewBadge();
+});
+document.addEventListener('toggle', event => {
+  const details = event.target as HTMLDetailsElement;
+  if (details.matches?.('.practice-use') && details.open) markPracticeHelp();
+}, true);
+
 async function lookupWord() {
-  const input = document.getElementById('wordInput') as HTMLInputElement; const word = input.value.trim(); if (!word) return; const cached = getCachedWord(word); if (cached) { currentWord = word; currentWordData = cached; addToHistory(word, cached); renderWordCard(cached); return; }
+  const input = document.getElementById('wordInput') as HTMLInputElement; const word = input.value.trim(); if (!word) return; currentWord = word; const cached = getCachedWord(word); if (cached) { currentWordData = cached; addToHistory(word, cached); renderWordCard(cached); void loadWordUsage(cached); return; }
   const btn = document.getElementById('searchBtn') as HTMLButtonElement; btn.disabled = true; const content = document.getElementById('content'); content.innerHTML = `<div class="spinner-wrap"><div class="spinner"></div><span>Even denken over "${word}"...</span></div>`;
   try {
     const data = await generateWordExplanation(word, callOpenAI);
-    currentWord = word; currentWordData = data; setWordCache(word, data); addToHistory(word, data); renderWordCard(data);
+    currentWord = word; currentWordData = data; setWordCache(word, data); addToHistory(word, data); renderWordCard(data); void loadWordUsage(data);
   } catch (e) {
     if (e instanceof InvalidWordExplanationError) {
       console.warn('Rejected invalid AI word explanation', e);
