@@ -53,6 +53,39 @@ test('a delayed unfinished learner tail stays before a short acknowledgment', ()
   }
 });
 
+test('an echoed compound-word tail repairs both speakers without rewriting delta text', () => {
+  for (const tail of ['lopen', 'lopen?', ' lopen']) {
+    const fragments = [
+      fragment('user', 1000, 2100, 'Oh, wat betekent rond', 0),
+      fragment('tutor', 2150, 2350, 'Rondlopen', 1),
+      fragment('user', 2400, 2600, tail, 2),
+      fragment('tutor', 2650, 3500, ' is samen rondwandelen. Ja.', 3),
+    ];
+    for (const delivery of [fragments, [fragments[0], fragments[2], fragments[1], fragments[3]]]) {
+      const groups = groupTranscriptFragments(delivery);
+      assert.deepEqual(groups.map(group => [group.role, group.text]), [
+        ['user', `Oh, wat betekent rond${tail}`],
+        ['tutor', 'Rondlopen is samen rondwandelen. Ja.'],
+      ]);
+      assert.deepEqual(groups.map(group => group.sequences), [[0, 2], [1, 3]]);
+    }
+  }
+});
+
+test('both the echoed word and its delayed suffix may span several deltas', () => {
+  const fragments = [
+    fragment('user', 1000, 2100, 'Wat betekent rond', 0),
+    fragment('tutor', 2150, 2350, 'Rond', 1),
+    fragment('user', 2400, 2500, 'lo', 2),
+    fragment('tutor', 2550, 2700, 'lopen', 3),
+    fragment('user', 2750, 2850, 'pen?', 4),
+    fragment('tutor', 2900, 3500, ' is samen rondwandelen.', 5),
+  ];
+  assert.deepEqual(groupTranscriptFragments(fragments).map(group => group.text), [
+    'Wat betekent rondlopen?', 'Rondlopen is samen rondwandelen.',
+  ]);
+});
+
 test('a short acknowledgment does not absorb a completed sentence or a distant new turn', () => {
   for (const [text, start] of [['Ik kies fruit.', 2400], ['Ik kies ', 5000]] as const) {
     const groups = groupTranscriptFragments([

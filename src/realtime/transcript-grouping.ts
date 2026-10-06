@@ -44,6 +44,46 @@ export function looksLikeCaptionContinuation(previousText: string, nextText: str
     && nextText.trim().split(/\s+/u).length <= 3;
 }
 
+function looksLikeEchoedWordTail(previous: string, tail: string, reply: string): boolean {
+  // A word can span deltas without a joining space. Require the nearby reply
+  // to echo that word, rather than guessing that any lowercase reply is a tail.
+  const prefix = previous.match(/(\p{L}+)\s*$/u)?.[1];
+  const suffix = tail.match(/^\s*(\p{Ll}\p{L}*)[.!?,…]*\s*$/u)?.[1];
+  const echo = reply.match(/^\s*["“']?(\p{L}+)(?=$|[\s.!,:;”"'])/u)?.[1];
+  return !!prefix && !!suffix && !!echo && !reply.includes('?')
+    && echo.toLowerCase().startsWith((prefix + suffix).toLowerCase());
+}
+
+function reconcileEchoedWordTails(
+  groups: TranscriptGroup[], fragments: TranscriptFragment[],
+): TranscriptGroup[] {
+  for (let index = 2; index < groups.length; index += 1) {
+    const prefix = groups[index - 2];
+    const reply = groups[index - 1];
+    const tail = groups[index];
+    const replyTail = groups[index + 1]?.role === reply.role ? groups[index + 1] : undefined;
+    const firstTail = fragments.find(part => part.sequence === Math.min(...tail.sequences));
+    const gapLimit = firstTail?.timingSource === 'estimated' ? LATE_TAIL_GAP_MS : CONCURRENT_CAPTION_GAP_MS;
+    if (prefix.role !== tail.role || prefix.role === reply.role
+      || tail.startMs - prefix.endMs > gapLimit
+      || !looksLikeEchoedWordTail(prefix.text, tail.text, reply.text + (replyTail?.text ?? ''))) continue;
+
+    prefix.text += tail.text;
+    prefix.endMs = Math.max(prefix.endMs, tail.endMs);
+    prefix.sequences.push(...tail.sequences);
+    groups.splice(index, 1);
+    // Removing a delayed tail also removes the apparent handoff inside the reply.
+    if (replyTail) {
+      reply.text += replyTail.text;
+      reply.endMs = Math.max(reply.endMs, replyTail.endMs);
+      reply.sequences.push(...replyTail.sequences);
+      groups.splice(index, 1);
+    }
+    index = Math.max(1, index - 2);
+  }
+  return groups;
+}
+
 export function groupTranscriptFragments(
   fragments: TranscriptFragment[],
 ): TranscriptGroup[] {
@@ -96,5 +136,6 @@ export function groupTranscriptFragments(
     maxEndByRole[fragment.role] = Math.max(maxEndByRole[fragment.role] ?? Number.NEGATIVE_INFINITY, fragment.endMs);
   }
 
-  return groups.sort((a, b) => a.startMs - b.startMs || Math.min(...a.sequences) - Math.min(...b.sequences));
+  groups.sort((a, b) => a.startMs - b.startMs || Math.min(...a.sequences) - Math.min(...b.sequences));
+  return reconcileEchoedWordTails(groups, ordered);
 }
