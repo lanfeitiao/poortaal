@@ -263,6 +263,39 @@ export async function toggleRealtimeEncounter(): Promise<void> {
   client = new RealtimeClient({ apiBase: API_BASE, word, instructions: buildTutorInstructions(encounter), backendInstructions: buildBackendInstructions(encounter), onEvent: handleRealtimeEvent, onStateChange: handleStateChange });
   try { await client.connect(); } catch (error) { console.error('GPT-Live connection failed:', error); appendMessage('system', 'Could not start the voice encounter. Please try again.'); stopRealtimeEncounter(false); }
 }
-export function stopRealtimeEncounter(resetStatus = true): void { generationId += 1; generating = false; if (completionTimer && session?.evidence.successfulProduction && !completionShown) showCompletion(); if (transcriptIdleTimer) clearTimeout(transcriptIdleTimer); transcriptIdleTimer = null; if (completionTimer) clearTimeout(completionTimer); completionTimer = null; client?.disconnect(); client = null; active = false; setVisualizer(false); setButton('🎙️ Start encounter'); if (resetStatus) setStatus('Klaar voor een korte encounter'); }
+async function finishRealtimeEncounter(): Promise<void> {
+  const context = getPracticeContext();
+  const currentClient = client; const currentSession = session;
+  if (!context || !currentClient || !currentSession || (!microphoneReady && !timelineTranscriptFragments.some(f => f.role === 'user'))) {
+    stopRealtimeEncounter(); return;
+  }
+  const token = generationId; const owner = learningOwner();
+  const current = () => token === generationId && client === currentClient && session === currentSession;
+  finishing = true; microphoneReady = false;
+  currentClient.pauseInput(); setVisualizer(false); setButton('Gesprek afronden…');
+  const button = el('voiceStartBtn') as HTMLButtonElement | null;
+  if (button) button.disabled = true;
+  setStatus('Je laatste woorden verwerken…');
+  const settled = await waitForTranscriptIdle(() => lastCaptionReceivedAtMs, current);
+  if (!current()) return;
+  const turns = groupTranscriptFragments(timelineTranscriptFragments).map(g => ({
+    role: g.role === 'user' ? 'user' as const : 'assistant' as const, content: g.text,
+  }));
+  const snapshot = { ...context, id: currentSession.encounter.id, owner, turns,
+    supportUsed: context.helpUsed || currentSession.evidence.maxSupportUsed !== 'none', settled: settled && !connectionFailed };
+  stopRealtimeEncounter();
+  void finishPracticeFeedback(snapshot);
+}
+export function stopRealtimeEncounter(resetStatus = true): void {
+  generationId += 1; generating = false; finishing = false;
+  if (completionTimer && session?.evidence.successfulProduction && !completionShown) showCompletion();
+  if (transcriptIdleTimer) clearTimeout(transcriptIdleTimer); transcriptIdleTimer = null;
+  if (completionTimer) clearTimeout(completionTimer); completionTimer = null;
+  client?.disconnect(); client = null; active = false;
+  const button = el('voiceStartBtn') as HTMLButtonElement | null;
+  if (button) button.disabled = false;
+  setVisualizer(false); setButton('🎙️ Start encounter');
+  if (resetStatus) setStatus('Klaar voor een korte encounter');
+}
 export function consumeRealtimePracticeCompletion(): boolean { const completed = completionShown; completionShown = false; return completed; }
 export function resetRealtimeEncounterUi(): void { const root = transcriptRoot(); if (root) { root.innerHTML = ''; root.style.display = 'none'; } session = null; completionShown = false; resetTranscriptState(); setVisualizer(false); setButton('🎙️ Start encounter'); setStatus('Druk op de knop om te beginnen'); }
