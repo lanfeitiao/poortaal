@@ -198,8 +198,14 @@ function handleRealtimeEvent(event: RealtimeServerEvent): void {
     case 'session.output_transcript.delta':
       if (!finishing) updateTranscriptActivity('tutor', event);
       appendTimelineTranscriptDelta('tutor', event); return;
-    case 'session.delegation.created': if (transcriptIdleTimer) clearTimeout(transcriptIdleTimer); transcriptIdleTimer = null; setVisualizer(false); setStatus('Even denken…'); return;
-    case 'error': setStatus('Er ging iets mis. Probeer opnieuw.'); return;
+    case 'session.delegation.created':
+      if (finishing) return;
+      if (transcriptIdleTimer) clearTimeout(transcriptIdleTimer);
+      transcriptIdleTimer = null; setVisualizer(false); setStatus('Even denken…'); return;
+    case 'error':
+      connectionFailed = true;
+      if (!finishing) setStatus('Er ging iets mis. Probeer opnieuw.');
+      return;
   }
 }
 function handleStateChange(state: RealtimeConnectionState): void {
