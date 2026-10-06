@@ -93,9 +93,10 @@ async function syncFromCloud() {
     const cloudHistory = (cloudHistoryRaw || []) as CloudHistoryEntry[];
 
     const localStats = getWordStats();
+    const dirtyUsageWords: string[] = [];
     if (cloudWords.length > 0) {
       for (const cw of cloudWords) {
-        cloudWordLearning(cw.word, cw.word_data, userId);
+        if (cloudWordLearning(cw.word, cw.word_data, userId)) dirtyUsageWords.push(cw.word);
         localStats[cw.word] = {
           lookups: cw.lookups || 0,
           practices: cw.practices || 0,
@@ -111,8 +112,12 @@ async function syncFromCloud() {
       }
     }
     localStorage.setItem('poortaal_word_stats', JSON.stringify(localStats));
+    for (const word of dirtyUsageWords) {
+      if (currentUser?.id !== userId) return;
+      await saveWordStatsToCloud(word);
+    }
 
-    if (cloudHistory.length > 0) {
+    {
       const cloudMap = new Map(cloudHistory.map(h => [h.word, h]));
       const localOnly = searchHistory.filter(h => !cloudMap.has(h.word));
       const merged: HistoryEntry[] = cloudHistory.map(h => ({
