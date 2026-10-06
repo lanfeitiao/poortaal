@@ -35,6 +35,15 @@ test('a naturalness suggestion does not label a valid use as an error', () => {
   const result = validateFeedback({ ...response, correction: { kind: 'naturalness', quote: sentence, better: 'Mijn afspraak staat op donderdag.', explanation: 'Another way to say it.' } }, snapshot);
   assert.equal(result.assessment, 'independent');
 });
+test('a practice-needed assessment requires an evidenced error rather than style or silence', () => {
+  const suggestions = [null, { kind: 'naturalness', quote: sentence, better: 'Mijn afspraak staat op donderdag.', explanation: 'Another way to say it.' }];
+  for (const correction of suggestions) {
+    const result = validateFeedback({ ...response, assessment: 'needs-practice', correction }, snapshot);
+    assert.equal(result.assessment, 'uncertain');
+    assert.equal(result.correction, null);
+    assert.equal(feedbackAttempt(snapshot, result), null);
+  }
+});
 test('not-used and uncertain assessments cannot become progress evidence', () => {
   for (const assessment of ['not-used', 'uncertain']) {
     const result = validateFeedback({ ...response, assessment, evidence: '' }, snapshot);

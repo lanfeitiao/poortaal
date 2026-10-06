@@ -41,6 +41,7 @@ export function validateFeedback(value: unknown, snapshot: PracticeSnapshot): Fe
     if (!learnerQuote(correction.quote, snapshot.turns) || !correction.better || !correction.explanation) throw new Error('Unfounded correction');
   }
   if (assessment === 'independent' && snapshot.supportUsed) assessment = 'supported';
+  if (assessment === 'needs-practice' && correction?.kind !== 'error') assessment = 'uncertain';
   if (!snapshot.settled) assessment = 'uncertain';
   if (assessment === 'uncertain') correction = null;
   if (correction?.kind === 'error' && ['independent', 'supported'].includes(assessment)) assessment = 'needs-practice';
