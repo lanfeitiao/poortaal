@@ -8,6 +8,7 @@ import {
   exitReviewSession,
   exploreDailyWord,
   finishReview,
+  finishTextPractice,
   goToPractice,
   gradeAndAdvance,
   lookupWord,
@@ -87,6 +88,9 @@ function handleActionClick(event: MouseEvent) {
     case 'practice-word':
       if (word) goToPractice(word);
       break;
+    case 'practice-usage':
+      if (word) goToPractice(word, Number(target.dataset.usage));
+      break;
     case 'start-practice-word':
       if (word) void startPracticeForWord(word);
       break;
@@ -118,6 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   onClick('voiceModeBtn', () => switchPracticeMode('voice'));
   onClick('chatSendBtn', sendChat);
+  onClick('textFeedbackBtn', finishTextPractice);
   onClick('voiceStartBtn', toggleRealtimeEncounter);
   onClick('overlay', toggleHistory);
   onClick('historyCloseBtn', toggleHistory);

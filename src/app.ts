@@ -476,7 +476,7 @@ function handleRoute() {
   document.getElementById('nav-practice').classList.toggle('active', isPractice);
   document.getElementById('nav-review').classList.toggle('active', isReview);
   if (isPractice) renderPracticeHistoryList();
-  else { stopRealtimeEncounter(); resetPracticeFeedback(); practiceGeneration++; }
+  else { stopRealtimeEncounter(); showPracticePicker(); }
   if (isReview) renderReviewHome(); else resetReviewSessionIfActive();
 }
 window.addEventListener('hashchange', handleRoute);
@@ -686,6 +686,7 @@ function showPracticePicker(recordCompletion = true) {
   document.getElementById('practicePickerSection').style.display = '';
   document.getElementById('practiceChatSection').style.display = 'none';
   practiceMessages = []; practiceLoading = false; clearPracticeContext();
+  (document.getElementById('chatSendBtn') as HTMLButtonElement).disabled = false;
   resetRealtimeEncounterUi(); switchPracticeMode('voice');
 }
 window.addEventListener('poortaal:learning-owner', () => { stopRealtimeEncounter(); showPracticePicker(false); });
