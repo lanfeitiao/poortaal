@@ -217,6 +217,7 @@ let reviewIndex = 0;
 let reviewResults = { know: 0, again: 0 };
 let reviewRevealed = false;
 let reviewSessionActive = false;
+let currentReviewPrompt: ReturnType<typeof wordReview> | null = null;
 let practiceLoading = false;
 let microReviewTimer: ReturnType<typeof setTimeout> | null = null;
 let microReviewInterval: ReturnType<typeof setInterval> | null = null;
@@ -276,6 +277,7 @@ function startReviewSession() {
   reviewResults = { know: 0, again: 0 };
   reviewRevealed = false;
   reviewSessionActive = true;
+  currentReviewPrompt = null;
   document.getElementById('reviewHomeSection').style.display = 'none';
   document.getElementById('reviewSessionSection').style.display = '';
   renderReviewSession();
@@ -289,15 +291,17 @@ function renderReviewSession() {
     return;
   }
   const item = reviewQueue[reviewIndex];
-  const data = item.entry.wordData || {} as Partial<WordExplanation>;
+  const data = getCachedWord(item.entry.word) || item.entry.wordData!;
+  if (data.usage === undefined) void loadWordUsage(data);
+  const review = currentReviewPrompt ||= wordReview(data, item.level, item.stats.reviews?.length || 0, getWordAttempts(item.entry.word));
   const word = item.entry.word;
   const total = reviewQueue.length;
   const pct = Math.round((reviewIndex / total) * 100);
   const pill = item.isWilting
     ? `<span class="review-stage-pill">🥀 ${item.overdueDays}d te laat</span>`
     : `<span class="review-stage-pill fresh">🌿 vandaag</span>`;
-  const meaningNl = escapeHtml(data.meaning_nl || '');
-  const meaningEn = escapeHtml(data.meaning_en || '');
+  const meaningNl = escapeHtml(review.nl || '');
+  const meaningEn = escapeHtml(review.en || '');
   const safeWord = escapeHtml(word);
   const safeType = escapeHtml(data.type || '');
   const revealedClass = reviewRevealed ? 'revealed' : '';
@@ -319,17 +323,19 @@ function renderReviewSession() {
           ${pill}
           <div class="review-card-word">${safeWord}</div>
           ${safeType ? `<div class="review-card-type">${safeType}</div>` : ''}
+          <div class="review-card-task">${escapeHtml(review.prompt)}</div>
           <button class="tts-btn review-tts-btn" data-action="review-tts" data-word="${safeWord.replace(/"/g, '&quot;')}" title="Uitspraak beluisteren">🔊</button>
-          <div class="review-card-hint" id="reviewCardHint" ${reviewRevealed ? 'hidden' : ''}>tik om te onthullen</div>
+          <div class="review-card-hint" id="reviewCardHint" ${reviewRevealed ? 'hidden' : ''}>${review.kind === 'meaning' ? 'tik om te onthullen' : 'probeer eerst zelf · tik voor een voorbeeld'}</div>
           <div class="review-card-answer ${revealedClass}" id="reviewCardAnswer">
             <div class="answer-nl">${meaningNl}</div>
             ${meaningEn ? `<div class="answer-en">${meaningEn}</div>` : ''}
+            ${review.usage ? `<div class="use-frame">${escapeHtml(review.usage.frame)}</div><div class="example-en">Andere juiste antwoorden zijn ook goed.</div>` : ''}
           </div>
         </div>
       </div>
       <div class="review-actions">
         <button class="review-btn-again" id="reviewBtnAgain" data-action="grade-review" data-known="false" ${actionsDisabled}>Opnieuw</button>
-        <button class="review-btn-know" id="reviewBtnKnow" data-action="grade-review" data-known="true" ${actionsDisabled}>Wist ik!</button>
+        <button class="review-btn-know" id="reviewBtnKnow" data-action="grade-review" data-known="true" ${actionsDisabled}>${review.kind === 'meaning' ? 'Wist ik!' : 'Dat lukte!'}</button>
       </div>
     </div>
   `;
@@ -409,9 +415,12 @@ function gradeAndAdvance(known: boolean) {
   const word = item.entry.word;
   if (known) { reviewResults.know++; updateWordStats(word, 'review'); }
   else { reviewResults.again++; updateWordStats(word, 'review_again'); }
+  if (currentReviewPrompt?.usage) recordWordAttempt({ id: crypto.randomUUID(), at: Date.now(), word,
+    chunk: currentReviewPrompt.usage.chunk, outcome: known ? 'self-reviewed' : 'needs-practice', source: 'review' });
   updateReviewBadge();
   renderHistory();
   reviewIndex++;
+  currentReviewPrompt = null;
   reviewRevealed = false;
   renderReviewSession();
 }
@@ -538,7 +547,17 @@ function getPlantStage(word: string): PlantStage {
   const stats = getWordStats()[word.toLowerCase().trim()]; if (!stats) return { emoji: '🌱', label: 'Zaaisel', key: 'seed', hint: '' }; const level = stats.level || 0; const lastSeen = stats.lastSeen || 0; const nextInterval = getNextInterval(level); const today = startOfDay(Date.now()); const dueDay = startOfDay(lastSeen + nextInterval * 86400000); const overdueDays = Math.max(0, Math.round((today - dueDay) / 86400000)); const daysLeft = Math.max(0, Math.round((dueDay - today) / 86400000)); const overdue = dueDay < today; const dueTodayHint = 'Herhaal vandaag!';
   if (overdue && level < 4) return { emoji: '🥀', label: 'Verwelkt', key: 'wilting', hint: `${overdueDays}d te laat` }; if (level >= 4) return { emoji: '🌳', label: 'Sterk', key: 'strong', hint: 'Goed gedaan!' }; if (level >= 3) return { emoji: '🪴', label: 'Groeiend', key: 'growing', hint: daysLeft === 0 ? dueTodayHint : `${daysLeft}d tot herhaling` }; if (level >= 1) return { emoji: '🌿', label: 'Kiempje', key: 'sprout', hint: daysLeft === 0 ? dueTodayHint : `${daysLeft}d tot herhaling` }; const hasPracticed = stats.practices > 0 || stats.reviews.length > 0; const seedHint = hasPracticed ? (daysLeft > 0 ? `${daysLeft}d tot herhaling` : dueTodayHint) : 'Oefen om te groeien'; return { emoji: '🌱', label: 'Zaaisel', key: 'seed', hint: seedHint };
 }
-function getDueWords(): ReviewItem[] { const stats = getWordStats(); const today = startOfDay(Date.now()); return searchHistory.filter(entry => entry.wordData).map(entry => { const s: Partial<WordStats> = stats[entry.word] || {}; const level = s.level || 0; const lastSeen = s.lastSeen || 0; const nextInterval = getNextInterval(level); const dueDay = startOfDay(lastSeen + nextInterval * 86400000); return { entry, stats: s, level, isDue: dueDay <= today && level < 4, isWilting: dueDay < today, overdueDays: Math.max(0, Math.round((today - dueDay) / 86400000)) }; }).filter(x => x.isDue).sort((a, b) => b.overdueDays - a.overdueDays); }
+function getDueWords(): ReviewItem[] {
+  const stats = getWordStats(); const today = startOfDay(Date.now());
+  return searchHistory.filter(entry => entry.wordData).map(entry => {
+    const s: Partial<WordStats> = stats[entry.word] || {}; const level = s.level || 0;
+    const dueDay = startOfDay((s.lastSeen || 0) + getNextInterval(level) * 86400000);
+    const data = getCachedWord(entry.word) || entry.wordData!;
+    const usageDue = needsUsageReview(data, getWordAttempts(entry.word));
+    return { entry, stats: s, level, isDue: usageDue || (dueDay <= today && level < 4),
+      isWilting: dueDay < today && level < 4, overdueDays: Math.max(0, Math.round((today - dueDay) / 86400000)) };
+  }).filter(x => x.isDue).sort((a, b) => b.overdueDays - a.overdueDays);
+}
 function updateReviewBadge() { const badge = document.getElementById('navReviewBadge'); if (!badge) return; const due = getDueWords(); badge.hidden = due.length === 0; badge.textContent = String(due.length); }
 function renderHistory() {
   const list = document.getElementById('historyList'); const summaryEl = document.getElementById('historySummary'); if (searchHistory.length === 0) { list.innerHTML = '<div class="history-empty">Nog geen woorden opgezocht</div>'; summaryEl.innerHTML = ''; return; }
