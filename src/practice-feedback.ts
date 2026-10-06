@@ -37,7 +37,7 @@ export async function finishPracticeFeedback(snapshot: PracticeSnapshot): Promis
     connectActions(panel, snapshot, feedback);
   } catch {
     if (!current()) return;
-    panel.textContent = 'Feedback is nu niet beschikbaar. Je gesprek blijft hieronder bewaard.';
+    panel.textContent = 'Feedback is nu niet beschikbaar. Je kunt de analyse opnieuw proberen.';
     const button = document.createElement('button');
     button.type = 'button'; button.className = 'use-button'; button.textContent = 'Opnieuw terugkijken';
     button.addEventListener('click', () => { void finishPracticeFeedback(snapshot); });

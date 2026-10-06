@@ -4,7 +4,7 @@ import {
 } from './openai-client';
 import { consumeRealtimePracticeCompletion, resetRealtimeEncounterUi, stopRealtimeEncounter } from './realtime/encounter-controller';
 import { enrichWordUsage } from './usage-generation';
-import { renderWordUsage, renderPracticeUsage } from './word-usage-ui';
+import { escapeText, renderWordUsage, renderPracticeUsage } from './word-usage-ui';
 import { cloudWordLearning, getWordAttempts, learningOwner, setLearningOwner, clearWordLearning, recordWordAttempt } from './learning-store';
 import { setPracticeContext, getPracticeContext, clearPracticeContext, markPracticeHelp, practiceUsageInstructions } from './practice-context';
 import { resetPracticeFeedback, finishPracticeFeedback } from './practice-feedback';
@@ -774,7 +774,7 @@ function finishTextPractice(): void {
   void finishPracticeFeedback({ ...context, id: `${context.id}:text`, owner: learningOwner(), turns,
     supportUsed: context.helpUsed, settled: true });
 }
-function escapeHtml(s: string) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function escapeHtml(s: string) { return escapeText(s); }
 function formatChat(text: string) { return escapeHtml(text).replace(/\n/g, '<br>'); }
 
 // --- Micro review ---
