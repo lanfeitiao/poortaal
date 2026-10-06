@@ -3,6 +3,12 @@ import {
   requestOpenAIChat,
 } from './openai-client';
 import { consumeRealtimePracticeCompletion, resetRealtimeEncounterUi } from './realtime/encounter-controller';
+import { enrichWordUsage } from './usage-generation';
+import { renderWordUsage, renderPracticeUsage } from './word-usage-ui';
+import { cloudWordLearning, getWordAttempts, learningOwner, setLearningOwner, clearWordLearning, recordWordAttempt } from './learning-store';
+import { setPracticeContext, getPracticeContext, clearPracticeContext, markPracticeHelp, practiceUsageInstructions } from './practice-context';
+import { resetPracticeFeedback, finishPracticeFeedback } from './practice-feedback';
+import { needsUsageReview, wordReview } from './word-learning';
 import {
   generateWordExplanation,
   InvalidWordExplanationError,
@@ -57,6 +63,7 @@ async function signInWithGoogle() {
 async function doLogout() {
   await supabaseClient.auth.signOut();
   currentUser = null;
+  setLearningOwner(null);
   updateUserUI();
 }
 function updateUserUI() {
@@ -75,17 +82,20 @@ function updateUserUI() {
 // Cloud sync
 async function syncFromCloud() {
   if (!currentUser) return;
+  const userId = currentUser.id;
   const ind = document.getElementById('syncIndicator');
   ind.classList.add('syncing');
   try {
-    const { data: cloudWordsRaw } = await supabaseClient.from('user_words').select('*').eq('user_id', currentUser.id);
-    const { data: cloudHistoryRaw } = await supabaseClient.from('user_history').select('*').eq('user_id', currentUser.id);
+    const { data: cloudWordsRaw } = await supabaseClient.from('user_words').select('*').eq('user_id', userId);
+    const { data: cloudHistoryRaw } = await supabaseClient.from('user_history').select('*').eq('user_id', userId);
+    if (currentUser?.id !== userId) return;
     const cloudWords = (cloudWordsRaw || []) as CloudWord[];
     const cloudHistory = (cloudHistoryRaw || []) as CloudHistoryEntry[];
 
     const localStats = getWordStats();
     if (cloudWords.length > 0) {
       for (const cw of cloudWords) {
+        cloudWordLearning(cw.word, cw.word_data, userId);
         localStats[cw.word] = {
           lookups: cw.lookups || 0,
           practices: cw.practices || 0,
@@ -93,7 +103,11 @@ async function syncFromCloud() {
           level: cw.level || 0,
           lastSeen: cw.last_seen || Date.now(),
         };
-        if (cw.word_data) setWordCache(cw.word, cw.word_data);
+        if (cw.word_data) {
+          const local = getCachedWord(cw.word);
+          const cloud = cw.word_data as Partial<WordExplanation>;
+          setWordCache(cw.word, { ...cloud, usage: cloud.usage ?? local?.usage });
+        }
       }
     }
     localStorage.setItem('poortaal_word_stats', JSON.stringify(localStats));
@@ -104,7 +118,7 @@ async function syncFromCloud() {
       const merged: HistoryEntry[] = cloudHistory.map(h => ({
         word: h.word,
         timestamp: h.timestamp || Date.now(),
-        wordData: h.word_data || undefined,
+        wordData: getCachedWord(h.word) || h.word_data || undefined,
       }));
       merged.push(...localOnly);
       merged.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
@@ -113,7 +127,7 @@ async function syncFromCloud() {
 
       if (localOnly.length > 0) {
         const rows = localOnly.map(h => ({
-          user_id: currentUser!.id,
+          user_id: userId,
           word: h.word,
           word_data: h.wordData || null,
           timestamp: h.timestamp || Date.now(),
@@ -124,14 +138,14 @@ async function syncFromCloud() {
       const localOnlyStats = Object.entries(localStats).filter(([w]) => !cloudWordSet.has(w));
       if (localOnlyStats.length > 0) {
         const rows = localOnlyStats.map(([w, s]) => ({
-          user_id: currentUser!.id,
+          user_id: userId,
           word: w,
           lookups: s.lookups || 0,
           practices: s.practices || 0,
           reviews: s.reviews || [],
           level: s.level || 0,
           last_seen: s.lastSeen || Date.now(),
-          word_data: getCachedWord(w) || null,
+          word_data: wordCloudData(w),
         }));
         await supabaseClient.from('user_words').upsert(rows, { onConflict: 'user_id,word' });
       }
@@ -158,7 +172,7 @@ async function saveWordStatsToCloud(word: string) {
     reviews: stats.reviews || [],
     level: stats.level || 0,
     last_seen: stats.lastSeen || Date.now(),
-    word_data: getCachedWord(word) || null,
+    word_data: wordCloudData(word),
     updated_at: new Date().toISOString(),
   }, { onConflict: 'user_id,word' }).then(({ error }: { error: unknown }) => { if (error) console.error('Save word error:', error); });
 }
@@ -177,11 +191,13 @@ async function initAuth() {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (user) {
     currentUser = user;
+    setLearningOwner(user.id);
     updateUserUI();
     syncFromCloud();
   }
   supabaseClient.auth.onAuthStateChange((_event: string, session: AuthSession) => {
     currentUser = session?.user || null;
+    setLearningOwner(currentUser?.id || null);
     updateUserUI();
   });
 }
@@ -548,6 +564,10 @@ async function callOpenAI(messages: ChatMessage[], temperature = 0.7): Promise<s
 function trySuggestion(word: string) { (document.getElementById('wordInput') as HTMLInputElement).value = word; const panel = document.getElementById('historyPanel'); if (panel.classList.contains('open')) toggleHistory(); lookupWord(); }
 
 const WORD_CACHE_KEY = 'poortaal_word_cache_v4';
+function wordCloudData(word: string) {
+  const data = getCachedWord(word);
+  return data ? { ...data, usage_progress: getWordAttempts(word) } : null;
+}
 function getWordCache(): Record<string, unknown> { try { return JSON.parse(localStorage.getItem(WORD_CACHE_KEY) || '{}') as Record<string, unknown>; } catch { return {}; } }
 function setWordCache(word: string, data: unknown) { const cache = getWordCache(); cache[word.toLowerCase().trim()] = data; const keys = Object.keys(cache); if (keys.length > 200) delete cache[keys[0]]; localStorage.setItem(WORD_CACHE_KEY, JSON.stringify(cache)); }
 function getCachedWord(word: string): WordExplanation | null {
