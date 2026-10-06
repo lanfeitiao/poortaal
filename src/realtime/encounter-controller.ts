@@ -209,7 +209,7 @@ function handleRealtimeEvent(event: RealtimeServerEvent): void {
   }
 }
 function handleStateChange(state: RealtimeConnectionState): void {
-  if (state === 'error') connectionFailed = true;
+  if (state === 'error' || (state === 'closed' && active)) connectionFailed = true;
   if (finishing) return;
   switch (state) {
     case 'requesting-microphone': setStatus('Microfoon openen…'); break;
