@@ -117,6 +117,23 @@ test('a repaired suffix does not consume the next independent learner turn', () 
   ]);
 });
 
+test('a repaired suffix does not consume a later independent tutor turn', () => {
+  for (const [start, text] of [
+    [2400, 'Dat klopt.'], [2651, 'Dat klopt.'],
+    [6000, 'Dat klopt.'], [6000, ' dat klopt.'],
+  ] as const) {
+    const groups = groupTranscriptFragments([
+      fragment('user', 1000, 2100, 'Wat betekent rond', 0),
+      fragment('tutor', 2150, 2350, 'Rondlopen', 1),
+      fragment('user', 2400, 2600, 'lopen?', 2),
+      fragment('tutor', start, start + 400, text, 3),
+    ]);
+    assert.deepEqual(groups.map(group => group.text), [
+      'Wat betekent rondlopen?', 'Rondlopen', text,
+    ]);
+  }
+});
+
 test('a short acknowledgment does not absorb a completed sentence or a distant new turn', () => {
   for (const [text, start] of [['Ik kies fruit.', 2400], ['Ik kies ', 5000]] as const) {
     const groups = groupTranscriptFragments([

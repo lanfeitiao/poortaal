@@ -57,12 +57,19 @@ function looksLikeEchoedWordTail(previous: string, tail: string, reply: string):
 function reconcileEchoedWordTails(
   groups: TranscriptGroup[], fragments: TranscriptFragment[],
 ): TranscriptGroup[] {
+  const bySequence = new Map(fragments.map(part => [part.sequence, part]));
   for (let index = 2; index < groups.length; index += 1) {
     const prefix = groups[index - 2];
     const reply = groups[index - 1];
     const tail = groups[index];
-    const replyTail = groups[index + 1]?.role === reply.role ? groups[index + 1] : undefined;
-    const firstTail = fragments.find(part => part.sequence === Math.min(...tail.sequences));
+    const nextReply = groups[index + 1];
+    const firstReply = nextReply && bySequence.get(Math.min(...nextReply.sequences));
+    const replyGapLimit = firstReply?.timingSource === 'estimated' ? LATE_TAIL_GAP_MS : CONCURRENT_CAPTION_GAP_MS;
+    const replyContinues = nextReply && /[\p{L},:;…]\s*$/u.test(reply.text)
+      && /^\s*\p{Ll}/u.test(nextReply.text);
+    const replyTail = replyContinues && nextReply?.role === reply.role
+      && nextReply.startMs - reply.endMs <= replyGapLimit ? nextReply : undefined;
+    const firstTail = bySequence.get(Math.min(...tail.sequences));
     const gapLimit = firstTail?.timingSource === 'estimated' ? LATE_TAIL_GAP_MS : CONCURRENT_CAPTION_GAP_MS;
     if (prefix.role !== tail.role || prefix.role === reply.role
       || tail.startMs - prefix.endMs > gapLimit
