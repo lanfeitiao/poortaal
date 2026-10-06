@@ -637,8 +637,19 @@ async function lookupWord() {
   }
 }
 function renderWordCard(data: WordExplanation) {
-  const content = document.getElementById('content'); const examplesHtml = (data.examples || []).slice(0, 2).map(ex => { const safeNl = escapeHtml(ex.nl).replace(/"/g, '&quot;'); return `<div class="example-item"><div class="example-nl">"${ex.nl}" <button class="ex-tts-btn" data-action="play-example-tts" data-text="${safeNl}" title="Uitspraak">🔊</button></div><div class="example-en">${ex.en}</div></div>`; }).join(''); const funFactHtml = data.fun_fact ? `<div class="fun-fact">💡 ${data.fun_fact}</div>` : ''; const tipsHtml = `<div class="card"><div class="card-label">Tips</div><div class="tips-text">${data.tips || 'No additional usage tip is available for this word.'}</div></div>`; const safeWordAttr = escapeHtml(data.word).replace(/"/g, '&quot;');
-  content.innerHTML = `<div class="card" id="wordCard"><div class="card-label">Woord</div><div class="word-header"><h1>${data.word}</h1><span class="word-type">${data.type}</span><button class="tts-btn" id="ttsBtn" data-action="play-word-tts" data-word="${safeWordAttr}" title="Uitspraak beluisteren">🔊</button></div><div class="meaning"><div class="meaning-nl">${data.meaning_nl}</div><div class="meaning-en">${data.meaning_en}</div></div>${funFactHtml}</div><div class="card"><div class="card-label">Voorbeelden</div>${examplesHtml}</div>${tipsHtml}<button class="practice-btn" data-action="practice-word" data-word="${safeWordAttr}">🎭 Oefenen met "${data.word}"</button>`;
+  const content = document.getElementById('content');
+  const word = escapeHtml(data.word);
+  const examples = data.examples.map(ex => `<div class="example-item"><div class="example-nl">“${escapeHtml(ex.nl)}”
+    <button class="ex-tts-btn" data-action="play-example-tts" data-text="${escapeHtml(ex.nl)}" title="Uitspraak">🔊</button></div>
+    <div class="example-en">${escapeHtml(ex.en)}</div></div>`).join('');
+  const fact = data.fun_fact ? `<div class="fun-fact">💡 ${escapeHtml(data.fun_fact)}</div>` : '';
+  content.innerHTML = `<div class="card" id="wordCard"><div class="card-label">Woord</div>
+    <div class="word-header"><h1>${word}</h1><span class="word-type">${escapeHtml(data.type)}</span>
+    <button class="tts-btn" id="ttsBtn" data-action="play-word-tts" data-word="${word}" title="Uitspraak beluisteren">🔊</button></div>
+    <div class="meaning"><div class="meaning-nl">${escapeHtml(data.meaning_nl)}</div><div class="meaning-en">${escapeHtml(data.meaning_en)}</div></div>${fact}</div>
+    <div class="card"><div class="card-label">Voorbeelden</div>${examples}</div>${renderWordUsage(data)}
+    <div class="card"><div class="card-label">Tips</div><div class="tips-text">${escapeHtml(data.tips)}</div></div>
+    <button class="practice-btn" data-action="practice-word" data-word="${word}">🎭 Oefenen met “${word}”</button>`;
 }
 
 // --- Practice ---
