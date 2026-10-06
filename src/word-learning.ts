@@ -25,7 +25,7 @@ export function mergeAttempts(a: UsageAttempt[], b: UsageAttempt[]): UsageAttemp
   const entries = new Map<string, UsageAttempt>();
   for (const item of [...a, ...b]) {
     const old = entries.get(item.id);
-    if (!old || item.at > old.at || item.discarded) entries.set(item.id, item);
+    if (!old || (!old.discarded && (item.at > old.at || item.discarded))) entries.set(item.id, item);
   }
   return [...entries.values()].sort((x, y) => x.at - y.at).slice(-30);
 }
