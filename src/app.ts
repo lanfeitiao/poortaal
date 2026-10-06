@@ -221,6 +221,7 @@ let currentReviewPrompt: ReturnType<typeof wordReview> | null = null;
 let practiceLoading = false;
 let microReviewTimer: ReturnType<typeof setTimeout> | null = null;
 let microReviewInterval: ReturnType<typeof setInterval> | null = null;
+let microReviewPrompt: ReturnType<typeof wordReview> | null = null;
 
 // --- Routing ---
 function navigateTo(hash: string) {
@@ -699,9 +700,34 @@ function escapeHtml(s: string) { const d = document.createElement('div'); d.text
 function formatChat(text: string) { return escapeHtml(text).replace(/\n/g, '<br>'); }
 
 // --- Micro review ---
-function startMicroReview(word: string) { const entry = searchHistory.find(h => h.word === word); if (!entry || !entry.wordData) { trySuggestion(word); return; } const panel = document.getElementById('historyPanel'); if (panel.classList.contains('open')) toggleHistory(); const data = entry.wordData; document.getElementById('reviewWord').textContent = data.word; document.getElementById('reviewType').textContent = data.type || ''; document.getElementById('reviewNl').textContent = data.meaning_nl || ''; document.getElementById('reviewEn').textContent = data.meaning_en || ''; document.getElementById('reviewAnswer').classList.remove('revealed'); document.getElementById('reviewActions').innerHTML = '<button class="review-btn-reveal" data-action="micro-reveal">Onthullen</button>'; document.getElementById('microReviewOverlay').classList.add('open'); let remaining = 30; const bar = document.getElementById('reviewTimerBar'); const text = document.getElementById('reviewTimerText'); bar.style.width = '100%'; text.textContent = '30s'; if (microReviewInterval) clearInterval(microReviewInterval); microReviewInterval = setInterval(() => { remaining -= 0.1; if (remaining <= 0) { remaining = 0; clearInterval(microReviewInterval!); revealAnswer(); } bar.style.width = ((remaining / 30) * 100) + '%'; text.textContent = Math.ceil(remaining) + 's'; }, 100); }
+function startMicroReview(word: string) {
+  const entry = searchHistory.find(h => h.word === word);
+  if (!entry?.wordData) { trySuggestion(word); return; }
+  const panel = document.getElementById('historyPanel'); if (panel.classList.contains('open')) toggleHistory();
+  const data = getCachedWord(word) || entry.wordData;
+  const stats = getWordStats()[word];
+  const review = microReviewPrompt = wordReview(data, stats?.level || 0, stats?.reviews.length || 0, getWordAttempts(word));
+  if (data.usage === undefined) void loadWordUsage(data);
+  document.getElementById('reviewWord').textContent = data.word;
+  document.getElementById('reviewType').textContent = data.type || '';
+  document.getElementById('reviewPrompt')!.textContent = review.prompt;
+  document.getElementById('reviewNl').textContent = review.nl || '';
+  document.getElementById('reviewEn').textContent = review.en || '';
+  document.getElementById('reviewAnswer').classList.remove('revealed');
+  document.getElementById('reviewActions').innerHTML = '<button class="review-btn-reveal" data-action="micro-reveal">Onthullen</button>';
+  document.getElementById('microReviewOverlay').classList.add('open');
+  let remaining = 30; const bar = document.getElementById('reviewTimerBar'); const text = document.getElementById('reviewTimerText');
+  bar.style.width = '100%'; text.textContent = '30s'; if (microReviewInterval) clearInterval(microReviewInterval);
+  microReviewInterval = setInterval(() => { remaining -= 0.1; if (remaining <= 0) { remaining = 0; clearInterval(microReviewInterval!); revealAnswer(); } bar.style.width = ((remaining / 30) * 100) + '%'; text.textContent = Math.ceil(remaining) + 's'; }, 100);
+}
 function revealAnswer() { if (microReviewInterval) { clearInterval(microReviewInterval); microReviewInterval = null; } document.getElementById('reviewAnswer').classList.add('revealed'); document.getElementById('reviewActions').innerHTML = '<button class="review-btn-know" data-action="micro-finish" data-known="true">Wist ik!</button><button class="review-btn-again" data-action="micro-finish" data-known="false">Opnieuw</button><button class="review-btn-close" data-action="micro-close">Sluiten</button>'; }
-function finishReview(knew: boolean) { const word = document.getElementById('reviewWord').textContent.toLowerCase(); const idx = searchHistory.findIndex(h => h.word === word); if (idx !== -1) { searchHistory[idx].timestamp = Date.now(); localStorage.setItem('poortaal_history', JSON.stringify(searchHistory)); } updateWordStats(word, 'practice'); closeMicroReview(); if (!knew) trySuggestion(word); renderHistory(); }
+function finishReview(knew: boolean) {
+  const word = document.getElementById('reviewWord').textContent!.toLowerCase();
+  updateWordStats(word, knew ? 'review' : 'review_again');
+  if (microReviewPrompt?.usage) recordWordAttempt({ id: crypto.randomUUID(), at: Date.now(), word,
+    chunk: microReviewPrompt.usage.chunk, outcome: knew ? 'self-reviewed' : 'needs-practice', source: 'review' });
+  closeMicroReview(); if (!knew) trySuggestion(word); renderHistory(); updateReviewBadge();
+}
 function closeMicroReview() { if (microReviewInterval) { clearInterval(microReviewInterval); microReviewInterval = null; } document.getElementById('microReviewOverlay').classList.remove('open'); }
 
 function switchPracticeMode(mode: 'text' | 'voice') { document.getElementById('textModeBtn').classList.toggle('active', mode === 'text'); document.getElementById('voiceModeBtn').classList.toggle('active', mode === 'voice'); document.getElementById('textPracticePanel').style.display = mode === 'text' ? '' : 'none'; document.getElementById('voicePracticePanel').style.display = mode === 'voice' ? '' : 'none'; if (mode === 'voice') { const word = document.getElementById('practiceChatWord').textContent || ''; document.getElementById('voicePracticeWord').textContent = word; } else { void startTextPracticeScenario(); } }
