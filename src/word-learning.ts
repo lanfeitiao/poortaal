@@ -9,16 +9,21 @@ export type UsageAttempt = {
 };
 const outcomes = ['independent', 'supported', 'needs-practice', 'self-reviewed'];
 
+function retainAttempts(attempts: UsageAttempt[]): UsageAttempt[] {
+  const active = attempts.filter(a => !a.discarded).slice(-30);
+  return [...attempts.filter(a => a.discarded), ...active].sort((a, b) => a.at - b.at);
+}
+
 export function validateAttempts(value: unknown): UsageAttempt[] {
   if (!Array.isArray(value)) return [];
-  return value.filter((a): a is UsageAttempt => {
+  return retainAttempts(value.filter((a): a is UsageAttempt => {
     if (!a || typeof a !== 'object') return false;
     if (!['id', 'word', 'chunk'].every(k => typeof a[k] === 'string' && a[k].length > 0 && a[k].length <= 500)) return false;
     if (!Number.isFinite(a.at) || a.at < 0 || !outcomes.includes(a.outcome)) return false;
     if (!['review', 'conversation'].includes(a.source)) return false;
     if (a.discarded !== undefined && typeof a.discarded !== 'boolean') return false;
     return ['quote', 'better', 'explanation'].every(k => a[k] === undefined || (typeof a[k] === 'string' && a[k].length <= 2000));
-  }).slice(-30);
+  }));
 }
 
 export function mergeAttempts(a: UsageAttempt[], b: UsageAttempt[]): UsageAttempt[] {
@@ -27,7 +32,7 @@ export function mergeAttempts(a: UsageAttempt[], b: UsageAttempt[]): UsageAttemp
     const old = entries.get(item.id);
     if (!old || (!old.discarded && (item.at > old.at || item.discarded))) entries.set(item.id, item);
   }
-  return [...entries.values()].sort((x, y) => x.at - y.at).slice(-30);
+  return retainAttempts([...entries.values()].sort((x, y) => x.at - y.at));
 }
 
 export function usageHistory(word: string, chunk: string, attempts: UsageAttempt[]): UsageAttempt[] {
