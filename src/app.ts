@@ -97,9 +97,12 @@ async function syncFromCloud() {
 
     const localStats = getWordStats();
     const dirtyUsageWords: string[] = [];
+    let learningChanged = false;
     if (cloudWords.length > 0) {
       for (const cw of cloudWords) {
+        const attemptsBefore = JSON.stringify(getWordAttempts(cw.word));
         if (cloudWordLearning(cw.word, cw.word_data, userId)) dirtyUsageWords.push(cw.word);
+        if (JSON.stringify(getWordAttempts(cw.word)) !== attemptsBefore) learningChanged = true;
         localStats[cw.word] = {
           lookups: cw.lookups || 0,
           practices: cw.practices || 0,
@@ -117,6 +120,10 @@ async function syncFromCloud() {
     const openWord = currentWord?.toLowerCase().trim();
     if (currentWordData && cloudWords.some(cw => cw.word.toLowerCase().trim() === openWord)) {
       renderWordCard(currentWordData);
+    }
+    if (learningChanged) {
+      closeMicroReview(); resetReviewSessionIfActive();
+      if (window.location.hash.split('?')[0] === '#review') renderReviewHome();
     }
     localStorage.setItem('poortaal_word_stats', JSON.stringify(localStats));
     for (const word of dirtyUsageWords) {
