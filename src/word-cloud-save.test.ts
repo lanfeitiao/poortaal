@@ -75,3 +75,34 @@ test('Supabase adapter scopes reads and atomic updates including null versions',
   calls.length = 0; await store.update(row(), 'version');
   assert.deepEqual(calls[4], ['eq', 'updated_at', 'version']);
 });
+test('each conflict re-reads both the server and latest local observation', async () => {
+  const db = memory(row()); let local = row([attempt('before')]);
+  const update = db.store.update; let first = true;
+  db.store.update = async (value, version) => {
+    if (first) { first = false; local = row([attempt('after')]); return { data: null, error: null }; }
+    return update(value, version);
+  };
+  await saveWordWithVersion(db.store, () => local, () => true);
+  assert.deepEqual(db.get().word_data.usage_progress.map((a: any) => a.id), ['after']);
+});
+test('latest remote definitions survive stale saves while missing usages are filled', async () => {
+  const explanation = { word: 'afspraak', type: 'zelfstandig naamwoord', meaning_nl: 'Een afspraak.',
+    meaning_en: 'appointment', examples: [{ nl: 'Mijn afspraak is morgen.', en: 'My appointment is tomorrow.' },
+      { nl: 'Ik heb een afspraak.', en: 'I have an appointment.' }], tips: 'Use maken.', fun_fact: null };
+  const use = { chunk: 'een afspraak maken', meaning_en: 'make an appointment', frame: 'Ik wil een afspraak maken.',
+    example_nl: 'Ik wil een afspraak maken.', example_en: 'I want an appointment.', review_prompt: 'Arrange a time.' };
+  const local = { ...row([attempt('local')]), word_data: { ...explanation, usage: [use], usage_progress: [attempt('local')] } };
+  for (const usage of [undefined, []]) {
+    const db = memory({ ...row(), word_data: { ...explanation, meaning_en: 'updated appointment', usage } } as any);
+    await saveWordWithVersion(db.store, () => local, () => true);
+    assert.equal(db.get().word_data.meaning_en, 'updated appointment');
+    assert.deepEqual(db.get().word_data.usage, usage ?? [use]);
+    assert.equal(db.get().word_data.usage_progress[0].id, 'local');
+  }
+});
+test('read failures do not fall back to unprotected writes', async () => {
+  const db = memory(row());
+  db.store.read = async () => ({ data: null, error: { code: 'NETWORK' } });
+  await assert.rejects(saveWordWithVersion(db.store, () => row(), () => true), { code: 'NETWORK' });
+  assert.equal(db.versions.length, 0);
+});
