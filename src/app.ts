@@ -90,8 +90,10 @@ async function syncFromCloud() {
   const ind = document.getElementById('syncIndicator');
   ind.classList.add('syncing');
   try {
-    const { data: cloudWordsRaw } = await supabaseClient.from('user_words').select('*').eq('user_id', userId);
-    const { data: cloudHistoryRaw } = await supabaseClient.from('user_history').select('*').eq('user_id', userId);
+    const { data: cloudWordsRaw, error: wordsError } = await supabaseClient.from('user_words').select('*').eq('user_id', userId);
+    if (wordsError) throw wordsError;
+    const { data: cloudHistoryRaw, error: historyError } = await supabaseClient.from('user_history').select('*').eq('user_id', userId);
+    if (historyError) throw historyError;
     if (currentUser?.id !== userId) return;
     const cloudWords = (cloudWordsRaw || []) as CloudWord[];
     const cloudHistory = (cloudHistoryRaw || []) as CloudHistoryEntry[];
