@@ -33,6 +33,15 @@ test('two independent clients preserve observations and dismissals across a CAS 
   assert.equal(db.versions.length, 3);
   assert.equal(db.get().updated_at, '2026-01-01T00:00:00.002Z');
 });
+test('a stale evidence save preserves newer remote word statistics', async () => {
+  const remote = { ...row(), lookups: 5, practices: 4, reviews: [10, 30], level: 3, last_seen: 40 };
+  const local = { ...row([attempt('new')]), lookups: 2, practices: 3, reviews: [10, 20], level: 2, last_seen: 25 };
+  const db = memory(remote);
+  await saveWordWithVersion(db.store, () => local, () => true);
+  assert.deepEqual({ ...db.get(), word_data: undefined, updated_at: undefined },
+    { ...local, lookups: 5, practices: 4, reviews: [10, 20, 30], level: 3, last_seen: 40, word_data: undefined, updated_at: undefined });
+  assert.equal(db.get().word_data.usage_progress[0].id, 'new');
+});
 test('concurrent first inserts retry the unique conflict without replacing evidence', async () => {
   const db = memory(null);
   await Promise.all(['a', 'b'].map(id => saveWordWithVersion(db.store, () => row([attempt(id)]), () => true)));
@@ -69,7 +78,7 @@ test('Supabase adapter scopes reads and atomic updates including null versions',
   query.maybeSingle = async () => ({ data: null, error: null });
   const store = supabaseWordStore({ from: (table: string) => { calls.push(['from', table]); return query; } }, 'learner', 'afspraak');
   await store.read();
-  assert.deepEqual(calls, [['from', 'user_words'], ['select', 'word_data,updated_at'], ['eq', 'user_id', 'learner'], ['eq', 'word', 'afspraak']]);
+  assert.deepEqual(calls, [['from', 'user_words'], ['select', 'lookups,practices,reviews,level,last_seen,word_data,updated_at'], ['eq', 'user_id', 'learner'], ['eq', 'word', 'afspraak']]);
   calls.length = 0; await store.update(row(), null);
   assert.deepEqual(calls.slice(2), [['eq', 'user_id', 'learner'], ['eq', 'word', 'afspraak'], ['is', 'updated_at', null], ['select']]);
   calls.length = 0; await store.update(row(), 'version');

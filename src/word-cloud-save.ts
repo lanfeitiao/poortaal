@@ -20,6 +20,20 @@ function mergeWordData(word: string, local: unknown, remote: unknown): unknown {
   return base || progress.length ? { ...base, usage_progress: progress } : null;
 }
 
+function mergeWordRow(local: WordRow, remote: WordRow | null): WordRow {
+  if (!remote) return local;
+  const merged = { ...local };
+  for (const key of ['lookups', 'practices', 'level', 'last_seen']) {
+    const values = [local[key], remote[key]].filter((value): value is number => typeof value === 'number' && Number.isFinite(value));
+    if (values.length) merged[key] = Math.max(...values);
+  }
+  const reviews = [...(Array.isArray(local.reviews) ? local.reviews : []), ...(Array.isArray(remote.reviews) ? remote.reviews : [])]
+    .filter((value): value is number => typeof value === 'number' && Number.isFinite(value));
+  if (reviews.length) merged.reviews = [...new Set(reviews)].sort((a, b) => a - b);
+  merged.word_data = mergeWordData(local.word, local.word_data, remote.word_data);
+  return merged;
+}
+
 // An equality-filtered UPDATE is the atomic version check; a preceding read alone is not.
 export async function saveWordWithVersion(store: WordCloudStore, localRow: () => WordRow | null,
   active: () => boolean, now: () => number = Date.now): Promise<WordRow | null> {
@@ -32,7 +46,7 @@ export async function saveWordWithVersion(store: WordCloudStore, localRow: () =>
     if (!local) return null;
     const version = previous.data?.updated_at ?? null;
     const oldTime = version ? Date.parse(version) : NaN;
-    const row = { ...local, word_data: mergeWordData(local.word, local.word_data, previous.data?.word_data),
+    const row = { ...mergeWordRow(local, previous.data),
       updated_at: new Date(Math.max(now(), Number.isFinite(oldTime) ? oldTime + 1 : 0)).toISOString() };
     const result = previous.data ? await store.update(row, version) : await store.insert(row);
     if (result.error) {
@@ -47,7 +61,7 @@ export async function saveWordWithVersion(store: WordCloudStore, localRow: () =>
 export function supabaseWordStore(client: any, userId: string, word: string): WordCloudStore {
   const scoped = (query: any) => query.eq('user_id', userId).eq('word', word);
   return {
-    read: () => scoped(client.from('user_words').select('word_data,updated_at')).maybeSingle(),
+    read: () => scoped(client.from('user_words').select('lookups,practices,reviews,level,last_seen,word_data,updated_at')).maybeSingle(),
     insert: row => client.from('user_words').insert(row).select().maybeSingle(),
     update: (row, version) => {
       let query = scoped(client.from('user_words').update(row));
