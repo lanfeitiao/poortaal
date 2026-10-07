@@ -710,7 +710,13 @@ function showPracticePicker(recordCompletion = true) {
   (document.getElementById('chatSendBtn') as HTMLButtonElement).disabled = false;
   resetRealtimeEncounterUi(); switchPracticeMode('voice');
 }
-window.addEventListener('poortaal:learning-owner', () => { stopRealtimeEncounter(); showPracticePicker(false); });
+window.addEventListener('poortaal:learning-owner', () => {
+  stopRealtimeEncounter(); showPracticePicker(false);
+  if (currentWordData) renderWordCard(currentWordData);
+  updateReviewBadge();
+  closeMicroReview(); resetReviewSessionIfActive();
+  if (window.location.hash.split('?')[0] === '#review') renderReviewHome();
+});
 
 async function startPracticeForWord(word: string, usage?: number) {
   const ticket = ++practiceGeneration;
