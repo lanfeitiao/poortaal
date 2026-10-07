@@ -26,9 +26,15 @@ test('a weak use takes priority over a use already produced independently', () =
 });
 test('self-graded review is not evidence of independent production', () => {
   const history = [attempt('one', move.chunk, 'needs-practice', 10), attempt('review', move.chunk, 'self-reviewed', 20, 'review')];
-  assert.equal(chooseWordUsage(word, history)?.chunk, move.chunk);
+  assert.equal(chooseWordUsage(word, history, 0, 21)?.chunk, make.chunk);
   assert.equal(needsUsageReview(word, history, 21), false);
   assert.equal(needsUsageReview(word, history, 20 + 86400000), true);
+});
+test('a reviewed weak use cannot hide another use that still needs review', () => {
+  const history = [attempt('one', make.chunk, 'needs-practice', 10), attempt('two', move.chunk, 'needs-practice', 20),
+    attempt('review', make.chunk, 'self-reviewed', 30, 'review')];
+  assert.equal(needsUsageReview(word, history, 31), true);
+  assert.equal(chooseWordUsage(word, history, 0, 31)?.chunk, move.chunk);
 });
 test('a later independent use clears the old problem and lets another use be practised', () => {
   const history = [attempt('one', move.chunk, 'needs-practice', 10), attempt('two', move.chunk, 'independent', 30)];

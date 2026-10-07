@@ -34,11 +34,20 @@ export function usageHistory(word: string, chunk: string, attempts: UsageAttempt
   return attempts.filter(a => !a.discarded && usageKey(a.word) === usageKey(word) && usageKey(a.chunk) === usageKey(chunk));
 }
 
-export function chooseWordUsage(data: Pick<WordExplanation, 'word' | 'usage'>, attempts: UsageAttempt[] = [], count = 0): WordUsage | undefined {
+function usageReviewDue(word: string, chunk: string, attempts: UsageAttempt[], now: number): boolean {
+  const history = usageHistory(word, chunk, attempts);
+  const last = history.filter(a => a.outcome !== 'self-reviewed').at(-1);
+  if (!last || !['needs-practice', 'supported'].includes(last.outcome)) return false;
+  const reviewed = history.filter(a => a.source === 'review').at(-1);
+  return !reviewed || reviewed.at < last.at || now - reviewed.at >= 86400000;
+}
+
+export function chooseWordUsage(data: Pick<WordExplanation, 'word' | 'usage'>, attempts: UsageAttempt[] = [], count = 0, now = Date.now()): WordUsage | undefined {
   const uses = data.usage || [];
   const ranked = uses.map((use, index) => {
     const last = usageHistory(data.word, use.chunk, attempts).filter(a => a.outcome !== 'self-reviewed').at(-1);
-    const priority = last?.outcome === 'needs-practice' ? 0 : last?.outcome === 'supported' ? 1 : !last ? 2 : 3;
+    const due = usageReviewDue(data.word, use.chunk, attempts, now);
+    const priority = due && last?.outcome === 'needs-practice' ? 0 : due ? 1 : !last ? 2 : last.outcome === 'independent' ? 3 : 4;
     return { use, priority, at: last?.at || 0, order: (index - count % Math.max(1, uses.length) + uses.length) % uses.length };
   });
   ranked.sort((a, b) => a.priority - b.priority || a.at - b.at || a.order - b.order);
@@ -46,13 +55,7 @@ export function chooseWordUsage(data: Pick<WordExplanation, 'word' | 'usage'>, a
 }
 
 export function needsUsageReview(data: Pick<WordExplanation, 'word' | 'usage'>, attempts: UsageAttempt[], now = Date.now()): boolean {
-  const use = chooseWordUsage(data, attempts);
-  if (!use) return false;
-  const history = usageHistory(data.word, use.chunk, attempts);
-  const last = history.filter(a => a.outcome !== 'self-reviewed').at(-1);
-  if (!last || !['needs-practice', 'supported'].includes(last.outcome)) return false;
-  const reviewed = history.filter(a => a.source === 'review').at(-1);
-  return !reviewed || reviewed.at < last.at || now - reviewed.at >= 86400000;
+  return (data.usage || []).some(use => usageReviewDue(data.word, use.chunk, attempts, now));
 }
 
 export function wordReview(data: WordExplanation, level: number, reviews: number, attempts: UsageAttempt[]) {
