@@ -9,6 +9,7 @@ import { cloudWordLearning, getWordAttempts, learningOwner, setLearningOwner, cl
 import { setPracticeContext, getPracticeContext, clearPracticeContext, markPracticeHelp, practiceUsageInstructions } from './practice-context';
 import { resetPracticeFeedback, finishPracticeFeedback } from './practice-feedback';
 import { needsUsageReview, wordReview } from './word-learning';
+import { createWordWriteQueue } from './word-write-queue';
 import {
   generateWordExplanation,
   InvalidWordExplanationError,
@@ -37,6 +38,7 @@ const SUPABASE_URL = 'https://fcpauyuwylnomuxdqtln.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_gs091zHItkPEaLWQhmH3MQ_vspCp-Yl';
 const supabaseClient = (window as any).supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser: AppUser | null = null;
+const queueWordWrite = createWordWriteQueue();
 
 // Auth UI
 function openAuthModal() {
@@ -144,18 +146,9 @@ async function syncFromCloud() {
       const cloudWordSet = new Set(cloudWords.map(w => w.word));
       if (currentUser?.id !== userId) return;
       const localOnlyStats = Object.entries(localStats).filter(([w]) => !cloudWordSet.has(w));
-      if (localOnlyStats.length > 0) {
-        const rows = localOnlyStats.map(([w, s]) => ({
-          user_id: userId,
-          word: w,
-          lookups: s.lookups || 0,
-          practices: s.practices || 0,
-          reviews: s.reviews || [],
-          level: s.level || 0,
-          last_seen: s.lastSeen || Date.now(),
-          word_data: wordCloudData(w),
-        }));
-        await supabaseClient.from('user_words').upsert(rows, { onConflict: 'user_id,word' });
+      for (const [word] of localOnlyStats) {
+        if (currentUser?.id !== userId) return;
+        await saveWordStatsToCloud(word);
       }
     }
 
@@ -169,20 +162,24 @@ async function syncFromCloud() {
 }
 
 async function saveWordStatsToCloud(word: string) {
-  if (!currentUser) return;
-  const stats = getWordStats()[word];
-  if (!stats) return;
-  await supabaseClient.from('user_words').upsert({
-    user_id: currentUser.id,
-    word: word,
-    lookups: stats.lookups || 0,
-    practices: stats.practices || 0,
-    reviews: stats.reviews || [],
-    level: stats.level || 0,
-    last_seen: stats.lastSeen || Date.now(),
-    word_data: wordCloudData(word),
-    updated_at: new Date().toISOString(),
-  }, { onConflict: 'user_id,word' }).then(({ error }: { error: unknown }) => { if (error) console.error('Save word error:', error); });
+  const userId = currentUser?.id;
+  if (!userId) return;
+  await queueWordWrite(userId, word, async () => {
+    if (currentUser?.id !== userId || learningOwner() !== userId) return;
+    const stats = getWordStats()[word];
+    if (!stats) return;
+    await supabaseClient.from('user_words').upsert({
+      user_id: userId,
+      word,
+      lookups: stats.lookups || 0,
+      practices: stats.practices || 0,
+      reviews: stats.reviews || [],
+      level: stats.level || 0,
+      last_seen: stats.lastSeen || Date.now(),
+      word_data: wordCloudData(word),
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id,word' }).then(({ error }: { error: unknown }) => { if (error) console.error('Save word error:', error); });
+  }).catch(error => console.error('Save word error:', error));
 }
 
 async function saveHistoryToCloud(word: string, wordData?: WordExplanation | null) {
@@ -578,7 +575,21 @@ function renderHistory() {
   const rows = searchHistory.map(entry => { const safe = escapeHtml(entry.word); const safeAttr = safe.replace(/"/g, '&quot;'); const plant = getPlantStage(entry.word); counts[plant.key]++; const isWilting = plant.key === 'wilting' && Boolean(entry.wordData); return `<li><div class="swipe-delete" data-action="delete-history" data-word="${safeAttr}">Verwijder</div><div class="swipe-content" data-action="history-word" data-word="${safeAttr}" data-review="${isWilting}"><span class="history-word">${safe}</span><span class="plant-stage" title="${plant.hint || ''}"><span class="plant-emoji">${plant.emoji}</span><span class="plant-label">${plant.hint || plant.label}</span></span></div></li>`; });
   list.innerHTML = rows.join(''); initSwipeHandlers(list); const parts: string[] = []; if (counts.strong) parts.push(`🌳 ${counts.strong} sterk`); if (counts.growing) parts.push(`🪴 ${counts.growing} groeiend`); if (counts.sprout) parts.push(`🌿 ${counts.sprout} kiempjes`); if (counts.seed) parts.push(`🌱 ${counts.seed} zaaisel`); if (counts.wilting) parts.push(`🥀 ${counts.wilting} verwelkt`); summaryEl.innerHTML = parts.join(' · ');
 }
-function deleteHistoryItem(word: string) { const w = word.toLowerCase().trim(); clearWordLearning(w); searchHistory = searchHistory.filter(h => h.word !== w); localStorage.setItem('poortaal_history', JSON.stringify(searchHistory)); const cache = getWordCache(); delete cache[w]; localStorage.setItem(WORD_CACHE_KEY, JSON.stringify(cache)); const stats = getWordStats(); delete stats[w]; localStorage.setItem('poortaal_word_stats', JSON.stringify(stats)); if (currentUser) { supabaseClient.from('user_history').delete().eq('user_id', currentUser.id).eq('word', w).then(() => {}); supabaseClient.from('user_words').delete().eq('user_id', currentUser.id).eq('word', w).then(() => {}); } renderHistory(); }
+function deleteHistoryItem(word: string) {
+  const w = word.toLowerCase().trim(); clearWordLearning(w);
+  searchHistory = searchHistory.filter(h => h.word !== w);
+  localStorage.setItem('poortaal_history', JSON.stringify(searchHistory));
+  const cache = getWordCache(); delete cache[w]; localStorage.setItem(WORD_CACHE_KEY, JSON.stringify(cache));
+  const stats = getWordStats(); delete stats[w]; localStorage.setItem('poortaal_word_stats', JSON.stringify(stats));
+  const userId = currentUser?.id;
+  if (userId) {
+    supabaseClient.from('user_history').delete().eq('user_id', userId).eq('word', w).then(() => {});
+    void queueWordWrite(userId, w, async () => {
+      await supabaseClient.from('user_words').delete().eq('user_id', userId).eq('word', w);
+    }).catch(error => console.error('Delete word error:', error));
+  }
+  renderHistory(); updateReviewBadge();
+}
 function initSwipeHandlers(list: HTMLElement) { const items = list.querySelectorAll<HTMLElement>('.swipe-content'); items.forEach(el => { let startX = 0, currentX = 0, swiping = false; el.addEventListener('touchstart', e => { startX = e.touches[0].clientX; currentX = 0; swiping = false; el.style.transition = 'none'; }, { passive: true }); el.addEventListener('touchmove', e => { const dx = e.touches[0].clientX - startX; if (dx < -10) swiping = true; if (swiping) { currentX = Math.min(0, Math.max(dx, -120)); el.style.transform = `translateX(${currentX}px)`; } }, { passive: true }); el.addEventListener('touchend', () => { el.style.transition = 'transform 0.2s ease'; if (currentX < -100) { const word = el.dataset.word; el.style.transform = 'translateX(-100%)'; if (word) setTimeout(() => deleteHistoryItem(word), 200); } else if (currentX < -40) el.style.transform = 'translateX(-80px)'; else el.style.transform = 'translateX(0)'; }); el.addEventListener('click', e => { if (swiping) { e.stopPropagation(); e.preventDefault(); } }, true); }); }
 
 // --- Toast / OpenAI ---
