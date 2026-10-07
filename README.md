@@ -58,6 +58,7 @@ Run `npm test`, `npm run eval:words` (offline fixture validation), and `npm run 
 3. Dismiss feedback and check that its observation no longer appears in the next practice instructions. Review the same word: reveal before grading; a successful self-grade should not become an independent attempt.
 4. In voice practice, stop while a last caption is arriving. Check that input is muted, the final caption is included, and the microphone is released. Also leave during generation/analysis and switch accounts: no stale feedback should be saved to the next session or account.
 5. Open a word card or a full/quick review before initial cloud sync finishes, then let a newer cloud dismissal arrive. The card should refresh, old review prompts should close without adding a grade, and review home should reflect the merged records. Syncing unchanged observations should preserve an active review.
+6. Let an older word's pending usage enrichment finish after cloud sync. New cloud definitions, examples, and existing usages should remain intact; generated usages should only fill a missing usage list.
 
 ## Built with
 

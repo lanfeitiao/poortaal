@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { validateWordUsage } from './word-usage.ts';
 import { readSavedWordExplanation, validateWordExplanation, type WordExplanation } from './word-explanation.ts';
-import { enrichWordUsage } from './usage-generation.ts';
+import { enrichWordUsage, mergeUsageEnrichment } from './usage-generation.ts';
 import { renderWordUsage } from './word-usage-ui.ts';
 
 const use = { chunk: 'een afspraak maken', meaning_en: 'make an appointment', frame: 'Ik wil een afspraak maken voor [tijd].', example_nl: 'Ik wil een afspraak maken voor donderdag.', example_en: 'I want to make an appointment for Thursday.', review_prompt: 'Arrange a time for an appointment.' };
@@ -28,6 +28,22 @@ test('legacy enrichment keeps the original word, meaning, and examples', async (
 test('existing uses are reused without another model request', async () => {
   const data = { ...legacy, usage: [use] };
   assert.equal(await enrichWordUsage(data, async () => { throw new Error('unnecessary request'); }), data);
+});
+test('late enrichment adds only missing usages to the latest word data', () => {
+  const latest: WordExplanation = { ...legacy, meaning_nl: 'Nieuwe betekenis.', meaning_en: 'updated meaning',
+    examples: [{ nl: 'De nieuwe afspraak is vrijdag.', en: 'The new appointment is Friday.' }, legacy.examples[1]], tips: 'Updated tips.' };
+  const merged = mergeUsageEnrichment(latest, { ...legacy, usage: [use] });
+  assert.deepEqual(merged, { ...latest, usage: [use] });
+  assert.equal(merged.examples, latest.examples);
+  assert.equal(latest.usage, undefined);
+});
+test('late enrichment preserves cloud usages including an explicitly empty list', () => {
+  for (const usage of [[{ ...use, chunk: 'een afspraak verzetten' }], []]) {
+    const latest = { ...legacy, usage };
+    const merged = mergeUsageEnrichment(latest, { usage: [use] });
+    assert.deepEqual(merged, latest);
+    assert.equal(merged.usage, usage);
+  }
 });
 test('model-generated HTML and quote characters stay text in word usage cards', () => {
   const html = renderWordUsage({ ...legacy, word: 'afspraak" onclick="alert(1)', usage: [{ ...use, frame: '<img src=x onerror=alert(1)>' }] });

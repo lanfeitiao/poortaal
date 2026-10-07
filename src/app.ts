@@ -3,7 +3,7 @@ import {
   requestOpenAIChat,
 } from './openai-client';
 import { consumeRealtimePracticeCompletion, resetRealtimeEncounterUi, stopRealtimeEncounter } from './realtime/encounter-controller';
-import { enrichWordUsage } from './usage-generation';
+import { enrichWordUsage, mergeUsageEnrichment } from './usage-generation';
 import { escapeText, renderWordUsage, renderPracticeUsage } from './word-usage-ui';
 import { cloudWordLearning, getWordAttempts, learningOwner, setLearningOwner, clearWordLearning, recordWordAttempt } from './learning-store';
 import { setPracticeContext, getPracticeContext, clearPracticeContext, markPracticeHelp, practiceUsageInstructions } from './practice-context';
@@ -652,6 +652,7 @@ function loadWordUsage(data: WordExplanation): Promise<WordExplanation> {
   if (existing) return existing;
   const owner = learningOwner();
   const request = enrichWordUsage(data, callOpenAI).then(enriched => {
+    enriched = mergeUsageEnrichment(getCachedWord(key) || data, enriched);
     setWordCache(key, enriched);
     const entry = searchHistory.find(h => h.word === key);
     if (entry) {
@@ -661,7 +662,7 @@ function loadWordUsage(data: WordExplanation): Promise<WordExplanation> {
     }
     if (currentWord?.toLowerCase().trim() === key) { currentWordData = enriched; renderWordCard(enriched); }
     return enriched;
-  }).catch(() => data).finally(() => usageRequests.delete(key));
+  }).catch(() => getCachedWord(key) || data).finally(() => usageRequests.delete(key));
   usageRequests.set(key, request);
   return request;
 }

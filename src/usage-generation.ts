@@ -3,6 +3,10 @@ import type { ChatMessage, WordExplanation } from './word-explanation.ts';
 
 type CompleteChat = (messages: ChatMessage[], temperature?: number) => Promise<string>;
 
+export function mergeUsageEnrichment(latest: WordExplanation, generated: Pick<WordExplanation, 'usage'>): WordExplanation {
+  return { ...latest, usage: latest.usage ?? generated.usage };
+}
+
 // Enrich older saved words without regenerating their definitions or examples.
 export async function enrichWordUsage(data: WordExplanation, completeChat: CompleteChat): Promise<WordExplanation> {
   if (data.usage !== undefined) return data;
