@@ -10,6 +10,7 @@ import { setPracticeContext, getPracticeContext, clearPracticeContext, markPract
 import { resetPracticeFeedback, finishPracticeFeedback } from './practice-feedback';
 import { needsUsageReview, wordReview } from './word-learning';
 import { createWordWriteQueue } from './word-write-queue';
+import { saveWordWithVersion, supabaseWordStore } from './word-cloud-save';
 import {
   generateWordExplanation,
   InvalidWordExplanationError,
@@ -182,20 +183,28 @@ async function saveWordStatsToCloud(word: string) {
   const userId = currentUser?.id;
   if (!userId) return;
   await queueWordWrite(userId, word, async () => {
-    if (currentUser?.id !== userId || learningOwner() !== userId) return;
-    const stats = getWordStats()[word];
-    if (!stats) return;
-    await supabaseClient.from('user_words').upsert({
-      user_id: userId,
-      word,
-      lookups: stats.lookups || 0,
-      practices: stats.practices || 0,
-      reviews: stats.reviews || [],
-      level: stats.level || 0,
-      last_seen: stats.lastSeen || Date.now(),
-      word_data: wordCloudData(word),
-      updated_at: new Date().toISOString(),
-    }, { onConflict: 'user_id,word' }).then(({ error }: { error: unknown }) => { if (error) console.error('Save word error:', error); });
+    const active = () => currentUser?.id === userId && learningOwner() === userId;
+    const saved = await saveWordWithVersion(supabaseWordStore(supabaseClient, userId, word), () => {
+      const stats = getWordStats()[word];
+      return stats ? { user_id: userId, word, lookups: stats.lookups || 0,
+        practices: stats.practices || 0, reviews: stats.reviews || [], level: stats.level || 0,
+        last_seen: stats.lastSeen || Date.now(), word_data: wordCloudData(word) } : null;
+    }, active);
+    if (!saved || !active()) return;
+    const attemptsBefore = JSON.stringify(getWordAttempts(word));
+    cloudWordLearning(word, saved.word_data, userId);
+    const cached = getCachedWord(word);
+    const cloud = readSavedWordExplanation(saved.word_data);
+    const changed = attemptsBefore !== JSON.stringify(getWordAttempts(word))
+      || (cloud && JSON.stringify(cloud) !== JSON.stringify(cached));
+    if (cloud) setWordCache(word, cloud);
+    if (changed) {
+      if (currentWord?.toLowerCase().trim() === word.toLowerCase().trim() && cloud) {
+        currentWordData = cloud; renderWordCard(cloud);
+      }
+      closeMicroReview(); resetReviewSessionIfActive(); updateReviewBadge();
+      if (window.location.hash.split('?')[0] === '#review') renderReviewHome();
+    }
   }).catch(error => console.error('Save word error:', error));
 }
 
@@ -627,7 +636,7 @@ function trySuggestion(word: string) { (document.getElementById('wordInput') as 
 const WORD_CACHE_KEY = 'poortaal_word_cache_v4';
 function wordCloudData(word: string) {
   const data = getCachedWord(word);
-  return data ? { ...data, usage_progress: getWordAttempts(word) } : null;
+  return { ...data, usage_progress: getWordAttempts(word) };
 }
 function getWordCache(): Record<string, unknown> { try { return JSON.parse(localStorage.getItem(WORD_CACHE_KEY) || '{}') as Record<string, unknown>; } catch { return {}; } }
 function setWordCache(word: string, data: unknown) { const cache = getWordCache(); cache[word.toLowerCase().trim()] = data; const keys = Object.keys(cache); if (keys.length > 200) delete cache[keys[0]]; localStorage.setItem(WORD_CACHE_KEY, JSON.stringify(cache)); }

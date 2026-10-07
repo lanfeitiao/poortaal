@@ -47,7 +47,7 @@ Each word can also carry up to two common collocations or sentence frames. Older
 
 After text or voice practice, a short reflection quotes the learner's own words, offers at most one correction, and invites a one-sentence retry. Optional naturalness suggestions are distinguished from errors. Learners can dismiss incorrect feedback. Hints and retries count as supported use; self-graded review does not count as independent conversation output. These observations stay attached to the word and inform later review and practice.
 
-Learning observations are saved locally per account and synced through the existing `user_words.word_data` JSON field; no database migration is needed. Voice finishing mutes input and briefly drains late captions before analysis. Unsettled or failed transcripts do not produce a learning assessment, and text analysis does not assess pronunciation.
+Learning observations are saved locally per account and synced through the existing `user_words.word_data` JSON field; no database migration is needed. Writes check the existing `updated_at` version atomically and retry conflicts after merging observations and dismissals. Older app versions without this check can still overwrite records, so reload other open devices after deploying. Voice finishing mutes input and briefly drains late captions before analysis. Unsettled or failed transcripts do not produce a learning assessment, and text analysis does not assess pronunciation.
 
 ## Checking the learning loop
 
