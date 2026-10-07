@@ -63,7 +63,7 @@ function connectActions(panel: HTMLElement, snapshot: PracticeSnapshot, feedback
   button('send')?.addEventListener('click', () => {
     const answer = input?.value.trim();
     if (!answer) { input?.focus(); return; }
-    void finishPracticeFeedback({ ...snapshot, id: crypto.randomUUID(), supportUsed: true, settled: true,
+    void finishPracticeFeedback({ ...snapshot, supportUsed: true, settled: true,
       turns: [{ role: 'assistant', content: feedback.retry_prompt }, { role: 'user', content: answer }] });
   });
 }
