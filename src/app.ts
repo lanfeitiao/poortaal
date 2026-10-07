@@ -121,11 +121,12 @@ async function syncFromCloud() {
     if (currentWordData && cloudWords.some(cw => cw.word.toLowerCase().trim() === openWord)) {
       renderWordCard(currentWordData);
     }
+    localStorage.setItem('poortaal_word_stats', JSON.stringify(localStats));
     if (learningChanged) {
       closeMicroReview(); resetReviewSessionIfActive();
       if (window.location.hash.split('?')[0] === '#review') renderReviewHome();
     }
-    localStorage.setItem('poortaal_word_stats', JSON.stringify(localStats));
+    updateReviewBadge();
     for (const word of dirtyUsageWords) {
       if (currentUser?.id !== userId) return;
       await saveWordStatsToCloud(word);
@@ -165,6 +166,7 @@ async function syncFromCloud() {
 
     renderHistory();
     updateReviewBadge();
+    if (!reviewSessionActive && window.location.hash.split('?')[0] === '#review') renderReviewHome();
   } catch (e) {
     console.error('Sync error:', e);
   } finally {
@@ -475,6 +477,7 @@ function exitReviewSession() {
 function resetReviewSessionIfActive() {
   if (!reviewSessionActive) return;
   reviewSessionActive = false; reviewQueue = []; reviewIndex = 0; reviewResults = { know: 0, again: 0 }; reviewRevealed = false;
+  currentReviewPrompt = null;
   const session = document.getElementById('reviewSessionSection');
   const home = document.getElementById('reviewHomeSection');
   if (session) session.style.display = 'none';
@@ -838,13 +841,14 @@ function startMicroReview(word: string) {
 }
 function revealAnswer() { if (microReviewInterval) { clearInterval(microReviewInterval); microReviewInterval = null; } document.getElementById('reviewAnswer').classList.add('revealed'); document.getElementById('reviewActions').innerHTML = '<button class="review-btn-know" data-action="micro-finish" data-known="true">Wist ik!</button><button class="review-btn-again" data-action="micro-finish" data-known="false">Opnieuw</button><button class="review-btn-close" data-action="micro-close">Sluiten</button>'; }
 function finishReview(knew: boolean) {
+  if (!microReviewPrompt || !document.getElementById('microReviewOverlay').classList.contains('open')) return;
   const word = document.getElementById('reviewWord').textContent!.toLowerCase();
   updateWordStats(word, knew ? 'review' : 'review_again');
   if (microReviewPrompt?.usage) recordWordAttempt({ id: crypto.randomUUID(), at: Date.now(), word,
     chunk: microReviewPrompt.usage.chunk, outcome: knew ? 'self-reviewed' : 'needs-practice', source: 'review' });
   closeMicroReview(); if (!knew) trySuggestion(word); renderHistory(); updateReviewBadge();
 }
-function closeMicroReview() { if (microReviewInterval) { clearInterval(microReviewInterval); microReviewInterval = null; } document.getElementById('microReviewOverlay').classList.remove('open'); }
+function closeMicroReview() { if (microReviewInterval) { clearInterval(microReviewInterval); microReviewInterval = null; } microReviewPrompt = null; document.getElementById('microReviewOverlay').classList.remove('open'); }
 
 function switchPracticeMode(mode: 'text' | 'voice') { document.getElementById('textModeBtn').classList.toggle('active', mode === 'text'); document.getElementById('voiceModeBtn').classList.toggle('active', mode === 'voice'); document.getElementById('textPracticePanel').style.display = mode === 'text' ? '' : 'none'; document.getElementById('voicePracticePanel').style.display = mode === 'voice' ? '' : 'none'; if (mode === 'voice') { const word = document.getElementById('practiceChatWord').textContent || ''; document.getElementById('voicePracticeWord').textContent = word; } else { void startTextPracticeScenario(); } }
 
