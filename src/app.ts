@@ -114,6 +114,10 @@ async function syncFromCloud() {
         }
       }
     }
+    const openWord = currentWord?.toLowerCase().trim();
+    if (currentWordData && cloudWords.some(cw => cw.word.toLowerCase().trim() === openWord)) {
+      renderWordCard(currentWordData);
+    }
     localStorage.setItem('poortaal_word_stats', JSON.stringify(localStats));
     for (const word of dirtyUsageWords) {
       if (currentUser?.id !== userId) return;

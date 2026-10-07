@@ -40,6 +40,16 @@ test('retrying feedback cannot count the same session as multiple mistakes', () 
   const second = attempt('session', move.chunk, 'supported', 20);
   assert.deepEqual(mergeAttempts([first], [second]), [second]);
 });
+test('dismissing the updated retry cannot reactivate its superseded mistake', () => {
+  const first = attempt('session', move.chunk, 'needs-practice', 10);
+  const retry = attempt('session', move.chunk, 'supported', 20);
+  const current = mergeAttempts([first], [retry]);
+  const dismissed = current.map(a => ({ ...a, discarded: true }));
+  const restored = mergeAttempts(dismissed, [first]);
+  assert.equal(restored.length, 1);
+  assert.equal(needsUsageReview(word, restored), false);
+  assert.equal(chooseWordUsage(word, restored)?.chunk, make.chunk);
+});
 test('dismissed recognition errors stay dismissed when old cloud data returns', () => {
   const record = attempt('session', move.chunk, 'needs-practice', 10);
   const dismissed = { ...record, discarded: true };
