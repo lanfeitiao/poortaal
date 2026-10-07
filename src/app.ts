@@ -113,7 +113,9 @@ async function syncFromCloud() {
         const cloud = readSavedWordExplanation(cw.word_data);
         if (cloud) {
           const local = getCachedWord(cw.word);
-          setWordCache(cw.word, { ...cloud, usage: cloud.usage ?? local?.usage });
+          const merged = { ...cloud, usage: cloud.usage ?? local?.usage };
+          if (JSON.stringify(merged) !== JSON.stringify(local)) learningChanged = true;
+          setWordCache(cw.word, merged);
         }
       }
     }
