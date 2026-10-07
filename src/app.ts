@@ -119,6 +119,8 @@ async function syncFromCloud() {
     }
     const openWord = currentWord?.toLowerCase().trim();
     if (currentWordData && cloudWords.some(cw => cw.word.toLowerCase().trim() === openWord)) {
+      const syncedWord = openWord ? getCachedWord(openWord) : null;
+      if (syncedWord) currentWordData = syncedWord;
       renderWordCard(currentWordData);
     }
     localStorage.setItem('poortaal_word_stats', JSON.stringify(localStats));
