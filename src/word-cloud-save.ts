@@ -20,16 +20,17 @@ function mergeWordData(word: string, local: unknown, remote: unknown): unknown {
   return base || progress.length ? { ...base, usage_progress: progress } : null;
 }
 
+export function mergeCloudWordStats(a: Record<string, unknown>, b: Record<string, unknown>) {
+  const number = (value: unknown) => typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : 0;
+  const maximum = (key: string) => Math.max(number(a[key]), number(b[key]));
+  const reviews = (value: unknown): number[] => Array.isArray(value)
+    ? value.filter((n): n is number => typeof n === 'number' && Number.isFinite(n) && n >= 0) : [];
+  return { lookups: maximum('lookups'), practices: maximum('practices'), level: maximum('level'),
+    last_seen: maximum('last_seen'), reviews: [...new Set([...reviews(a.reviews), ...reviews(b.reviews)])].sort((x, y) => x - y) };
+}
 function mergeWordRow(local: WordRow, remote: WordRow | null): WordRow {
   if (!remote) return local;
-  const merged = { ...local };
-  for (const key of ['lookups', 'practices', 'level', 'last_seen']) {
-    const values = [local[key], remote[key]].filter((value): value is number => typeof value === 'number' && Number.isFinite(value));
-    if (values.length) merged[key] = Math.max(...values);
-  }
-  const reviews = [...(Array.isArray(local.reviews) ? local.reviews : []), ...(Array.isArray(remote.reviews) ? remote.reviews : [])]
-    .filter((value): value is number => typeof value === 'number' && Number.isFinite(value));
-  if (reviews.length) merged.reviews = [...new Set(reviews)].sort((a, b) => a - b);
+  const merged = { ...local, ...mergeCloudWordStats(local, remote) };
   merged.word_data = mergeWordData(local.word, local.word_data, remote.word_data);
   return merged;
 }

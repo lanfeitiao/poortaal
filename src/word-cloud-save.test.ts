@@ -115,3 +115,20 @@ test('read failures do not fall back to unprotected writes', async () => {
   await assert.rejects(saveWordWithVersion(db.store, () => row(), () => true), { code: 'NETWORK' });
   assert.equal(db.versions.length, 0);
 });
+test('stale evidence saves cannot roll back remote word stats, including after a conflict', async () => {
+  const remote = { ...row(), lookups: 8, practices: 3, level: 3, reviews: [10, 20], last_seen: 50 };
+  const local = { ...row([attempt('local')]), lookups: 2, practices: 1, level: 1, reviews: [10, 30], last_seen: 40 };
+  const db = memory(remote); const update = db.store.update; let first = true;
+  db.store.update = async (value, version) => {
+    if (first) {
+      first = false;
+      await update({ ...remote, lookups: 9, level: 4, reviews: [10, 20, 35], updated_at: '2030-01-01T00:00:00.000Z' }, version);
+      return { data: null, error: null };
+    }
+    return update(value, version);
+  };
+  for (let save = 0; save < 2; save++) await saveWordWithVersion(db.store, () => local, () => true);
+  assert.equal(db.get().lookups, 9); assert.equal(db.get().practices, 3);
+  assert.equal(db.get().level, 4); assert.equal(db.get().last_seen, 50);
+  assert.deepEqual(db.get().reviews, [10, 20, 30, 35]);
+});

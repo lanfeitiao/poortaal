@@ -10,7 +10,7 @@ import { setPracticeContext, getPracticeContext, clearPracticeContext, markPract
 import { resetPracticeFeedback, finishPracticeFeedback } from './practice-feedback';
 import { needsUsageReview, wordReview } from './word-learning';
 import { createWordWriteQueue } from './word-write-queue';
-import { saveWordWithVersion, supabaseWordStore } from './word-cloud-save';
+import { mergeCloudWordStats, saveWordWithVersion, supabaseWordStore } from './word-cloud-save';
 import {
   generateWordExplanation,
   InvalidWordExplanationError,
@@ -191,11 +191,19 @@ async function saveWordStatsToCloud(word: string) {
         last_seen: stats.lastSeen || Date.now(), word_data: wordCloudData(word) } : null;
     }, active);
     if (!saved || !active()) return;
+    const stats = getWordStats();
+    if (!stats[word]) return;
+    const localStats = { ...stats[word], last_seen: stats[word].lastSeen };
+    const statsBefore = JSON.stringify(mergeCloudWordStats({}, localStats));
+    const mergedStats = mergeCloudWordStats(saved, localStats);
+    const { last_seen, ...progress } = mergedStats;
+    stats[word] = { ...progress, lastSeen: last_seen };
+    localStorage.setItem('poortaal_word_stats', JSON.stringify(stats));
     const attemptsBefore = JSON.stringify(getWordAttempts(word));
     cloudWordLearning(word, saved.word_data, userId);
     const cached = getCachedWord(word);
     const cloud = readSavedWordExplanation(saved.word_data);
-    const changed = attemptsBefore !== JSON.stringify(getWordAttempts(word))
+    const changed = statsBefore !== JSON.stringify(mergedStats) || attemptsBefore !== JSON.stringify(getWordAttempts(word))
       || (cloud && JSON.stringify(cloud) !== JSON.stringify(cached));
     if (cloud) setWordCache(word, cloud);
     if (changed) {
