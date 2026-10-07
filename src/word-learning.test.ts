@@ -41,6 +41,21 @@ test('a later independent use clears the old problem and lets another use be pra
   assert.equal(chooseWordUsage(word, history)?.chunk, make.chunk);
   assert.equal(needsUsageReview(word, history, 40), false);
 });
+test('one daily review alternates equally weak usages by their latest review time', () => {
+  const day = 86400000;
+  for (const outcome of ['needs-practice', 'supported'] as const) {
+    const history = [attempt('make', make.chunk, outcome, 10), attempt('move', move.chunk, outcome, 20),
+      attempt('review-make', make.chunk, 'self-reviewed', 30, 'review'),
+      attempt('review-move', move.chunk, 'self-reviewed', 31, 'review')];
+    for (let session = 1; session <= 4; session++) {
+      const now = 31 + session * day;
+      const selected = chooseWordUsage(word, history, 0, now);
+      assert.equal(selected?.chunk, session % 2 ? make.chunk : move.chunk);
+      history.push(attempt(`daily-${session}`, selected!.chunk, 'self-reviewed', now, 'review'));
+    }
+    assert.ok(history.filter(a => a.outcome === outcome).length === 2, 'review grades do not change speech evidence');
+  }
+});
 test('retrying feedback cannot count the same session as multiple mistakes', () => {
   const first = attempt('session', move.chunk, 'needs-practice', 10);
   const second = attempt('session', move.chunk, 'supported', 20);

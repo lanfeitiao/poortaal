@@ -45,10 +45,13 @@ function usageReviewDue(word: string, chunk: string, attempts: UsageAttempt[], n
 export function chooseWordUsage(data: Pick<WordExplanation, 'word' | 'usage'>, attempts: UsageAttempt[] = [], count = 0, now = Date.now()): WordUsage | undefined {
   const uses = data.usage || [];
   const ranked = uses.map((use, index) => {
-    const last = usageHistory(data.word, use.chunk, attempts).filter(a => a.outcome !== 'self-reviewed').at(-1);
+    const history = usageHistory(data.word, use.chunk, attempts);
+    const last = history.filter(a => a.outcome !== 'self-reviewed').at(-1);
+    const reviewed = history.filter(a => a.source === 'review').at(-1);
     const due = usageReviewDue(data.word, use.chunk, attempts, now);
     const priority = due && last?.outcome === 'needs-practice' ? 0 : due ? 1 : !last ? 2 : last.outcome === 'independent' ? 3 : 4;
-    return { use, priority, at: last?.at || 0, order: (index - count % Math.max(1, uses.length) + uses.length) % uses.length };
+    const at = due ? Math.max(last?.at || 0, reviewed?.at || 0) : last?.at || 0;
+    return { use, priority, at, order: (index - count % Math.max(1, uses.length) + uses.length) % uses.length };
   });
   ranked.sort((a, b) => a.priority - b.priority || a.at - b.at || a.order - b.order);
   return ranked[0]?.use;
