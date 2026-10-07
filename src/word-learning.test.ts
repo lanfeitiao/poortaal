@@ -78,6 +78,14 @@ test('dismissed recognition errors stay dismissed when old cloud data returns', 
   assert.equal(merged[0].discarded, true);
   assert.equal(needsUsageReview(word, merged), false);
 });
+test('dismissal tombstones survive the active history cap and stale cloud data', () => {
+  const dismissed = { ...attempt('old', move.chunk, 'needs-practice', 1), discarded: true };
+  const newer = Array.from({ length: 31 }, (_, index) => attempt(`new-${index}`, make.chunk, 'independent', index + 2));
+  const compacted = mergeAttempts([dismissed], newer);
+  assert.equal(compacted.some(a => a.id === dismissed.id && a.discarded), true);
+  const merged = mergeAttempts(compacted, [{ ...dismissed, discarded: false }]);
+  assert.equal(merged.find(a => a.id === dismissed.id)?.discarded, true);
+});
 test('usage evidence from another word cannot influence this word', () => {
   const history = [{ ...attempt('other', make.chunk, 'needs-practice', 10), word: 'tijd' }];
   assert.equal(needsUsageReview(word, history), false);
