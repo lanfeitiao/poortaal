@@ -1,3 +1,5 @@
+import type { WordUsage } from '../word-usage.ts';
+
 export type RealtimeConnectionState =
   | 'idle'
   | 'requesting-microphone'
@@ -22,6 +24,7 @@ export const SUPPORT_LEVELS: SupportLevel[] = [
 export type Encounter = {
   id: string;
   targetWord: string;
+  usage?: WordUsage;
   title: string;
   emoji: string;
   setup: string;

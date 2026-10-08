@@ -6,6 +6,10 @@ import { groupTranscriptFragments, type TranscriptFragment, type TranscriptGroup
 import { createTranscriptFragment } from './transcript-timing';
 import { buildBackendInstructions, buildTutorInstructions } from './tutor-policy';
 import type { RealtimeConnectionState, RealtimeServerEvent, SupportLevel } from './types';
+import { getPracticeContext, markPracticeHelp } from '../practice-context';
+import { getWordAttempts, learningOwner } from '../learning-store';
+import { resetPracticeFeedback, finishPracticeFeedback } from '../practice-feedback';
+import { waitForTranscriptIdle } from './transcript-settle';
 
 const API_BASE = 'https://poortaal-api.weilin1990.workers.dev';
 
@@ -27,6 +31,9 @@ let transcriptIdleTimer: ReturnType<typeof setTimeout> | null = null;
 let completionTimer: ReturnType<typeof setTimeout> | null = null;
 let completionBannerNode: HTMLElement | null = null;
 let completionSentenceNode: HTMLElement | null = null;
+let finishing = false;
+let lastCaptionReceivedAtMs = 0;
+let connectionFailed = false;
 
 function el(id: string): HTMLElement | null { return document.getElementById(id); }
 function escapeHtml(value: string): string { return value.replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char] || char)); }
@@ -57,7 +64,7 @@ function renderSupport(): void {
   if (level !== 'model') { const more = document.createElement('button'); more.type = 'button'; more.textContent = level === 'none' ? '💡 Need a nudge?' : 'A little more help →'; more.style.cssText = 'border:1px solid #BFDBFE;background:white;color:#2563EB;border-radius:10px;padding:8px 11px;font:inherit;font-size:.82rem;cursor:pointer;'; more.addEventListener('click', requestMoreSupport); actions.appendChild(more); }
   if (level !== 'none') { const hide = document.createElement('button'); hide.type = 'button'; hide.textContent = 'Let me try'; hide.style.cssText = 'border:0;background:transparent;color:#6B7280;padding:8px 5px;font:inherit;font-size:.82rem;cursor:pointer;'; hide.addEventListener('click', hideSupport); actions.appendChild(hide); }
 }
-function requestMoreSupport(): void { if (!session) return; session.requestMoreSupport(); renderSupport(); }
+function requestMoreSupport(): void { if (!session) return; markPracticeHelp(); session.requestMoreSupport(); renderSupport(); }
 function hideSupport(): void { if (!session) return; session.hideSupport(); renderSupport(); }
 function eventText(event: RealtimeServerEvent, ...keys: string[]): string { for (const key of keys) { const value = event[key]; if (typeof value === 'string') return value; } return ''; }
 function eventNumber(event: RealtimeServerEvent, ...keys: string[]): number | undefined { for (const key of keys) { const value = event[key]; if (typeof value === 'number') return value; } return undefined; }
@@ -132,6 +139,7 @@ function reconcileProduction(groups: TranscriptGroup[]): void {
 }
 function appendTimelineTranscriptDelta(role: TranscriptRole, event: RealtimeServerEvent): string {
   const delta = eventText(event, 'delta'); if (!delta) return '';
+  lastCaptionReceivedAtMs = performance.now();
   const sequence = transcriptSequence++;
   const fragment = createTranscriptFragment(
     timelineTranscriptFragments, role, delta, sequence, performance.now(),
@@ -184,17 +192,25 @@ function handleRealtimeEvent(event: RealtimeServerEvent): void {
   if (!session) return;
   switch (event.type) {
     case 'session.input_transcript.delta':
-      updateTranscriptActivity('user', event);
+      if (!finishing) updateTranscriptActivity('user', event);
       appendTimelineTranscriptDelta('user', event);
       return;
     case 'session.output_transcript.delta':
-      updateTranscriptActivity('tutor', event);
+      if (!finishing) updateTranscriptActivity('tutor', event);
       appendTimelineTranscriptDelta('tutor', event); return;
-    case 'session.delegation.created': if (transcriptIdleTimer) clearTimeout(transcriptIdleTimer); transcriptIdleTimer = null; setVisualizer(false); setStatus('Even denken…'); return;
-    case 'error': setStatus('Er ging iets mis. Probeer opnieuw.'); return;
+    case 'session.delegation.created':
+      if (finishing) return;
+      if (transcriptIdleTimer) clearTimeout(transcriptIdleTimer);
+      transcriptIdleTimer = null; setVisualizer(false); setStatus('Even denken…'); return;
+    case 'error':
+      connectionFailed = true;
+      if (!finishing) setStatus('Er ging iets mis. Probeer opnieuw.');
+      return;
   }
 }
 function handleStateChange(state: RealtimeConnectionState): void {
+  if (state === 'error' || (state === 'closed' && active)) connectionFailed = true;
+  if (finishing) return;
   switch (state) {
     case 'requesting-microphone': setStatus('Microfoon openen…'); break;
     case 'connecting': setStatus('Verbinding maken…'); break;
@@ -214,7 +230,7 @@ function refreshCompletionMessages(): void {
   if (!session) return;
   const evidence = session.evidence;
   const independent = evidence.maxSupportUsed === 'none';
-  const banner = independent ? `🌼 ${evidence.targetWord} bloeit — you used it on your own.` : `🌿 Nice — you used ${evidence.targetWord} with some support.`;
+  const banner = independent ? `Je gebruikte “${evidence.targetWord}”. Je kunt nog even doorgaan.` : `Je gebruikte “${evidence.targetWord}” met een hint. Je kunt nog even doorgaan.`;
   if (!completionBannerNode) completionBannerNode = createMessage('system', banner);
   else completionBannerNode.textContent = banner;
   if (evidence.learnerSentence) {
@@ -238,16 +254,54 @@ function showCompletion(): void {
 }
 
 export async function toggleRealtimeEncounter(): Promise<void> {
-  if (active || generating) { stopRealtimeEncounter(); return; }
+  if (finishing) return;
+  if (active) { await finishRealtimeEncounter(); return; }
+  if (generating) { stopRealtimeEncounter(); return; }
   const word = el('voicePracticeWord')?.textContent?.trim() || ''; if (!word) { setStatus('Kies eerst een woord.'); return; }
 
+  resetPracticeFeedback(); connectionFailed = false;
+  const context = getPracticeContext();
   const requestId = ++generationId; generating = true; setStatus('Een situatie bedenken…'); setButton('Annuleren');
-  const encounter = await createGeneratedEncounter(word);
+  const encounter = await createGeneratedEncounter(word, context?.usage, getWordAttempts(word));
   if (requestId !== generationId) return;
   generating = false; session = new EncounterSession(encounter, 'none'); completionShown = false; renderEncounterIntro(); setButton('■ Stop encounter'); active = true;
+  if (context?.helpUsed) session.evidence.maxSupportUsed = 'model';
   client = new RealtimeClient({ apiBase: API_BASE, word, instructions: buildTutorInstructions(encounter), backendInstructions: buildBackendInstructions(encounter), onEvent: handleRealtimeEvent, onStateChange: handleStateChange });
   try { await client.connect(); } catch (error) { console.error('GPT-Live connection failed:', error); appendMessage('system', 'Could not start the voice encounter. Please try again.'); stopRealtimeEncounter(false); }
 }
-export function stopRealtimeEncounter(resetStatus = true): void { generationId += 1; generating = false; if (completionTimer && session?.evidence.successfulProduction && !completionShown) showCompletion(); if (transcriptIdleTimer) clearTimeout(transcriptIdleTimer); transcriptIdleTimer = null; if (completionTimer) clearTimeout(completionTimer); completionTimer = null; client?.disconnect(); client = null; active = false; setVisualizer(false); setButton('🎙️ Start encounter'); if (resetStatus) setStatus('Klaar voor een korte encounter'); }
+async function finishRealtimeEncounter(): Promise<void> {
+  const context = getPracticeContext();
+  const currentClient = client; const currentSession = session;
+  if (!context || !currentClient || !currentSession || (!microphoneReady && !timelineTranscriptFragments.some(f => f.role === 'user'))) {
+    stopRealtimeEncounter(); return;
+  }
+  const token = generationId; const owner = learningOwner();
+  const current = () => token === generationId && client === currentClient && session === currentSession;
+  finishing = true; microphoneReady = false;
+  currentClient.pauseInput(); setVisualizer(false); setButton('Gesprek afronden…');
+  const button = el('voiceStartBtn') as HTMLButtonElement | null;
+  if (button) button.disabled = true;
+  setStatus('Je laatste woorden verwerken…');
+  const settled = await waitForTranscriptIdle(() => lastCaptionReceivedAtMs, current);
+  if (!current()) return;
+  const turns = groupTranscriptFragments(timelineTranscriptFragments).map(g => ({
+    role: g.role === 'user' ? 'user' as const : 'assistant' as const, content: g.text,
+  }));
+  const snapshot = { ...context, id: currentSession.encounter.id, owner, turns,
+    supportUsed: context.helpUsed || currentSession.evidence.maxSupportUsed !== 'none', settled: settled && !connectionFailed };
+  stopRealtimeEncounter();
+  void finishPracticeFeedback(snapshot);
+}
+export function stopRealtimeEncounter(resetStatus = true): void {
+  generationId += 1; generating = false; finishing = false;
+  if (completionTimer && session?.evidence.successfulProduction && !completionShown) showCompletion();
+  if (transcriptIdleTimer) clearTimeout(transcriptIdleTimer); transcriptIdleTimer = null;
+  if (completionTimer) clearTimeout(completionTimer); completionTimer = null;
+  client?.disconnect(); client = null; active = false;
+  const button = el('voiceStartBtn') as HTMLButtonElement | null;
+  if (button) button.disabled = false;
+  setVisualizer(false); setButton('🎙️ Start encounter');
+  if (resetStatus) setStatus('Klaar voor een korte encounter');
+}
 export function consumeRealtimePracticeCompletion(): boolean { const completed = completionShown; completionShown = false; return completed; }
 export function resetRealtimeEncounterUi(): void { const root = transcriptRoot(); if (root) { root.innerHTML = ''; root.style.display = 'none'; } session = null; completionShown = false; resetTranscriptState(); setVisualizer(false); setButton('🎙️ Start encounter'); setStatus('Druk op de knop om te beginnen'); }

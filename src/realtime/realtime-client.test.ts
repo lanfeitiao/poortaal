@@ -67,6 +67,19 @@ test('the opening starts once and closed-session events cannot restart it', asyn
   assert.equal(fixture.track.enabled, false);
 });
 
+test('finishing mutes capture but preserves the data channel for delayed captions', async (t) => {
+  const fixture = clientFixture(t);
+  await fixture.client.connect();
+  fixture.channel.emit('session.started');
+  fixture.track.enabled = true;
+  fixture.client.pauseInput();
+  assert.equal(fixture.track.enabled, false);
+  assert.equal(fixture.channel.readyState, 'open');
+  assert.equal(fixture.stopped(), 0);
+  fixture.client.disconnect();
+  assert.equal(fixture.stopped(), 1);
+});
+
 test('a microphone granted after Stop is released without creating a new session', async (t) => {
   const fixture = clientFixture(t);
   let grant!: (stream: MediaStream) => void;
