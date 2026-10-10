@@ -6,6 +6,7 @@ import {
   InvalidWordExplanationError,
   WordExplanationRequestError,
   type WordExplanation,
+  validateWordExplanation,
 } from './word-explanation.ts';
 
 const validExplanation: WordExplanation = {
@@ -21,6 +22,27 @@ const validExplanation: WordExplanation = {
   fun_fact: null,
   usage: [],
 };
+
+test('optional tips and memory clues normalize without filler content', () => {
+  const { tips, fun_fact, ...base } = validExplanation;
+  for (const optional of [{}, { tips: null, fun_fact: null }, { tips: ' ', fun_fact: null }]) {
+    const result = validateWordExplanation({ ...base, ...optional });
+    assert.equal(result.tips, '');
+    assert.equal(result.fun_fact, null);
+  }
+});
+test('new explanations regenerate missing usages once while legacy data stays valid', async () => {
+  const { usage, ...legacy } = validExplanation;
+  assert.equal(validateWordExplanation(legacy).usage, undefined);
+  let calls = 0;
+  const result = await generateWordExplanation('gezellig', async () => {
+    calls++;
+    return JSON.stringify(calls === 1 ? legacy : validExplanation);
+  });
+  assert.equal(calls, 2);
+  assert.deepEqual(result.usage, []);
+  await assert.rejects(() => generateWordExplanation('gezellig', async () => JSON.stringify(legacy)), InvalidWordExplanationError);
+});
 
 test('returns a validated word explanation for valid JSON', async () => {
   const result = await generateWordExplanation(
