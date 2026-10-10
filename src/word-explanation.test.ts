@@ -19,6 +19,7 @@ const validExplanation: WordExplanation = {
   ],
   tips: 'Gezellig can describe a place, atmosphere, activity, or person.',
   fun_fact: null,
+  usage: [],
 };
 
 test('returns a validated word explanation for valid JSON', async () => {
@@ -88,13 +89,13 @@ test('stops after one regeneration when JSON stays malformed', async () => {
 });
 
 test('regenerates once when a required field is missing', async () => {
-  const { tips: _tips, ...withoutTips } = validExplanation;
+  const { meaning_nl: _meaning, ...withoutMeaning } = validExplanation;
   let calls = 0;
 
   const result = await generateWordExplanation('gezellig', async () => {
     calls++;
     return calls === 1
-      ? JSON.stringify(withoutTips)
+      ? JSON.stringify(withoutMeaning)
       : JSON.stringify(validExplanation);
   });
 
