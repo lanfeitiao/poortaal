@@ -182,7 +182,7 @@ async function syncFromCloud() {
   }
 }
 
-async function saveWordStatsToCloud(word: string) {
+async function saveWordStatsToCloud(word: string, retry?: { before: WordExplanation; generated: WordExplanation }) {
   const userId = currentUser?.id;
   if (!userId) return;
   await queueWordWrite(userId, word, async () => {
@@ -191,8 +191,11 @@ async function saveWordStatsToCloud(word: string) {
       const stats = getWordStats()[word];
       return stats ? { user_id: userId, word, lookups: stats.lookups || 0,
         practices: stats.practices || 0, reviews: stats.reviews || [], level: stats.level || 0,
-        last_seen: stats.lastSeen || Date.now(), word_data: wordCloudData(word) } : null;
-    }, active);
+        last_seen: stats.lastSeen || Date.now(), word_data: {
+          ...wordCloudData(word), ...(retry && getCachedWord(word)
+            ? mergeUsageEnrichment(getCachedWord(word)!, retry.generated, retry.before) : {}),
+        } } : null;
+    }, active, Date.now, retry?.before);
     if (!saved || !active()) return;
     const stats = getWordStats();
     if (!stats[word]) return;
@@ -692,7 +695,10 @@ function loadWordUsage(data: WordExplanation, retryEmpty = false): Promise<WordE
     if (entry) {
       entry.wordData = enriched;
       localStorage.setItem('poortaal_history', JSON.stringify(searchHistory));
-      if (owner === learningOwner()) { void saveHistoryToCloud(key, enriched); void saveWordStatsToCloud(key); }
+      if (owner === learningOwner()) {
+        void saveHistoryToCloud(key, enriched);
+        void saveWordStatsToCloud(key, retryEmpty ? { before: data, generated: enriched } : undefined);
+      }
     }
     return enriched;
   }).catch(error => {

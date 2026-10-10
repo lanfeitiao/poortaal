@@ -1,5 +1,6 @@
 import { mergeAttempts, validateAttempts } from './word-learning.ts';
-import { readSavedWordExplanation } from './word-explanation.ts';
+import { readSavedWordExplanation, type WordExplanation } from './word-explanation.ts';
+import { mergeUsageEnrichment } from './usage-generation.ts';
 import { usageKey } from './word-usage.ts';
 
 type WordRow = { user_id: string; word: string; word_data: unknown; updated_at?: string | null; [key: string]: unknown };
@@ -9,13 +10,13 @@ export type WordCloudStore = {
   insert(row: WordRow): Promise<Result>;
   update(row: WordRow, version: string | null): Promise<Result>;
 };
-function mergeWordData(word: string, local: unknown, remote: unknown): unknown {
+function mergeWordData(word: string, local: unknown, remote: unknown, retried?: WordExplanation): unknown {
   const saved = readSavedWordExplanation(remote);
   const current = readSavedWordExplanation(local);
   const attempts = (value: unknown) => validateAttempts(value && typeof value === 'object'
     ? (value as Record<string, unknown>).usage_progress : undefined)
     .filter(a => usageKey(a.word) === usageKey(word));
-  const base = saved ? { ...saved, usage: saved.usage ?? current?.usage } : current;
+  const base = saved ? mergeUsageEnrichment(saved, { usage: current?.usage }, retried) : current;
   const progress = mergeAttempts(attempts(local), attempts(remote));
   return base || progress.length ? { ...base, usage_progress: progress } : null;
 }
@@ -28,16 +29,16 @@ export function mergeCloudWordStats(a: Record<string, unknown>, b: Record<string
   return { lookups: maximum('lookups'), practices: maximum('practices'), level: maximum('level'),
     last_seen: maximum('last_seen'), reviews: [...new Set([...reviews(a.reviews), ...reviews(b.reviews)])].sort((x, y) => x - y) };
 }
-function mergeWordRow(local: WordRow, remote: WordRow | null): WordRow {
+function mergeWordRow(local: WordRow, remote: WordRow | null, retried?: WordExplanation): WordRow {
   if (!remote) return local;
   const merged = { ...local, ...mergeCloudWordStats(local, remote) };
-  merged.word_data = mergeWordData(local.word, local.word_data, remote.word_data);
+  merged.word_data = mergeWordData(local.word, local.word_data, remote.word_data, retried);
   return merged;
 }
 
 // An equality-filtered UPDATE is the atomic version check; a preceding read alone is not.
 export async function saveWordWithVersion(store: WordCloudStore, localRow: () => WordRow | null,
-  active: () => boolean, now: () => number = Date.now): Promise<WordRow | null> {
+  active: () => boolean, now: () => number = Date.now, retried?: WordExplanation): Promise<WordRow | null> {
   for (let retry = 0; retry < 5; retry++) {
     if (!active()) return null;
     const previous = await store.read();
@@ -47,7 +48,7 @@ export async function saveWordWithVersion(store: WordCloudStore, localRow: () =>
     if (!local) return null;
     const version = previous.data?.updated_at ?? null;
     const oldTime = version ? Date.parse(version) : NaN;
-    const row = { ...mergeWordRow(local, previous.data),
+    const row = { ...mergeWordRow(local, previous.data, retried),
       updated_at: new Date(Math.max(now(), Number.isFinite(oldTime) ? oldTime + 1 : 0)).toISOString() };
     const result = previous.data ? await store.update(row, version) : await store.insert(row);
     if (result.error) {
