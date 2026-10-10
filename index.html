@@ -116,7 +116,7 @@ main { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
 .word-example .example-nl { display: grid; grid-template-columns: minmax(0, 1fr) 44px; align-items: start; }
 .word-example .example-sentence { min-width: 0; }
 .word-example .ex-tts-btn { width: 44px; height: 44px; }
-.example-pattern { margin-top: 0.75rem; padding: 0.75rem; background: var(--blue-50); border-radius: 10px; }
+.example-pattern { display: flex; flex-direction: column; gap: 0.25rem; margin-top: 0.6rem; padding: 0.75rem; background: var(--blue-50); border-radius: 10px; line-height: 1.45; }
 .pattern-label, .tip-label { display: block; font-size: 0.8rem; color: var(--blue-600); font-weight: 600; margin-bottom: 0.3rem; }
 .word-tip + .word-tip { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--blue-100); }
 .usage-notice { margin-top: 0.75rem; color: var(--gray-500); font-size: 0.85rem; }
@@ -126,6 +126,10 @@ main { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
 .use-button { padding: 0.65rem 0.85rem; min-height: 44px; background: var(--blue-600); color: white; border: 0; border-radius: 10px; font: inherit; cursor: pointer; margin-top: 0.5rem; }
 .use-button.secondary { background: var(--blue-50); color: var(--blue-700); }
 .use-button:disabled { opacity: 0.5; cursor: default; }
+.example-pattern .pattern-label { margin-bottom: 0; }
+.example-pattern .use-frame { padding: 0; margin: 0; background: none; border-radius: 0; }
+.example-pattern .use-status { margin: 0; }
+.example-pattern .use-button { align-self: flex-start; margin-top: 0.25rem; padding: 0.4rem 0.7rem; font-size: 0.875rem; line-height: 1.25; }
 .practice-use { background: white; padding: 0.8rem 1rem; border-radius: 12px; margin-bottom: 1rem; }
 .practice-use summary, .feedback-transcript summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; }
 .feedback-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
