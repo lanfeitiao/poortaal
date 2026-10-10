@@ -26,7 +26,7 @@ export function renderWordExamples(data: WordExplanation, state?: UsageLoadState
     </div>`;
   }).join('');
   let notice = '';
-  if (!data.usage?.length || state) {
+  if (!data.usage?.length) {
     const message = state === 'loading' ? 'Voorbeelden en zinsbouw aanvullen…'
       : state === 'network' ? 'De verbinding is onderbroken. Je voorbeelden blijven beschikbaar.'
       : state === 'http' ? 'De taaldienst is tijdelijk niet beschikbaar. Je voorbeelden blijven beschikbaar.'

@@ -677,10 +677,13 @@ function refreshUsageCard(key: string) {
   if (latest) { currentWordData = latest; renderWordCard(latest); }
 }
 function loadWordUsage(data: WordExplanation, retryEmpty = false): Promise<WordExplanation> {
-  if (data.usage !== undefined && (!retryEmpty || data.usage.length)) return Promise.resolve(data);
   const key = data.word.toLowerCase().trim();
   const owner = learningOwner();
   const requestKey = `${owner}:${key}`;
+  if (data.usage !== undefined && (!retryEmpty || data.usage.length)) {
+    if (data.usage.length && usageStates.delete(requestKey)) refreshUsageCard(key);
+    return Promise.resolve(data);
+  }
   const existing = usageRequests.get(requestKey);
   if (existing) return existing;
   usageStates.set(requestKey, 'loading');
@@ -746,11 +749,13 @@ async function lookupWord() {
 function renderWordCard(data: WordExplanation) {
   const content = document.getElementById('content');
   const word = escapeHtml(data.word);
+  const usageKey = `${learningOwner()}:${data.word.toLowerCase().trim()}`;
+  if (data.usage?.length) usageStates.delete(usageKey);
   content.innerHTML = `<div class="card" id="wordCard"><div class="card-label">Woord</div>
     <div class="word-header"><h1>${word}</h1><span class="word-type">${escapeHtml(data.type)}</span>
     <button class="tts-btn" id="ttsBtn" data-action="play-word-tts" data-word="${word}" title="Uitspraak beluisteren">🔊</button></div>
     <div class="meaning"><div class="meaning-nl">${escapeHtml(data.meaning_nl)}</div><div class="meaning-en">${escapeHtml(data.meaning_en)}</div></div></div>
-    ${renderWordExamples(data, usageStates.get(`${learningOwner()}:${data.word.toLowerCase().trim()}`))}${renderWordTips(data)}
+    ${renderWordExamples(data, usageStates.get(usageKey))}${renderWordTips(data)}
     <button class="practice-btn" data-action="practice-word" data-word="${word}">🎭 Oefenen met “${word}”</button>`;
 }
 
