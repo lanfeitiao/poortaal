@@ -17,7 +17,7 @@ export function renderWordExamples(data: WordExplanation, state?: UsageLoadState
     const last = use && usageHistory(data.word, use.chunk, attempts).filter(a => a.outcome !== 'self-reviewed').at(-1);
     const status = last?.outcome === 'independent' ? 'Zelf gebruikt' : last?.outcome === 'supported' ? 'Met hulp gebruikt' : last?.outcome === 'needs-practice' ? 'Nog eens proberen' : '';
     return `<div class="word-example${use ? ' word-use' : ''}">
-      <div class="example-nl">“${highlight(nl, use?.chunk)}” <button class="example-tts" data-action="play-example-tts" data-text="${escapeText(nl)}" title="Uitspraak beluisteren">🔊</button></div>
+      <div class="example-nl">“${highlight(nl, use?.chunk)}” <button class="ex-tts-btn" data-action="play-example-tts" data-text="${escapeText(nl)}" title="Uitspraak beluisteren">🔊</button></div>
       <div class="example-en">${escapeText(en)}</div>
       ${use ? `<div class="example-pattern"><span class="pattern-label">Samen gebruiken</span> <strong>${escapeText(use.chunk)}</strong>
         <div class="use-frame">${escapeText(use.frame)}</div>
