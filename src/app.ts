@@ -676,13 +676,14 @@ function refreshUsageCard(key: string) {
 function loadWordUsage(data: WordExplanation, retryEmpty = false): Promise<WordExplanation> {
   if (data.usage !== undefined && (!retryEmpty || data.usage.length)) return Promise.resolve(data);
   const key = data.word.toLowerCase().trim();
-  const existing = usageRequests.get(key);
-  if (existing) return existing;
   const owner = learningOwner();
-  usageStates.set(key, 'loading');
+  const requestKey = `${owner}:${key}`;
+  const existing = usageRequests.get(requestKey);
+  if (existing) return existing;
+  usageStates.set(requestKey, 'loading');
   refreshUsageCard(key);
   const request = enrichWordUsage(data, callOpenAI, retryEmpty).then(enriched => {
-    usageStates.delete(key);
+    usageStates.delete(requestKey);
     const latest = getCachedWord(key);
     if (!latest || owner !== learningOwner()) return enriched;
     enriched = mergeUsageEnrichment(latest, enriched, retryEmpty ? data : undefined);
@@ -695,11 +696,11 @@ function loadWordUsage(data: WordExplanation, retryEmpty = false): Promise<WordE
     }
     return enriched;
   }).catch(error => {
-    usageStates.set(key, error instanceof OpenAIRequestError ? error.kind === 'network' ? 'network' : 'http' : 'format');
-    console.warn('Word usage unavailable', { word: key, kind: usageStates.get(key) });
+    usageStates.set(requestKey, error instanceof OpenAIRequestError ? error.kind === 'network' ? 'network' : 'http' : 'format');
+    console.warn('Word usage unavailable', { word: key, kind: usageStates.get(requestKey) });
     return getCachedWord(key) || data;
-  }).finally(() => { usageRequests.delete(key); refreshUsageCard(key); });
-  usageRequests.set(key, request);
+  }).finally(() => { usageRequests.delete(requestKey); if (owner === learningOwner()) refreshUsageCard(key); });
+  usageRequests.set(requestKey, request);
   return request;
 }
 export async function retryWordUsage(word: string) {
@@ -743,7 +744,7 @@ function renderWordCard(data: WordExplanation) {
     <div class="word-header"><h1>${word}</h1><span class="word-type">${escapeHtml(data.type)}</span>
     <button class="tts-btn" id="ttsBtn" data-action="play-word-tts" data-word="${word}" title="Uitspraak beluisteren">🔊</button></div>
     <div class="meaning"><div class="meaning-nl">${escapeHtml(data.meaning_nl)}</div><div class="meaning-en">${escapeHtml(data.meaning_en)}</div></div></div>
-    ${renderWordExamples(data, usageStates.get(data.word.toLowerCase().trim()))}${renderWordTips(data)}
+    ${renderWordExamples(data, usageStates.get(`${learningOwner()}:${data.word.toLowerCase().trim()}`))}${renderWordTips(data)}
     <button class="practice-btn" data-action="practice-word" data-word="${word}">🎭 Oefenen met “${word}”</button>`;
 }
 
