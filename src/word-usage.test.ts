@@ -57,7 +57,8 @@ test('examples integrate usages without duplicating their sentences', () => {
   assert.ok(html.includes('<strong>een afspraak maken</strong>'));
   assert.equal((html.match(/I want to make an appointment for Thursday\./g) || []).length, 1);
   assert.ok(!html.includes('Ik heb een afspraak.'));
-  assert.ok(html.includes('Mijn afspraak is morgen.'));
+  assert.ok(!html.includes('Mijn afspraak is morgen.'));
+  assert.equal((html.match(/class="word-example/g) || []).length, 1);
 });
 test('optional tips share one card with distinct labels and escaped contents', () => {
   assert.equal(renderWordTips({ ...legacy, tips: '', fun_fact: null }), '');
@@ -73,11 +74,21 @@ test('missing, empty and failed usage results show a retry, loading does not', (
   for (const state of [undefined, 'network', 'http', 'format'] as const) {
     assert.ok(renderWordExamples(legacy, state).includes('retry-word-usage'));
   }
-  assert.ok(renderWordExamples({ ...legacy, usage: [] }).includes('retry-word-usage'));
+  const noSpecialUse = renderWordExamples({ ...legacy, usage: [] });
+  assert.ok(!noSpecialUse.includes('retry-word-usage'));
+  assert.ok(!noSpecialUse.includes('usage-notice'));
+  assert.ok(!noSpecialUse.includes('example-pattern'));
   assert.ok(!renderWordExamples(legacy, 'loading').includes('retry-word-usage'));
   for (const state of ['loading', 'network', 'http', 'format'] as const) {
     assert.ok(!renderWordExamples({ ...legacy, usage: [use] }, state).includes('usage-notice'));
   }
+});
+test('legacy multi-use storage shows only one example without mutating stored uses', () => {
+  const data = { ...legacy, usage: [use, { ...use, chunk: 'een afspraak verzetten' }] };
+  const html = renderWordExamples(data);
+  assert.equal((html.match(/class="example-pattern"/g) || []).length, 1);
+  assert.equal(data.usage.length, 2);
+  assert.equal(data.examples.length, 2);
 });
 test('an explicit retry replaces an empty result but preserves newer cloud usages', async () => {
   const empty = { ...legacy, usage: [] };

@@ -16,7 +16,6 @@ const validExplanation: WordExplanation = {
   meaning_en: 'cosy; pleasant; convivial',
   examples: [
     { nl: 'Het was gezellig op school.', en: 'It was pleasant at school.' },
-    { nl: 'We maken het thuis gezellig.', en: 'We make it cosy at home.' },
   ],
   tips: 'Gezellig can describe a place, atmosphere, activity, or person.',
   fun_fact: null,
@@ -56,7 +55,25 @@ test('fresh examples use the same sentences as attached patterns', async () => {
   const use = { chunk: 'gezellig zijn', meaning_en: 'be pleasant', frame: 'Het is gezellig bij [plaats].', example_nl: 'Het is gezellig bij ons thuis.', example_en: 'It is pleasant at our home.', review_prompt: 'Describe the atmosphere at home.' };
   const result = await generateWordExplanation('gezellig', async () => JSON.stringify({ ...validExplanation, usage: [use] }));
   assert.deepEqual(result.examples[0], { nl: use.example_nl, en: use.example_en });
-  assert.deepEqual(result.examples[1], validExplanation.examples[1]);
+  assert.equal(result.examples.length, 1);
+});
+test('one-example words and legacy two-example words remain readable', () => {
+  assert.equal(validateWordExplanation(validExplanation).examples.length, 1);
+  const legacy = { ...validExplanation, examples: [validExplanation.examples[0], { nl: 'Het is gezellig.', en: 'It is pleasant.' }] };
+  assert.equal(validateWordExplanation(legacy).examples.length, 2);
+  for (const examples of [[], [...legacy.examples, legacy.examples[0]]]) {
+    assert.throws(() => validateWordExplanation({ ...validExplanation, examples }), InvalidWordExplanationError);
+  }
+});
+test('fresh lookups retain only one use and example even if the model pads its response', async () => {
+  const use = { chunk: 'gezellig zijn', meaning_en: 'be pleasant', frame: 'Het is gezellig bij [plaats].', example_nl: 'Het is gezellig bij ons thuis.', example_en: 'It is pleasant at our home.', review_prompt: 'Describe the atmosphere at home.' };
+  const result = await generateWordExplanation('gezellig', async messages => {
+    assert.ok(messages[0].content.includes('ZERO or ONE'));
+    assert.ok(messages[0].content.includes('ordinary free combination'));
+    return JSON.stringify({ ...validExplanation, examples: [validExplanation.examples[0], validExplanation.examples[0]], usage: [use, { ...use, chunk: 'gezellig maken' }] });
+  });
+  assert.equal(result.examples.length, 1);
+  assert.deepEqual(result.usage, [use]);
 });
 
 test('accepts a JSON response wrapped in a markdown code fence', async () => {
