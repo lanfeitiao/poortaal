@@ -3,7 +3,7 @@ import test from 'node:test';
 import { validateWordUsage } from './word-usage.ts';
 import { readSavedWordExplanation, validateWordExplanation, type WordExplanation } from './word-explanation.ts';
 import { enrichWordUsage, mergeUsageEnrichment } from './usage-generation.ts';
-import { renderWordUsage } from './word-usage-ui.ts';
+import { renderWordExamples, renderWordTips } from './word-card.ts';
 
 const use = { chunk: 'een afspraak maken', meaning_en: 'make an appointment', frame: 'Ik wil een afspraak maken voor [tijd].', example_nl: 'Ik wil een afspraak maken voor donderdag.', example_en: 'I want to make an appointment for Thursday.', review_prompt: 'Arrange a time for an appointment.' };
 const legacy: WordExplanation = { word: 'afspraak', type: 'zelfstandig naamwoord', meaning_nl: 'Een afgesproken tijd.', meaning_en: 'appointment', examples: [{ nl: 'Ik heb een afspraak.', en: 'I have an appointment.' }, { nl: 'Mijn afspraak is morgen.', en: 'My appointment is tomorrow.' }], tips: 'Use maken.', fun_fact: null };
@@ -46,8 +46,43 @@ test('late enrichment preserves cloud usages including an explicitly empty list'
   }
 });
 test('model-generated HTML and quote characters stay text in word usage cards', () => {
-  const html = renderWordUsage({ ...legacy, word: 'afspraak" onclick="alert(1)', usage: [{ ...use, frame: '<img src=x onerror=alert(1)>' }] });
+  const html = renderWordExamples({ ...legacy, word: 'afspraak" onclick="alert(1)', usage: [{ ...use, frame: '<img src=x onerror=alert(1)>' }] });
   assert.ok(html.includes('&lt;img'));
   assert.ok(html.includes('afspraak&quot; onclick=&quot;alert(1)'));
   assert.ok(!html.includes('<img'));
+});
+test('examples integrate usages without duplicating their sentences', () => {
+  const html = renderWordExamples({ ...legacy, usage: [use] });
+  assert.ok(html.includes('Voorbeelden & gebruik'));
+  assert.ok(html.includes('<strong>een afspraak maken</strong>'));
+  assert.equal((html.match(/I want to make an appointment for Thursday\./g) || []).length, 1);
+  assert.ok(!html.includes('Ik heb een afspraak.'));
+  assert.ok(html.includes('Mijn afspraak is morgen.'));
+});
+test('optional tips share one card with distinct labels and escaped contents', () => {
+  assert.equal(renderWordTips({ ...legacy, tips: '', fun_fact: null }), '');
+  const memory = renderWordTips({ ...legacy, tips: '', fun_fact: '<memory>' });
+  assert.ok(memory.includes('Onthouden'));
+  assert.ok(memory.includes('&lt;memory&gt;'));
+  assert.ok(!memory.includes('Let op'));
+  const both = renderWordTips({ ...legacy, fun_fact: 'Remember it.' });
+  assert.equal((both.match(/card-label/g) || []).length, 1);
+  assert.ok(both.includes('Let op'));
+});
+test('missing, empty and failed usage results show a retry, loading does not', () => {
+  for (const state of [undefined, 'network', 'http', 'format'] as const) {
+    assert.ok(renderWordExamples(legacy, state).includes('retry-word-usage'));
+  }
+  assert.ok(renderWordExamples({ ...legacy, usage: [] }).includes('retry-word-usage'));
+  assert.ok(!renderWordExamples(legacy, 'loading').includes('retry-word-usage'));
+});
+test('an explicit retry replaces an empty result but preserves newer cloud usages', async () => {
+  const empty = { ...legacy, usage: [] };
+  let calls = 0;
+  const generated = await enrichWordUsage(empty, async () => { calls++; return JSON.stringify({ usage: [use] }); }, true);
+  assert.equal(calls, 1);
+  assert.deepEqual(mergeUsageEnrichment(empty, generated, empty).usage, [use]);
+  const newer = { ...legacy, usage: [{ ...use, chunk: 'een afspraak verzetten' }] };
+  assert.deepEqual(mergeUsageEnrichment(newer, generated, empty), newer);
+  assert.equal(await enrichWordUsage(newer, async () => { throw new Error('unnecessary'); }, true), newer);
 });
