@@ -152,7 +152,10 @@ async function requestWordExplanation(
 
   const data = parseWordExplanation(cleanJsonResponse(raw));
   if (data.usage === undefined) throw new InvalidWordExplanationError('Missing word usage');
-  return data;
+  return { ...data, examples: data.examples.map((example, index) => {
+    const use = data.usage![index];
+    return use ? { nl: use.example_nl, en: use.example_en } : example;
+  }) as WordExplanation['examples'] };
 }
 
 export async function generateWordExplanation(

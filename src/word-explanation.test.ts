@@ -52,6 +52,12 @@ test('returns a validated word explanation for valid JSON', async () => {
 
   assert.deepEqual(result, validExplanation);
 });
+test('fresh examples use the same sentences as attached patterns', async () => {
+  const use = { chunk: 'gezellig zijn', meaning_en: 'be pleasant', frame: 'Het is gezellig bij [plaats].', example_nl: 'Het is gezellig bij ons thuis.', example_en: 'It is pleasant at our home.', review_prompt: 'Describe the atmosphere at home.' };
+  const result = await generateWordExplanation('gezellig', async () => JSON.stringify({ ...validExplanation, usage: [use] }));
+  assert.deepEqual(result.examples[0], { nl: use.example_nl, en: use.example_en });
+  assert.deepEqual(result.examples[1], validExplanation.examples[1]);
+});
 
 test('accepts a JSON response wrapped in a markdown code fence', async () => {
   const result = await generateWordExplanation(
