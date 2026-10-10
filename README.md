@@ -45,6 +45,12 @@ The realtime tutor is an experimental part of the project. It uses short generat
 
 Each word can also carry up to two common collocations or sentence frames. Older saved words are enriched when opened, keeping their original definition and examples. Review varies the task inside the same word card: meaning, collocation recall, or a short contextual response. Practice selects a use that needs attention and creates another everyday situation around it.
 
+Word cards show a short meaning, then **Voorbeelden & gebruik**: each attached use appears with its example sentence, reusable frame, and **Probeer zelf** entry into word practice. There is no separate collocation card. Stored legacy examples remain intact; an attached use supplies the corresponding displayed sentence. New lookups generate meanings, examples, and usages together.
+
+Optional **Tips** use two labels inside one card: **Onthouden** for reliable word formation or memory clues, and **Let op** for distinct actionable usage warnings. Either item can be absent; an empty Tips card is hidden. Existing saved explanations are not automatically regenerated.
+
+Legacy enrichment shows loading, connection/service/format failures, or an empty result inside the examples section. **Opnieuw proberen** explicitly retries missing or empty usages without replacing newer cloud usages. Basic examples and word practice remain available on failure. No schema migration or Worker deployment is required.
+
 After text or voice practice, a short reflection quotes the learner's own words, offers at most one correction, and invites a one-sentence retry. Optional naturalness suggestions are distinguished from errors. Learners can dismiss incorrect feedback. Hints and retries count as supported use; self-graded review does not count as independent conversation output. These observations stay attached to the word and inform later review and practice.
 
 Learning observations are saved locally per account and synced through the existing `user_words.word_data` JSON field; no database migration is needed. Writes check the existing `updated_at` version atomically and retry conflicts after merging observations and dismissals. Older app versions without this check can still overwrite records, so reload other open devices after deploying. Voice finishing mutes input and briefly drains late captions before analysis. Unsettled or failed transcripts do not produce a learning assessment, and text analysis does not assess pronunciation.
@@ -59,6 +65,7 @@ Run `npm test`, `npm run eval:words` (offline fixture validation), and `npm run 
 4. In voice practice, stop while a last caption is arriving. Check that input is muted, the final caption is included, and the microphone is released. Also leave during generation/analysis and switch accounts: no stale feedback should be saved to the next session or account.
 5. Open a word card or a full/quick review before initial cloud sync finishes, then let a newer cloud dismissal arrive. The card should refresh, old review prompts should close without adding a grade, and review home should reflect the merged records. Syncing unchanged observations should preserve an active review.
 6. Let an older word's pending usage enrichment finish after cloud sync. New cloud definitions, examples, and existing usages should remain intact; generated usages should only fill a missing usage list.
+7. Open a legacy word with absent or empty usages, simulate a failed request, then retry. Check that loading and failure notices stay in the examples section, concurrent retries share one request, and deleting the word prevents a late response from recreating it. Verify Tips with neither, either, and both optional items.
 
 ## Built with
 
