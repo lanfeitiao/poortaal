@@ -10,7 +10,7 @@ function highlight(sentence: string, chunk?: string): string {
 }
 export function renderWordExamples(data: WordExplanation, state?: UsageLoadState): string {
   const attempts = getWordAttempts(data.word);
-  const examples = data.examples.map((example, index) => {
+  const examples = data.examples.slice(0, 1).map((example, index) => {
     const use = data.usage?.[index];
     const nl = use?.example_nl || example.nl;
     const en = use?.example_en || example.en;
@@ -26,7 +26,7 @@ export function renderWordExamples(data: WordExplanation, state?: UsageLoadState
     </div>`;
   }).join('');
   let notice = '';
-  if (!data.usage?.length) {
+  if (!data.usage?.length && (state || data.usage === undefined)) {
     const message = state === 'loading' ? 'Voorbeelden en zinsbouw aanvullen…'
       : state === 'network' ? 'De verbinding is onderbroken. Je voorbeelden blijven beschikbaar.'
       : state === 'http' ? 'De taaldienst is tijdelijk niet beschikbaar. Je voorbeelden blijven beschikbaar.'

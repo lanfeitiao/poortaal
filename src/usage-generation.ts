@@ -13,9 +13,9 @@ export async function enrichWordUsage(data: WordExplanation, completeChat: Compl
   if (data.usage !== undefined && (!retryEmpty || data.usage.length)) return data;
   const raw = await completeChat([
     { role: 'system', content: `You teach everyday A2-B1 Dutch. Return only JSON with a "usage" array. ${WORD_USAGE_RULES}
-Build the uses around the supplied example situations where natural. The usage examples will replace the corresponding displayed example, not appear as a separate card. Preserve the word sense. For ordinary useful words, look for a simple reusable sentence pattern before choosing an empty list; never invent a collocation just to fill it.` },
+Select at most one valuable use around the supplied word sense. Its example replaces the displayed sentence, not a separate card. An ordinary adjective/adverb plus an interchangeable action is not a learning chunk. Return an empty list if no word-specific choice or construction is worth teaching.` },
     { role: 'user', content: JSON.stringify({ word: data.word, meaning: data.meaning_en, examples: data.examples }) },
   ], 0.3);
   const parsed = JSON.parse(raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, ''));
-  return { ...data, usage: validateWordUsage(parsed.usage) };
+  return { ...data, usage: validateWordUsage(parsed.usage).slice(0, 1) };
 }
