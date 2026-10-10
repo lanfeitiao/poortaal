@@ -4,7 +4,8 @@ import {
 } from './openai-client';
 import { consumeRealtimePracticeCompletion, resetRealtimeEncounterUi, stopRealtimeEncounter } from './realtime/encounter-controller';
 import { enrichWordUsage, mergeUsageEnrichment } from './usage-generation';
-import { escapeText, renderWordUsage, renderPracticeUsage } from './word-usage-ui';
+import { escapeText, renderPracticeUsage } from './word-usage-ui';
+import { renderWordExamples, renderWordTips, type UsageLoadState } from './word-card';
 import { cloudWordLearning, getWordAttempts, learningOwner, setLearningOwner, clearWordLearning, recordWordAttempt } from './learning-store';
 import { setPracticeContext, getPracticeContext, clearPracticeContext, markPracticeHelp, practiceUsageInstructions } from './practice-context';
 import { resetPracticeFeedback, finishPracticeFeedback } from './practice-feedback';
@@ -181,7 +182,7 @@ async function syncFromCloud() {
   }
 }
 
-async function saveWordStatsToCloud(word: string) {
+async function saveWordStatsToCloud(word: string, retry?: { before: WordExplanation; generated: WordExplanation }) {
   const userId = currentUser?.id;
   if (!userId) return;
   await queueWordWrite(userId, word, async () => {
@@ -190,8 +191,11 @@ async function saveWordStatsToCloud(word: string) {
       const stats = getWordStats()[word];
       return stats ? { user_id: userId, word, lookups: stats.lookups || 0,
         practices: stats.practices || 0, reviews: stats.reviews || [], level: stats.level || 0,
-        last_seen: stats.lastSeen || Date.now(), word_data: wordCloudData(word) } : null;
-    }, active);
+        last_seen: stats.lastSeen || Date.now(), word_data: {
+          ...wordCloudData(word), ...(retry && getCachedWord(word)
+            ? mergeUsageEnrichment(getCachedWord(word)!, retry.generated, retry.before) : {}),
+        } } : null;
+    }, active, Date.now, retry?.before);
     if (!saved || !active()) return;
     const stats = getWordStats();
     if (!stats[word]) return;
@@ -666,26 +670,51 @@ function getCachedWord(word: string): WordExplanation | null {
 }
 
 const usageRequests = new Map<string, Promise<WordExplanation>>();
-function loadWordUsage(data: WordExplanation): Promise<WordExplanation> {
-  if (data.usage !== undefined) return Promise.resolve(data);
+const usageStates = new Map<string, UsageLoadState>();
+function refreshUsageCard(key: string) {
+  if (currentWord?.toLowerCase().trim() !== key) return;
+  const latest = getCachedWord(key);
+  if (latest) { currentWordData = latest; renderWordCard(latest); }
+}
+function loadWordUsage(data: WordExplanation, retryEmpty = false): Promise<WordExplanation> {
   const key = data.word.toLowerCase().trim();
-  const existing = usageRequests.get(key);
-  if (existing) return existing;
   const owner = learningOwner();
-  const request = enrichWordUsage(data, callOpenAI).then(enriched => {
-    enriched = mergeUsageEnrichment(getCachedWord(key) || data, enriched);
+  const requestKey = `${owner}:${key}`;
+  if (data.usage !== undefined && (!retryEmpty || data.usage.length)) {
+    if (usageStates.delete(requestKey)) refreshUsageCard(key);
+    return Promise.resolve(data);
+  }
+  const existing = usageRequests.get(requestKey);
+  if (existing) return existing;
+  usageStates.set(requestKey, 'loading');
+  refreshUsageCard(key);
+  const request = enrichWordUsage(data, callOpenAI, retryEmpty).then(enriched => {
+    usageStates.delete(requestKey);
+    const latest = getCachedWord(key);
+    if (!latest || owner !== learningOwner()) return enriched;
+    enriched = mergeUsageEnrichment(latest, enriched, retryEmpty ? data : undefined);
     setWordCache(key, enriched);
     const entry = searchHistory.find(h => h.word === key);
     if (entry) {
       entry.wordData = enriched;
       localStorage.setItem('poortaal_history', JSON.stringify(searchHistory));
-      if (owner === learningOwner()) { void saveHistoryToCloud(key, enriched); void saveWordStatsToCloud(key); }
+      if (owner === learningOwner()) {
+        void saveHistoryToCloud(key, enriched);
+        void saveWordStatsToCloud(key, retryEmpty ? { before: data, generated: enriched } : undefined);
+      }
     }
-    if (currentWord?.toLowerCase().trim() === key) { currentWordData = enriched; renderWordCard(enriched); }
     return enriched;
-  }).catch(() => getCachedWord(key) || data).finally(() => usageRequests.delete(key));
-  usageRequests.set(key, request);
+  }).catch(error => {
+    usageStates.set(requestKey, error instanceof OpenAIRequestError ? error.kind === 'network' ? 'network' : 'http' : 'format');
+    console.warn('Word usage unavailable', { word: key, kind: usageStates.get(requestKey) });
+    return getCachedWord(key) || data;
+  }).finally(() => { usageRequests.delete(requestKey); if (owner === learningOwner()) refreshUsageCard(key); });
+  usageRequests.set(requestKey, request);
   return request;
+}
+export async function retryWordUsage(word: string) {
+  const data = getCachedWord(word);
+  if (data) await loadWordUsage(data, true);
 }
 window.addEventListener('poortaal:word-learning', event => {
   const { word, owner } = (event as CustomEvent<{ word: string; owner: string }>).detail;
@@ -720,16 +749,13 @@ async function lookupWord() {
 function renderWordCard(data: WordExplanation) {
   const content = document.getElementById('content');
   const word = escapeHtml(data.word);
-  const examples = data.examples.map(ex => `<div class="example-item"><div class="example-nl">“${escapeHtml(ex.nl)}”
-    <button class="ex-tts-btn" data-action="play-example-tts" data-text="${escapeHtml(ex.nl)}" title="Uitspraak">🔊</button></div>
-    <div class="example-en">${escapeHtml(ex.en)}</div></div>`).join('');
-  const fact = data.fun_fact ? `<div class="fun-fact">💡 ${escapeHtml(data.fun_fact)}</div>` : '';
+  const usageKey = `${learningOwner()}:${data.word.toLowerCase().trim()}`;
+  if (data.usage !== undefined) usageStates.delete(usageKey);
   content.innerHTML = `<div class="card" id="wordCard"><div class="card-label">Woord</div>
     <div class="word-header"><h1>${word}</h1><span class="word-type">${escapeHtml(data.type)}</span>
     <button class="tts-btn" id="ttsBtn" data-action="play-word-tts" data-word="${word}" title="Uitspraak beluisteren">🔊</button></div>
-    <div class="meaning"><div class="meaning-nl">${escapeHtml(data.meaning_nl)}</div><div class="meaning-en">${escapeHtml(data.meaning_en)}</div></div>${fact}</div>
-    <div class="card"><div class="card-label">Voorbeelden</div>${examples}</div>${renderWordUsage(data)}
-    <div class="card"><div class="card-label">Tips</div><div class="tips-text">${escapeHtml(data.tips)}</div></div>
+    <div class="meaning"><div class="meaning-nl">${escapeHtml(data.meaning_nl)}</div><div class="meaning-en">${escapeHtml(data.meaning_en)}</div></div></div>
+    ${renderWordExamples(data, usageStates.get(usageKey))}${renderWordTips(data)}
     <button class="practice-btn" data-action="practice-word" data-word="${word}">🎭 Oefenen met “${word}”</button>`;
 }
 

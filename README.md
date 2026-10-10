@@ -43,7 +43,13 @@ AI is used where context matters: generating structured word explanations and cr
 
 The realtime tutor is an experimental part of the project. It uses short generated encounters and progressive scaffolding so the learner gets support when needed without immediately being given the answer.
 
-Each word can also carry up to two common collocations or sentence frames. Older saved words are enriched when opened, keeping their original definition and examples. Review varies the task inside the same word card: meaning, collocation recall, or a short contextual response. Practice selects a use that needs attention and creates another everyday situation around it.
+New words carry at most one carefully selected collocation or word-specific construction with one matching example. Free combinations such as voorzichtig rijden and generic frames with a bracketed reason are not promoted to learning chunks. No valuable special use is a legitimate empty result. Legacy two-example/two-use records remain readable and intact. Review and Practice retain their word-centered learning loop and can reuse those older observations.
+
+Word cards show a short meaning, then **Voorbeelden & gebruik**: just one example with its selected use, reusable frame, and **Probeer zelf** entry into word practice when useful. No second example or separate collocation card. Legacy cards display their first use/example without deleting stored data. New lookups generate all content together.
+
+Optional **Tips** use two labels inside one card: **Onthouden** for reliable word formation or memory clues, and **Let op** for distinct actionable usage warnings. Either item can be absent; an empty Tips card is hidden. Existing saved explanations are not automatically regenerated.
+
+Legacy enrichment shows loading or connection/service/format failures inside the examples section, with **Opnieuw proberen** for missing/failed content. A successful empty usage list shows only the natural example: no failure notice or retry button, and no automatic regeneration. Basic word practice remains available. No schema migration or Worker deployment is required.
 
 After text or voice practice, a short reflection quotes the learner's own words, offers at most one correction, and invites a one-sentence retry. Optional naturalness suggestions are distinguished from errors. Learners can dismiss incorrect feedback. Hints and retries count as supported use; self-graded review does not count as independent conversation output. These observations stay attached to the word and inform later review and practice.
 
@@ -59,6 +65,7 @@ Run `npm test`, `npm run eval:words` (offline fixture validation), and `npm run 
 4. In voice practice, stop while a last caption is arriving. Check that input is muted, the final caption is included, and the microphone is released. Also leave during generation/analysis and switch accounts: no stale feedback should be saved to the next session or account.
 5. Open a word card or a full/quick review before initial cloud sync finishes, then let a newer cloud dismissal arrive. The card should refresh, old review prompts should close without adding a grade, and review home should reflect the merged records. Syncing unchanged observations should preserve an active review.
 6. Let an older word's pending usage enrichment finish after cloud sync. New cloud definitions, examples, and existing usages should remain intact; generated usages should only fill a missing usage list.
+7. Open a legacy word with missing usages, simulate a failed request, then retry. Check that notices stay in the examples section, concurrent retries share one request, and deletion prevents late resurrection. Verify successful empty usages show one plain example without a notice or retry; verify optional Tips with neither, either, and both items.
 
 ## Built with
 

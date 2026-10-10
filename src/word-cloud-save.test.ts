@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { saveWordWithVersion, supabaseWordStore, type WordCloudStore } from './word-cloud-save.ts';
+import type { WordExplanation } from './word-explanation.ts';
 
 const attempt = (id: string, discarded = false) => ({ id, at: 1, word: 'afspraak', chunk: 'een afspraak maken',
   outcome: 'needs-practice', source: 'conversation', discarded });
@@ -114,6 +115,31 @@ test('read failures do not fall back to unprotected writes', async () => {
   db.store.read = async () => ({ data: null, error: { code: 'NETWORK' } });
   await assert.rejects(saveWordWithVersion(db.store, () => row(), () => true), { code: 'NETWORK' });
   assert.equal(db.versions.length, 0);
+});
+test('explicit retries persist empty usages but preserve newer remote uses after conflicts', async () => {
+  const before: WordExplanation = { word: 'afspraak', type: 'zelfstandig naamwoord', meaning_nl: 'Een afspraak.',
+    meaning_en: 'appointment', examples: [{ nl: 'Ik heb een afspraak.', en: 'I have an appointment.' },
+      { nl: 'Mijn afspraak is morgen.', en: 'My appointment is tomorrow.' }], tips: '', fun_fact: null, usage: [] };
+  const use = { chunk: 'een afspraak maken', meaning_en: 'make an appointment', frame: 'Ik wil een afspraak maken.',
+    example_nl: 'Ik wil een afspraak maken.', example_en: 'I want an appointment.', review_prompt: 'Arrange a time.' };
+  const local = { ...row(), word_data: { ...before, usage: [use], usage_progress: [attempt('local')] } };
+  for (const concurrent of [false, true]) {
+    const db = memory({ ...row(), word_data: { ...before, meaning_en: 'newer definition' } } as any);
+    const update = db.store.update; let first = true;
+    const newerUse = { ...use, chunk: 'een afspraak verzetten' };
+    if (concurrent) db.store.update = async (value, version) => {
+      if (first) {
+        first = false;
+        await update({ ...value, word_data: { ...before, meaning_en: 'newer definition', usage: [newerUse] } }, version);
+        return { data: null, error: null };
+      }
+      return update(value, version);
+    };
+    await saveWordWithVersion(db.store, () => local, () => true, () => 1, before);
+    assert.deepEqual(db.get().word_data.usage, [concurrent ? newerUse : use]);
+    assert.equal(db.get().word_data.meaning_en, 'newer definition');
+    assert.equal(db.get().word_data.usage_progress[0].id, 'local');
+  }
 });
 test('stale evidence saves cannot roll back remote word stats, including after a conflict', async () => {
   const remote = { ...row(), lookups: 8, practices: 3, level: 3, reviews: [10, 20], last_seen: 50 };

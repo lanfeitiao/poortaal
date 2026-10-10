@@ -17,6 +17,7 @@ import {
   playExTTS,
   playTTS,
   revealAnswer,
+  retryWordUsage,
   sendChat,
   showPracticePicker,
   signInWithGoogle,
@@ -90,6 +91,9 @@ function handleActionClick(event: MouseEvent) {
       break;
     case 'practice-usage':
       if (word) goToPractice(word, Number(target.dataset.usage));
+      break;
+    case 'retry-word-usage':
+      if (word) void retryWordUsage(word);
       break;
     case 'start-practice-word':
       if (word) void startPracticeForWord(word);
