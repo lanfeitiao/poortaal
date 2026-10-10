@@ -26,13 +26,12 @@ export function renderWordExamples(data: WordExplanation, state?: UsageLoadState
     </div>`;
   }).join('');
   let notice = '';
-  if (!data.usage?.length && (state || data.usage === undefined)) {
+  if (data.usage === undefined) {
     const message = state === 'loading' ? 'Voorbeelden en zinsbouw aanvullen…'
       : state === 'network' ? 'De verbinding is onderbroken. Je voorbeelden blijven beschikbaar.'
       : state === 'http' ? 'De taaldienst is tijdelijk niet beschikbaar. Je voorbeelden blijven beschikbaar.'
       : state === 'format' ? 'De extra taalhulp kon niet worden verwerkt. Je voorbeelden blijven beschikbaar.'
-      : data.usage === undefined ? 'Bij deze voorbeelden ontbreekt nog een herbruikbaar zinsmodel.'
-      : 'Er is nog geen betrouwbaar zinsmodel gevonden bij dit woord.';
+      : 'Bij dit voorbeeld ontbreekt nog aanvullende taalhulp.';
     notice = `<div class="usage-notice" role="status">${message}${state === 'loading' ? ''
       : `<button type="button" class="use-button secondary" data-action="retry-word-usage" data-word="${escapeText(data.word)}">Opnieuw proberen</button>`}</div>`;
   }

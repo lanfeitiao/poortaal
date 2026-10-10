@@ -94,6 +94,7 @@ test('missing, empty and failed usage results show a retry, loading does not', (
   assert.ok(!renderWordExamples(legacy, 'loading').includes('retry-word-usage'));
   for (const state of ['loading', 'network', 'http', 'format'] as const) {
     assert.ok(!renderWordExamples({ ...legacy, usage: [use] }, state).includes('usage-notice'));
+    assert.ok(!renderWordExamples({ ...legacy, usage: [] }, state).includes('usage-notice'));
   }
 });
 test('legacy multi-use storage shows only one example without mutating stored uses', () => {

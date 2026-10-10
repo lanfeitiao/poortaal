@@ -681,7 +681,7 @@ function loadWordUsage(data: WordExplanation, retryEmpty = false): Promise<WordE
   const owner = learningOwner();
   const requestKey = `${owner}:${key}`;
   if (data.usage !== undefined && (!retryEmpty || data.usage.length)) {
-    if (data.usage.length && usageStates.delete(requestKey)) refreshUsageCard(key);
+    if (usageStates.delete(requestKey)) refreshUsageCard(key);
     return Promise.resolve(data);
   }
   const existing = usageRequests.get(requestKey);
@@ -750,7 +750,7 @@ function renderWordCard(data: WordExplanation) {
   const content = document.getElementById('content');
   const word = escapeHtml(data.word);
   const usageKey = `${learningOwner()}:${data.word.toLowerCase().trim()}`;
-  if (data.usage?.length) usageStates.delete(usageKey);
+  if (data.usage !== undefined) usageStates.delete(usageKey);
   content.innerHTML = `<div class="card" id="wordCard"><div class="card-label">Woord</div>
     <div class="word-header"><h1>${word}</h1><span class="word-type">${escapeHtml(data.type)}</span>
     <button class="tts-btn" id="ttsBtn" data-action="play-word-tts" data-word="${word}" title="Uitspraak beluisteren">🔊</button></div>
