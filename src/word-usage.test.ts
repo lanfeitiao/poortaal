@@ -29,6 +29,19 @@ test('existing uses are reused without another model request', async () => {
   const data = { ...legacy, usage: [use] };
   assert.equal(await enrichWordUsage(data, async () => { throw new Error('unnecessary request'); }), data);
 });
+test('legacy enrichment selects at most one use and accepts a legitimate empty result', async () => {
+  const selected = await enrichWordUsage(legacy, async messages => {
+    assert.ok(messages[0].content.includes('ZERO or ONE'));
+    assert.ok(messages[0].content.includes('word-specific'));
+    return JSON.stringify({ usage: [use, { ...use, chunk: 'een afspraak verzetten' }] });
+  });
+  assert.deepEqual(selected.usage, [use]);
+  const empty = await enrichWordUsage(legacy, async () => JSON.stringify({ usage: [] }));
+  assert.deepEqual(empty.usage, []);
+  let calls = 0;
+  assert.equal(await enrichWordUsage(empty, async () => { calls++; return '{}'; }), empty);
+  assert.equal(calls, 0);
+});
 test('late enrichment adds only missing usages to the latest word data', () => {
   const latest: WordExplanation = { ...legacy, meaning_nl: 'Nieuwe betekenis.', meaning_en: 'updated meaning',
     examples: [{ nl: 'De nieuwe afspraak is vrijdag.', en: 'The new appointment is Friday.' }, legacy.examples[1]], tips: 'Updated tips.' };
