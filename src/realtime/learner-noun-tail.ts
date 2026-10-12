@@ -4,7 +4,12 @@ export function looksLikeLearnerNounTail(prefix: string, tail: string): boolean 
   if (/(?<!\.)[.!?]["'”’)]*\s*$/u.test(prefix)) return false;
   const words = prefix.toLowerCase().match(/\p{L}+/gu) ?? [];
   while (words.length && /^(?:e+h+m*|u+h+m*|euh|um|hm+|ik)$/u.test(words.at(-1)!)) words.pop();
-  if (!/^(?:de|het|een|mijn|jouw|uw|zijn|haar|ons|onze|hun)$/u.test(words.at(-1) ?? '')) return false;
+  const slot = words.at(-1) ?? '';
+  if (!/^(?:mijn|jouw|uw|onze)$/u.test(slot)) {
+    // "Ik weet het", "ik zie haar" and "dat moet zo zijn" can be complete.
+    if (!/^(?:de|het|een|zijn|haar|ons|hun)$/u.test(slot)
+      || !/^(?:in|op|aan|naar|van|voor|met|bij|zonder|over|onder|door|tegen|achter|tussen)$/u.test(words.at(-2) ?? '')) return false;
+  }
   const noun = tail.match(/^\s*(\p{L}+)[.,!?”’"']*\s*$/u)?.[1]?.toLowerCase();
   return !!noun && !/^(?:ja|nee|ik|jij|je|u|we|wij|hij|ze|zij|dit|dat|die|deze|dank|bedankt|sorry|graag|prima|goed|ok|okay)$/u.test(noun);
 }

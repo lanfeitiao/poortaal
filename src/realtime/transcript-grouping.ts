@@ -116,8 +116,9 @@ function reconcileLearnerNounTails(
       // A full streamed reply can delay the final noun longer than a backchannel.
       const receipts = prefixParts.flatMap(part => part.receivedAtMs === undefined ? [] : [part.receivedAtMs]);
       if (firstTail.receivedAtMs !== undefined && receipts.length) {
-        const elapsed = firstTail.receivedAtMs - Math.max(...receipts);
-        if (elapsed < 0 || elapsed > 8000) continue;
+        const prefixReceipt = Math.max(...receipts);
+        const tailReceipts = tail.sequences.map(sequence => bySequence.get(sequence)!.receivedAtMs ?? firstTail.receivedAtMs!);
+        if (Math.min(...tailReceipts) < prefixReceipt || Math.max(...tailReceipts) - prefixReceipt > 8000) continue;
       } else if (tail.startMs - prefix.endMs > LATE_TAIL_GAP_MS) continue;
     } else if (tail.startMs - prefix.endMs > CONCURRENT_CAPTION_GAP_MS) continue;
     const separator = /\s$/u.test(prefix.text) || /^\s/u.test(tail.text) ? '' : ' ';

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { groupTranscriptFragments, type TranscriptFragment } from './transcript-grouping.ts';
+import { createTranscriptFragment } from './transcript-timing.ts';
 
 const cases = [
   ['Bovendien, het is tijd voor ons te relaxen Hoe zeg je dat, relaxen het Engels, in het', ' Nederlands', 'Ja, precies. Je kunt zeggen: ontspannen.'],
@@ -30,6 +31,9 @@ test('noun-tail repair preserves independent answers, finished sentences and dis
   for (const [prefix, tail, reply] of [
     ['Ik ga met mijn man.', ' Nederlands', 'Leuk.'],
     ['Ik weet het niet', ' man', 'Leuk.'],
+    ['Ik weet het', ' morgen', 'Dat klopt.'],
+    ['Dat moet zo zijn', ' morgen', 'Dat klopt.'],
+    ['Ik zie haar', ' morgen', 'Leuk.'],
     ['Ik ga met mijn', ' man', 'Met wie ga je?'],
     ['Ik ga met mijn', ' Ik weet het niet.', 'Leuk.'],
     ['Ik ga met mijn', ' ja', 'Leuk.'],
@@ -40,4 +44,32 @@ test('noun-tail repair preserves independent answers, finished sentences and dis
   parts[2].startMs = 6000;
   parts[2].endMs = 6200;
   assert.equal(groupTranscriptFragments(parts).length, 3);
+});
+
+test('native untimed deltas repair split nouns while leaving source timestamps intact', () => {
+  for (const [prefix, tail, reply] of cases) {
+    const parts: TranscriptFragment[] = [];
+    const add = (role: 'user' | 'tutor', text: string, receivedAt: number) => {
+      parts.push(createTranscriptFragment(parts, role, text, parts.length, receivedAt, undefined, undefined));
+    };
+    add('user', prefix, 3000);
+    add('tutor', reply.slice(0, 3), 3200);
+    add('tutor', reply.slice(3), 5000);
+    add('user', tail.slice(0, 4), 6000);
+    add('user', tail.slice(4), 6100);
+    const source = structuredClone(parts);
+    assert.deepEqual(groupTranscriptFragments(parts).map(group => group.text), [prefix + tail, reply]);
+    assert.deepEqual(parts, source);
+  }
+});
+
+test('missing timing repair expires and does not cross an intervening learner turn', () => {
+  const expired = session(...cases[1], true);
+  expired[2].receivedAtMs = 11001;
+  assert.equal(groupTranscriptFragments(expired).length, 3);
+  const parts = session(...cases[1], true);
+  parts.splice(2, 0,
+    { role: 'user', startMs: 5050, endMs: 5060, text: 'Ja.', sequence: 3 },
+    { role: 'tutor', startMs: 5070, endMs: 5080, text: 'Fijn.', sequence: 4 });
+  assert.deepEqual(groupTranscriptFragments(parts).map(group => group.text), [cases[1][0], cases[1][2], 'Ja.', 'Fijn.', cases[1][1]]);
 });
