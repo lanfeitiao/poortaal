@@ -12,9 +12,13 @@ export function coalesceMixedTimingWordPieces(fragments: TranscriptFragment[]): 
     const previous = last?.role === part.role ? last : undefined;
     const sources = previous?.sourceSequences.map(sequence => bySequence.get(sequence)!) ?? [];
     const mixed = part.timingSource === 'estimated' || sources.some(source => source.timingSource === 'estimated');
+    const priorTimed = sources.filter(source => source.timingSource !== 'estimated');
+    const reliableContinues = part.timingSource === 'estimated' || !priorTimed.length
+      || (part.startMs <= Math.max(...priorTimed.map(source => source.endMs)) + 300
+        && part.endMs >= Math.min(...priorTimed.map(source => source.startMs)) - 300);
     const receiptGap = part.receivedAtMs === undefined || previous?.receivedAtMs === undefined
       ? 0 : part.receivedAtMs - previous.receivedAtMs;
-    if (part.role === 'user' && previous && mixed && receiptGap >= 0 && receiptGap <= 2000
+    if (part.role === 'user' && previous && mixed && reliableContinues && receiptGap >= 0 && receiptGap <= 2000
       && /^\s*\p{L}+$/u.test(previous.text) && /^\p{Ll}\p{L}*[.!?,…]*$/u.test(part.text)) {
       sources.push(part);
       const timed = sources.filter(source => source.timingSource !== 'estimated');

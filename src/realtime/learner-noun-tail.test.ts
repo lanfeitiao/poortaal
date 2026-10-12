@@ -113,3 +113,21 @@ test('mixed-timing lexical repair cannot cross an intervening speaker packet', (
   ];
   assert.deepEqual(groupTranscriptFragments(parts).map(group => group.text), ['Hallo', 'Hoi!', 'ja']);
 });
+
+test('a later reliable packet cannot extend a repaired noun across a full reply', () => {
+  const parts = session(...cases[1], true);
+  parts[2].text = ' ma';
+  parts.push(
+    { role: 'user', startMs: 2400, endMs: 2600, text: 'n', sequence: 3, receivedAtMs: 6100, timingSource: 'audio' },
+    { role: 'user', startMs: 6000, endMs: 6200, text: 'dag', sequence: 4, receivedAtMs: 6200, timingSource: 'audio' });
+  assert.deepEqual(groupTranscriptFragments(parts).map(group => group.text), [cases[1][0] + cases[1][1], cases[1][2], 'dag']);
+});
+
+test('a longer noun can span several continuous reliable word pieces', () => {
+  const parts = session(...cases[2], true);
+  parts[2].text = ' ge';
+  parts.push(
+    { role: 'user', startMs: 2400, endMs: 2600, text: 'zond', sequence: 3, receivedAtMs: 6100, timingSource: 'audio' },
+    { role: 'user', startMs: 2700, endMs: 3000, text: 'heid', sequence: 4, receivedAtMs: 6200, timingSource: 'audio' });
+  assert.deepEqual(groupTranscriptFragments(parts).map(group => group.text), [cases[2][0] + cases[2][1], cases[2][2]]);
+});
