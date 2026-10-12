@@ -38,12 +38,15 @@ test('noun-tail repair preserves independent answers, finished sentences and dis
     ['Ik hou van haar', ' maandag', 'Dat klopt.'],
     ['Dat is voor ons', ' maandag', 'Dat klopt.'],
     ['Ik ga met hun', ' maandag', 'Dat klopt.'],
+    ['Hij is een van de onze', ' morgen', 'Dat klopt.'],
+    ['Dit huis is het onze', ' morgen', 'Dat klopt.'],
     ['Ik ga met mijn', ' man', 'Met wie ga je?'],
     ['Ik ga met mijn', ' Ik weet het niet.', 'Leuk.'],
     ['Ik ga met mijn', ' ja', 'Leuk.'],
-  ]) {
-    assert.equal(groupTranscriptFragments(session(prefix, tail, reply)).length, 3);
+  ]) for (const estimated of [false, true]) {
+    assert.equal(groupTranscriptFragments(session(prefix, tail, reply, estimated)).length, 3);
   }
+  assert.equal(groupTranscriptFragments(session('Ik ga met onze', ' dochter', 'Leuk!', true))[0].text, 'Ik ga met onze dochter');
   const parts = session(...cases[1]);
   parts[2].startMs = 6000;
   parts[2].endMs = 6200;
