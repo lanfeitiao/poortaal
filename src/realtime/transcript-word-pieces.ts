@@ -1,0 +1,35 @@
+import type { TranscriptFragment } from './transcript-grouping.ts';
+
+export type GroupingFragment = TranscriptFragment & { sourceSequences: number[] };
+
+// An estimated first piece must not sort after its reliably timed suffix.
+// Keep lexical stream order only for mixed-timing pieces of a single word.
+export function coalesceMixedTimingWordPieces(fragments: TranscriptFragment[]): GroupingFragment[] {
+  const result: GroupingFragment[] = [];
+  const latestByRole = new Map<string, GroupingFragment>();
+  const bySequence = new Map(fragments.map(part => [part.sequence, part]));
+  for (const part of [...fragments].sort((a, b) => a.sequence - b.sequence)) {
+    const previous = latestByRole.get(part.role);
+    const sources = previous?.sourceSequences.map(sequence => bySequence.get(sequence)!) ?? [];
+    const mixed = part.timingSource === 'estimated' || sources.some(source => source.timingSource === 'estimated');
+    const receiptGap = part.receivedAtMs === undefined || previous?.receivedAtMs === undefined
+      ? 0 : part.receivedAtMs - previous.receivedAtMs;
+    if (previous && mixed && receiptGap >= 0 && receiptGap <= 2000
+      && /^\s*\p{L}+$/u.test(previous.text) && /^\p{Ll}\p{L}*[.!?,…]*$/u.test(part.text)) {
+      sources.push(part);
+      const timed = sources.filter(source => source.timingSource !== 'estimated');
+      previous.text += part.text;
+      previous.sourceSequences.push(part.sequence);
+      previous.receivedAtMs = part.receivedAtMs;
+      if (timed.length) {
+        previous.startMs = Math.min(...timed.map(source => source.startMs));
+        previous.endMs = Math.max(...timed.map(source => source.endMs));
+      } else previous.endMs = Math.max(previous.endMs, part.endMs);
+    } else {
+      const next = { ...part, sourceSequences: [part.sequence] };
+      result.push(next);
+      latestByRole.set(part.role, next);
+    }
+  }
+  return result;
+}
