@@ -7,6 +7,7 @@ const cases = [
   ['Bovendien, het is tijd voor ons te relaxen Hoe zeg je dat, relaxen het Engels, in het', ' Nederlands', 'Ja, precies. Je kunt zeggen: ontspannen.'],
   ['Ik... ehm ik ga met mijn family, mijn dochter, en mijn', ' man', 'Leuk,'],
   ['Goed. Ja, ik vind dat ook, dat wandelen in de natuur is ehm lekker, luchtig en bovendien ehm goed voor mijn... ik... ehm', ' gezondheid', 'Ja, precies. En na het wandelen kun je misschien ook iets kleins eten daar.'],
+  ['Ik praat in het', ' nederlands', 'Dat is fijn.'],
 ] as const;
 
 function session(prefix: string, tail: string, reply: string, estimated = false): TranscriptFragment[] {

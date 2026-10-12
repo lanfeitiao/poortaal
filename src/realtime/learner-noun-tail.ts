@@ -11,7 +11,7 @@ export function looksLikeLearnerNounTail(prefix: string, tail: string): boolean 
     // Only accept ambiguous "het" with a named language in "in het Nederlands".
     if (slot === 'het') {
       if (words.at(-2) !== 'in'
-        || !/^\s*(?:Nederlands|Engels|Duits|Frans|Spaans|Chinees|Italiaans|Portugees|Arabisch|Russisch|Turks|Pools|Japans)[.,!?]*\s*$/u.test(tail)) return false;
+        || !/^\s*(?:Nederlands|Engels|Duits|Frans|Spaans|Chinees|Italiaans|Portugees|Arabisch|Russisch|Turks|Pools|Japans)[.,!?]*\s*$/iu.test(tail)) return false;
     } else if (!/^(?:de|een)$/u.test(slot)
       || !/^(?:in|op|aan|naar|van|voor|met|bij|zonder|over|onder|door|tegen|achter|tussen)$/u.test(words.at(-2) ?? '')) return false;
   }
