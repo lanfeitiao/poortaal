@@ -110,6 +110,9 @@ function reconcileLearnerNounTails(
     if (!looksLikeLearnerNounTail(prefix.text, tail.text)
       || replies.some(reply => reply.text.includes('?'))) continue;
     const firstTail = bySequence.get(tail.sequences[0])!;
+    const tailParts = tail.sequences.map(sequence => bySequence.get(sequence)!);
+    const firstTimedTail = tailParts.find(part => part.timingSource !== 'estimated');
+    if (firstTimedTail && firstTimedTail.startMs - prefix.endMs > CONCURRENT_CAPTION_GAP_MS) continue;
     const prefixParts = prefix.sequences.map(sequence => bySequence.get(sequence)!);
     if (firstTail.timingSource === 'estimated') {
       // Receipt time is only a bounded fallback, never evidence of audio order.
@@ -117,7 +120,7 @@ function reconcileLearnerNounTails(
       const receipts = prefixParts.flatMap(part => part.receivedAtMs === undefined ? [] : [part.receivedAtMs]);
       if (firstTail.receivedAtMs !== undefined && receipts.length) {
         const prefixReceipt = Math.max(...receipts);
-        const tailReceipts = tail.sequences.map(sequence => bySequence.get(sequence)!.receivedAtMs ?? firstTail.receivedAtMs!);
+        const tailReceipts = tailParts.map(part => part.receivedAtMs ?? firstTail.receivedAtMs!);
         if (Math.min(...tailReceipts) < prefixReceipt || Math.max(...tailReceipts) - prefixReceipt > 8000) continue;
       } else if (tail.startMs - prefix.endMs > LATE_TAIL_GAP_MS) continue;
     } else if (tail.startMs - prefix.endMs > CONCURRENT_CAPTION_GAP_MS) continue;

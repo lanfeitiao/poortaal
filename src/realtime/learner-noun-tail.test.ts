@@ -73,3 +73,19 @@ test('missing timing repair expires and does not cross an intervening learner tu
     { role: 'tutor', startMs: 5070, endMs: 5080, text: 'Fijn.', sequence: 4 });
   assert.deepEqual(groupTranscriptFragments(parts).map(group => group.text), [cases[1][0], cases[1][2], 'Ja.', 'Fijn.', cases[1][1]]);
 });
+
+test('an estimated first piece does not override distant reliable word timing', () => {
+  const parts = session(...cases[2], true);
+  parts[2].text = ' ge';
+  parts.push({ role: 'user', startMs: 6000, endMs: 6200, text: 'zondheid',
+    sequence: 3, receivedAtMs: 6100, timingSource: 'audio' });
+  assert.deepEqual(groupTranscriptFragments(parts).map(group => group.text), [cases[2][0], cases[2][2], cases[2][1]]);
+});
+
+test('a streamed untimed noun expires based on its final piece as well', () => {
+  const parts = session(...cases[2], true);
+  parts[2].text = ' ge';
+  parts.push({ role: 'user', startMs: 5200, endMs: 5200, text: 'zondheid',
+    sequence: 3, receivedAtMs: 11001, timingSource: 'estimated' });
+  assert.equal(groupTranscriptFragments(parts).length, 3);
+});
