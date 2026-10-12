@@ -41,6 +41,8 @@ test('noun-tail repair preserves independent answers, finished sentences and dis
     ['Ik ga met hun', ' maandag', 'Dat klopt.'],
     ['Hij is een van de onze', ' morgen', 'Dat klopt.'],
     ['Dit huis is het onze', ' morgen', 'Dat klopt.'],
+    ['Ik werk in een mijn', ' morgen', 'Dat klopt.'],
+    ['Ik werk in de mijn', ' morgen', 'Dat klopt.'],
     ['Ik ga met mijn', ' man', 'Met wie ga je?'],
     ['Ik ga met mijn', ' Ik weet het niet.', 'Leuk.'],
     ['Ik ga met mijn', ' ja', 'Leuk.'],

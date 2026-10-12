@@ -5,7 +5,7 @@ export function looksLikeLearnerNounTail(prefix: string, tail: string): boolean 
   const words = prefix.toLowerCase().match(/\p{L}+/gu) ?? [];
   while (words.length && /^(?:e+h+m*|u+h+m*|euh|um|hm+|ik)$/u.test(words.at(-1)!)) words.pop();
   const slot = words.at(-1) ?? '';
-  if (slot === 'onze' && /^(?:de|het)$/u.test(words.at(-2) ?? '')) return false;
+  if (/^(?:de|het|een)$/u.test(words.at(-2) ?? '')) return false;
   if (!/^(?:mijn|jouw|uw|onze)$/u.test(slot)) {
     // Prepositions also precede complete pronoun phrases: "van haar", "voor ons".
     // Only accept ambiguous "het" with a named language in "in het Nederlands".
