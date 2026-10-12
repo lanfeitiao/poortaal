@@ -6,8 +6,12 @@ export function looksLikeLearnerNounTail(prefix: string, tail: string): boolean 
   while (words.length && /^(?:e+h+m*|u+h+m*|euh|um|hm+|ik)$/u.test(words.at(-1)!)) words.pop();
   const slot = words.at(-1) ?? '';
   if (!/^(?:mijn|jouw|uw|onze)$/u.test(slot)) {
-    // "Ik weet het", "ik zie haar" and "dat moet zo zijn" can be complete.
-    if (!/^(?:de|het|een|zijn|haar|ons|hun)$/u.test(slot)
+    // Prepositions also precede complete pronoun phrases: "van haar", "voor ons".
+    // Only accept ambiguous "het" with a named language in "in het Nederlands".
+    if (slot === 'het') {
+      if (words.at(-2) !== 'in'
+        || !/^\s*(?:Nederlands|Engels|Duits|Frans|Spaans|Chinees|Italiaans|Portugees|Arabisch|Russisch|Turks|Pools|Japans)[.,!?]*\s*$/u.test(tail)) return false;
+    } else if (!/^(?:de|een)$/u.test(slot)
       || !/^(?:in|op|aan|naar|van|voor|met|bij|zonder|over|onder|door|tegen|achter|tussen)$/u.test(words.at(-2) ?? '')) return false;
   }
   const noun = tail.match(/^\s*(\p{L}+)[.,!?”’"']*\s*$/u)?.[1]?.toLowerCase();

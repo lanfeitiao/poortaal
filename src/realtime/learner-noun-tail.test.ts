@@ -34,6 +34,10 @@ test('noun-tail repair preserves independent answers, finished sentences and dis
     ['Ik weet het', ' morgen', 'Dat klopt.'],
     ['Dat moet zo zijn', ' morgen', 'Dat klopt.'],
     ['Ik zie haar', ' morgen', 'Leuk.'],
+    ['Ik geloof in het', ' maandag', 'Dat klopt.'],
+    ['Ik hou van haar', ' maandag', 'Dat klopt.'],
+    ['Dat is voor ons', ' maandag', 'Dat klopt.'],
+    ['Ik ga met hun', ' maandag', 'Dat klopt.'],
     ['Ik ga met mijn', ' man', 'Met wie ga je?'],
     ['Ik ga met mijn', ' Ik weet het niet.', 'Leuk.'],
     ['Ik ga met mijn', ' ja', 'Leuk.'],
@@ -88,4 +92,12 @@ test('a streamed untimed noun expires based on its final piece as well', () => {
   parts.push({ role: 'user', startMs: 5200, endMs: 5200, text: 'zondheid',
     sequence: 3, receivedAtMs: 11001, timingSource: 'estimated' });
   assert.equal(groupTranscriptFragments(parts).length, 3);
+});
+
+test('an estimated first word piece stays before an earlier audio-timed suffix', () => {
+  const parts = session(...cases[2], true);
+  parts[2].text = ' ge';
+  parts.push({ role: 'user', startMs: 2400, endMs: 2600, text: 'zondheid',
+    sequence: 3, receivedAtMs: 6100, timingSource: 'audio' });
+  assert.deepEqual(groupTranscriptFragments(parts).map(group => group.text), [cases[2][0] + cases[2][1], cases[2][2]]);
 });
