@@ -1,4 +1,5 @@
 import { looksLikeLearnerNounTail } from './learner-noun-tail.ts';
+import { coalesceMixedTimingWordPieces } from './transcript-word-pieces.ts';
 
 export type TranscriptRole = 'tutor' | 'user';
 
@@ -137,7 +138,7 @@ function reconcileLearnerNounTails(
 export function groupTranscriptFragments(
   fragments: TranscriptFragment[],
 ): TranscriptGroup[] {
-  const ordered = [...fragments].sort((a, b) =>
+  const ordered = coalesceMixedTimingWordPieces(fragments).sort((a, b) =>
     a.startMs - b.startMs || a.endMs - b.endMs || a.sequence - b.sequence,
   );
   const groups: TranscriptGroup[] = [];
@@ -170,14 +171,14 @@ export function groupTranscriptFragments(
     if (candidate && (overlapsCandidate || lateTail || !oppositeSpeechInGap)) {
       candidate.endMs = Math.max(candidate.endMs, fragment.endMs);
       candidate.text += fragment.text;
-      candidate.sequences.push(fragment.sequence);
+      candidate.sequences.push(...fragment.sourceSequences);
     } else {
       const group: TranscriptGroup = {
         role: fragment.role,
         startMs: fragment.startMs,
         endMs: fragment.endMs,
         text: fragment.text,
-        sequences: [fragment.sequence],
+        sequences: [...fragment.sourceSequences],
       };
       groups.push(group);
       lastGroupByRole[fragment.role] = group;
@@ -187,5 +188,7 @@ export function groupTranscriptFragments(
   }
 
   groups.sort((a, b) => a.startMs - b.startMs || Math.min(...a.sequences) - Math.min(...b.sequences));
-  return reconcileLearnerNounTails(reconcileEchoedWordTails(groups, ordered), ordered);
+  // Coalesced lexical units supply reliable timing to word-echo repairs;
+  // noun-tail receipt guards still inspect every untouched source fragment.
+  return reconcileLearnerNounTails(reconcileEchoedWordTails(groups, [...fragments, ...ordered]), fragments);
 }

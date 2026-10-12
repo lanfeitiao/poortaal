@@ -101,3 +101,12 @@ test('an estimated first word piece stays before an earlier audio-timed suffix',
     sequence: 3, receivedAtMs: 6100, timingSource: 'audio' });
   assert.deepEqual(groupTranscriptFragments(parts).map(group => group.text), [cases[2][0] + cases[2][1], cases[2][2]]);
 });
+
+test('mixed-timing lexical repair cannot cross an intervening speaker packet', () => {
+  const parts: TranscriptFragment[] = [
+    { role: 'user', text: 'Hallo', sequence: 0, startMs: 1000, endMs: 2100, receivedAtMs: 3000, timingSource: 'estimated' },
+    { role: 'tutor', text: 'Hoi!', sequence: 1, startMs: 2150, endMs: 5000, receivedAtMs: 3100 },
+    { role: 'user', text: 'ja', sequence: 2, startMs: 5100, endMs: 5300, receivedAtMs: 3200, timingSource: 'audio' },
+  ];
+  assert.deepEqual(groupTranscriptFragments(parts).map(group => group.text), ['Hallo', 'Hoi!', 'ja']);
+});
