@@ -1,3 +1,6 @@
+import { looksLikeLearnerNounTail } from './learner-noun-tail.ts';
+import { coalesceMixedTimingWordPieces } from './transcript-word-pieces.ts';
+
 export type TranscriptRole = 'tutor' | 'user';
 
 export type TranscriptFragment = {
@@ -93,10 +96,49 @@ function reconcileEchoedWordTails(
   return groups;
 }
 
+function reconcileLearnerNounTails(
+  groups: TranscriptGroup[], fragments: TranscriptFragment[],
+): TranscriptGroup[] {
+  const bySequence = new Map(fragments.map(part => [part.sequence, part]));
+  for (let index = 2; index < groups.length; index += 1) {
+    const tail = groups[index];
+    if (tail.role !== 'user') continue;
+    let prefixIndex = index - 1;
+    while (prefixIndex >= 0 && groups[prefixIndex].role === 'tutor') prefixIndex -= 1;
+    if (prefixIndex < 0 || prefixIndex === index - 1) continue;
+    const prefix = groups[prefixIndex];
+    const replies = groups.slice(prefixIndex + 1, index);
+    if (!looksLikeLearnerNounTail(prefix.text, tail.text)
+      || replies.some(reply => reply.text.includes('?'))) continue;
+    const firstTail = bySequence.get(tail.sequences[0])!;
+    const tailParts = tail.sequences.map(sequence => bySequence.get(sequence)!);
+    const firstTimedTail = tailParts.find(part => part.timingSource !== 'estimated');
+    if (firstTimedTail && firstTimedTail.startMs - prefix.endMs > CONCURRENT_CAPTION_GAP_MS) continue;
+    const prefixParts = prefix.sequences.map(sequence => bySequence.get(sequence)!);
+    if (firstTail.timingSource === 'estimated') {
+      // Receipt time is only a bounded fallback, never evidence of audio order.
+      // A full streamed reply can delay the final noun longer than a backchannel.
+      const receipts = prefixParts.flatMap(part => part.receivedAtMs === undefined ? [] : [part.receivedAtMs]);
+      if (firstTail.receivedAtMs !== undefined && receipts.length) {
+        const prefixReceipt = Math.max(...receipts);
+        const tailReceipts = tailParts.map(part => part.receivedAtMs ?? firstTail.receivedAtMs!);
+        if (Math.min(...tailReceipts) < prefixReceipt || Math.max(...tailReceipts) - prefixReceipt > 8000) continue;
+      } else if (tail.startMs - prefix.endMs > LATE_TAIL_GAP_MS) continue;
+    } else if (tail.startMs - prefix.endMs > CONCURRENT_CAPTION_GAP_MS) continue;
+    const separator = /\s$/u.test(prefix.text) || /^\s/u.test(tail.text) ? '' : ' ';
+    prefix.text += separator + tail.text;
+    prefix.endMs = Math.max(prefix.endMs, tail.endMs);
+    prefix.sequences.push(...tail.sequences);
+    groups.splice(index, 1);
+    index -= 1;
+  }
+  return groups;
+}
+
 export function groupTranscriptFragments(
   fragments: TranscriptFragment[],
 ): TranscriptGroup[] {
-  const ordered = [...fragments].sort((a, b) =>
+  const ordered = coalesceMixedTimingWordPieces(fragments).sort((a, b) =>
     a.startMs - b.startMs || a.endMs - b.endMs || a.sequence - b.sequence,
   );
   const groups: TranscriptGroup[] = [];
@@ -129,14 +171,14 @@ export function groupTranscriptFragments(
     if (candidate && (overlapsCandidate || lateTail || !oppositeSpeechInGap)) {
       candidate.endMs = Math.max(candidate.endMs, fragment.endMs);
       candidate.text += fragment.text;
-      candidate.sequences.push(fragment.sequence);
+      candidate.sequences.push(...fragment.sourceSequences);
     } else {
       const group: TranscriptGroup = {
         role: fragment.role,
         startMs: fragment.startMs,
         endMs: fragment.endMs,
         text: fragment.text,
-        sequences: [fragment.sequence],
+        sequences: [...fragment.sourceSequences],
       };
       groups.push(group);
       lastGroupByRole[fragment.role] = group;
@@ -146,5 +188,7 @@ export function groupTranscriptFragments(
   }
 
   groups.sort((a, b) => a.startMs - b.startMs || Math.min(...a.sequences) - Math.min(...b.sequences));
-  return reconcileEchoedWordTails(groups, ordered);
+  // Coalesced lexical units supply reliable timing to word-echo repairs;
+  // noun-tail receipt guards still inspect every untouched source fragment.
+  return reconcileLearnerNounTails(reconcileEchoedWordTails(groups, [...fragments, ...ordered]), fragments);
 }
