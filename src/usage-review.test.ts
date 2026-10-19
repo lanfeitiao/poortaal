@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { generateWordExplanation, readSavedWordExplanation, WordExplanationRequestError, type WordExplanation } from './word-explanation.ts';
+import { generateWordExplanation, readSavedWordExplanation, InvalidWordExplanationError, WordExplanationRequestError, type WordExplanation } from './word-explanation.ts';
 import { reviewWordUsage } from './usage-review.ts';
 import { enrichWordUsage } from './usage-generation.ts';
 import { renderWordExamples } from './word-card.ts';
@@ -76,4 +76,22 @@ test('an unavailable or malformed review never publishes the unchecked candidate
   }), WordExplanationRequestError);
   assert.equal(calls, 2);
   assert.deepEqual(word.usage, [fragment]);
+});
+
+test('malformed review output retries the lookup once, including invalid usage objects', async () => {
+  for (const invalid of ['not json', JSON.stringify({ usage: [fragment] })]) {
+    let calls = 0;
+    const result = await generateWordExplanation('hoewel', async () => {
+      calls++;
+      return calls % 2 ? JSON.stringify(word) : calls === 2 ? invalid : JSON.stringify({ usage: [pattern] });
+    });
+    assert.equal(calls, 4);
+    assert.deepEqual(result.usage, [pattern]);
+    calls = 0;
+    await assert.rejects(generateWordExplanation('hoewel', async () => {
+      calls++;
+      return calls % 2 ? JSON.stringify(word) : invalid;
+    }), InvalidWordExplanationError);
+    assert.equal(calls, 4);
+  }
 });

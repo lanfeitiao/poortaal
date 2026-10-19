@@ -1,5 +1,5 @@
 import { validateWordUsage, WORD_USAGE_RULES, type WordUsage } from './word-usage.ts';
-import { reviewWordUsage } from './usage-review.ts';
+import { InvalidUsageReviewError, reviewWordUsage } from './usage-review.ts';
 
 export type ChatMessage = {
   role: 'system' | 'user' | 'assistant';
@@ -160,7 +160,10 @@ async function requestWordExplanation(
   if (data.usage === undefined) throw new InvalidWordExplanationError('Missing word usage');
   let usage: WordUsage[];
   try { usage = await reviewWordUsage(data, completeChat); }
-  catch (error) { throw new WordExplanationRequestError(error); }
+  catch (error) {
+    if (error instanceof InvalidUsageReviewError) throw new InvalidWordExplanationError(error.message);
+    throw new WordExplanationRequestError(error);
+  }
   const use = usage[0];
   return { ...data, usage, examples: [use ? { nl: use.example_nl, en: use.example_en } : data.examples[0]] };
 }

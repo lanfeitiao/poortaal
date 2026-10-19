@@ -3,6 +3,8 @@ import type { ChatMessage, WordExplanation } from './word-explanation.ts';
 
 type CompleteChat = (messages: ChatMessage[], temperature?: number) => Promise<string>;
 
+export class InvalidUsageReviewError extends Error {}
+
 // A separate content check: schema validation alone cannot detect a free phrase.
 export async function reviewWordUsage(
   data: Pick<WordExplanation, 'word' | 'type' | 'meaning_en' | 'usage'>,
@@ -22,6 +24,13 @@ ${WORD_USAGE_RULES}
 Output a JSON object with the key "usage" and an array value, even when the array is empty. Every accepted use must include all eight fields.` },
     { role: 'user', content: JSON.stringify({ word: data.word, type: data.type, meaning: data.meaning_en, candidates: data.usage }) },
   ], 0.1);
+  try { return parseReviewedUsage(raw); }
+  catch (error) {
+    throw new InvalidUsageReviewError('Invalid usage review output', { cause: error });
+  }
+}
+
+function parseReviewedUsage(raw: string): WordUsage[] {
   const parsed = JSON.parse(raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, ''));
   const usage = validateWordUsage(Array.isArray(parsed) ? parsed : parsed?.usage).slice(0, 1);
   for (const use of usage) {
