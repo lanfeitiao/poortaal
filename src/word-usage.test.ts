@@ -5,7 +5,7 @@ import { readSavedWordExplanation, validateWordExplanation, type WordExplanation
 import { enrichWordUsage, mergeUsageEnrichment } from './usage-generation.ts';
 import { renderWordExamples, renderWordTips } from './word-card.ts';
 
-const use = { chunk: 'een afspraak maken', meaning_en: 'make an appointment', frame: 'Ik wil een afspraak maken voor [tijd].', example_nl: 'Ik wil een afspraak maken voor donderdag.', example_en: 'I want to make an appointment for Thursday.', review_prompt: 'Arrange a time for an appointment.' };
+const use = { kind: 'collocation' as const, note: 'Use maken when arranging an appointment.', chunk: 'een afspraak maken', meaning_en: 'make an appointment', frame: 'Ik wil een afspraak maken voor [tijd].', example_nl: 'Ik wil een afspraak maken voor donderdag.', example_en: 'I want to make an appointment for Thursday.', review_prompt: 'Arrange a time for an appointment.' };
 const legacy: WordExplanation = { word: 'afspraak', type: 'zelfstandig naamwoord', meaning_nl: 'Een afgesproken tijd.', meaning_en: 'appointment', examples: [{ nl: 'Ik heb een afspraak.', en: 'I have an appointment.' }, { nl: 'Mijn afspraak is morgen.', en: 'My appointment is tomorrow.' }], tips: 'Use maken.', fun_fact: null };
 
 test('legacy cached words remain valid without fabricated usage data', () => {
@@ -82,6 +82,7 @@ test('optional tips share one card with distinct labels and escaped contents', (
   const both = renderWordTips({ ...legacy, fun_fact: 'Remember it.' });
   assert.equal((both.match(/card-label/g) || []).length, 1);
   assert.ok(both.includes('Let op'));
+  assert.equal(renderWordTips({ ...legacy, tips: use.note, usage: [use] }), '');
 });
 test('missing, empty and failed usage results show a retry, loading does not', () => {
   for (const state of [undefined, 'network', 'http', 'format'] as const) {
@@ -108,7 +109,7 @@ test('an explicit retry replaces an empty result but preserves newer cloud usage
   const empty = { ...legacy, usage: [] };
   let calls = 0;
   const generated = await enrichWordUsage(empty, async () => { calls++; return JSON.stringify({ usage: [use] }); }, true);
-  assert.equal(calls, 1);
+  assert.equal(calls, 2);
   assert.deepEqual(mergeUsageEnrichment(empty, generated, empty).usage, [use]);
   const newer = { ...legacy, usage: [{ ...use, chunk: 'een afspraak verzetten' }] };
   assert.deepEqual(mergeUsageEnrichment(newer, generated, empty), newer);

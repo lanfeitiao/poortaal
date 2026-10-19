@@ -99,7 +99,7 @@ test('latest remote definitions survive stale saves while missing usages are fil
   const explanation = { word: 'afspraak', type: 'zelfstandig naamwoord', meaning_nl: 'Een afspraak.',
     meaning_en: 'appointment', examples: [{ nl: 'Mijn afspraak is morgen.', en: 'My appointment is tomorrow.' },
       { nl: 'Ik heb een afspraak.', en: 'I have an appointment.' }], tips: 'Use maken.', fun_fact: null };
-  const use = { chunk: 'een afspraak maken', meaning_en: 'make an appointment', frame: 'Ik wil een afspraak maken.',
+  const use = { kind: 'collocation' as const, note: 'Use maken when arranging an appointment.', chunk: 'een afspraak maken', meaning_en: 'make an appointment', frame: 'Ik wil een afspraak maken.',
     example_nl: 'Ik wil een afspraak maken.', example_en: 'I want an appointment.', review_prompt: 'Arrange a time.' };
   const local = { ...row([attempt('local')]), word_data: { ...explanation, usage: [use], usage_progress: [attempt('local')] } };
   for (const usage of [undefined, []]) {
@@ -116,11 +116,24 @@ test('read failures do not fall back to unprotected writes', async () => {
   await assert.rejects(saveWordWithVersion(db.store, () => row(), () => true), { code: 'NETWORK' });
   assert.equal(db.versions.length, 0);
 });
+test('refreshing a legacy usage preserves cloud definitions and both clients learning evidence', async () => {
+  const legacyUse = { chunk: 'een afspraak maken', meaning_en: 'make an appointment', frame: 'Ik maak een afspraak voor [dag].',
+    example_nl: 'Ik maak een afspraak voor morgen.', example_en: 'I make an appointment for tomorrow.', review_prompt: 'Arrange an appointment.' };
+  const reviewed = { ...legacyUse, kind: 'collocation' as const, note: 'Use maken when arranging an appointment.' };
+  const explanation = { word: 'afspraak', type: 'zelfstandig naamwoord', meaning_nl: 'Een afgesproken tijd.', meaning_en: 'appointment',
+    examples: [{ nl: legacyUse.example_nl, en: legacyUse.example_en }], tips: '', fun_fact: null };
+  const db = memory({ ...row(), word_data: { ...explanation, meaning_en: 'newer definition', usage: [legacyUse], usage_progress: [attempt('remote')] } } as any);
+  const local = { ...row(), word_data: { ...explanation, usage: [reviewed], usage_progress: [attempt('local')] } };
+  await saveWordWithVersion(db.store, () => local, () => true);
+  assert.equal(db.get().word_data.meaning_en, 'newer definition');
+  assert.deepEqual(db.get().word_data.usage, [reviewed]);
+  assert.deepEqual(db.get().word_data.usage_progress.map((a: any) => a.id).sort(), ['local', 'remote']);
+});
 test('explicit retries persist empty usages but preserve newer remote uses after conflicts', async () => {
   const before: WordExplanation = { word: 'afspraak', type: 'zelfstandig naamwoord', meaning_nl: 'Een afspraak.',
     meaning_en: 'appointment', examples: [{ nl: 'Ik heb een afspraak.', en: 'I have an appointment.' },
       { nl: 'Mijn afspraak is morgen.', en: 'My appointment is tomorrow.' }], tips: '', fun_fact: null, usage: [] };
-  const use = { chunk: 'een afspraak maken', meaning_en: 'make an appointment', frame: 'Ik wil een afspraak maken.',
+  const use = { kind: 'collocation' as const, note: 'Use maken when arranging an appointment.', chunk: 'een afspraak maken', meaning_en: 'make an appointment', frame: 'Ik wil een afspraak maken.',
     example_nl: 'Ik wil een afspraak maken.', example_en: 'I want an appointment.', review_prompt: 'Arrange a time.' };
   const local = { ...row(), word_data: { ...before, usage: [use], usage_progress: [attempt('local')] } };
   for (const concurrent of [false, true]) {

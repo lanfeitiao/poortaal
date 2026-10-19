@@ -1,4 +1,5 @@
 import { validateWordUsage, WORD_USAGE_RULES, type WordUsage } from './word-usage.ts';
+import { InvalidUsageReviewError, reviewWordUsage } from './usage-review.ts';
 
 export type ChatMessage = {
   role: 'system' | 'user' | 'assistant';
@@ -111,7 +112,12 @@ function parseWordExplanation(raw: string): WordExplanation {
 }
 
 export function readSavedWordExplanation(value: unknown): WordExplanation | undefined {
-  try { return validateWordExplanation(value); }
+  try {
+    const data = validateWordExplanation(value);
+    // Old nonempty lists predate content review. Re-enrich them without losing
+    // the saved meaning/examples; a successful empty list remains final.
+    return data.usage?.some(use => !use.kind || !use.note) ? { ...data, usage: undefined } : data;
+  }
   catch { return undefined; }
 }
 
@@ -145,14 +151,19 @@ async function requestWordExplanation(
     raw = await completeChat([
       { role: 'system', content: `${WORD_EXPLANATION_SYSTEM_PROMPT}\n${WORD_USAGE_RULES}` },
       { role: 'user', content: word },
-    ]);
+    ], 0.3);
   } catch (error) {
     throw new WordExplanationRequestError(error);
   }
 
   const data = parseWordExplanation(cleanJsonResponse(raw));
   if (data.usage === undefined) throw new InvalidWordExplanationError('Missing word usage');
-  const usage = data.usage.slice(0, 1);
+  let usage: WordUsage[];
+  try { usage = await reviewWordUsage(data, completeChat); }
+  catch (error) {
+    if (error instanceof InvalidUsageReviewError) throw new InvalidWordExplanationError(error.message);
+    throw new WordExplanationRequestError(error);
+  }
   const use = usage[0];
   return { ...data, usage, examples: [use ? { nl: use.example_nl, en: use.example_en } : data.examples[0]] };
 }

@@ -1,5 +1,6 @@
 import { validateWordUsage, WORD_USAGE_RULES } from './word-usage.ts';
 import type { ChatMessage, WordExplanation } from './word-explanation.ts';
+import { reviewWordUsage } from './usage-review.ts';
 
 type CompleteChat = (messages: ChatMessage[], temperature?: number) => Promise<string>;
 
@@ -14,8 +15,9 @@ export async function enrichWordUsage(data: WordExplanation, completeChat: Compl
   const raw = await completeChat([
     { role: 'system', content: `You teach everyday A2-B1 Dutch. Return only JSON with a "usage" array. ${WORD_USAGE_RULES}
 Select at most one valuable use around the supplied word sense. Its example replaces the displayed sentence, not a separate card. An ordinary adjective/adverb plus an interchangeable action is not a learning chunk. Return an empty list if no word-specific choice or construction is worth teaching.` },
-    { role: 'user', content: JSON.stringify({ word: data.word, meaning: data.meaning_en, examples: data.examples }) },
+    { role: 'user', content: JSON.stringify({ word: data.word, type: data.type, meaning: data.meaning_en, examples: data.examples }) },
   ], 0.3);
   const parsed = JSON.parse(raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, ''));
-  return { ...data, usage: validateWordUsage(parsed.usage).slice(0, 1) };
+  const candidate = { ...data, usage: validateWordUsage(parsed.usage).slice(0, 1) };
+  return { ...data, usage: await reviewWordUsage(candidate, completeChat) };
 }

@@ -16,7 +16,6 @@ import {
   generateWordExplanation,
   InvalidWordExplanationError,
   WordExplanationRequestError,
-  validateWordExplanation,
   readSavedWordExplanation,
   type ChatMessage,
   type WordExplanation,
@@ -660,7 +659,9 @@ function getCachedWord(word: string): WordExplanation | null {
   const cached = cache[key];
   if (!cached) return null;
   try {
-    return validateWordExplanation(cached);
+    const data = readSavedWordExplanation(cached);
+    if (!data) throw new Error('Invalid cached word explanation');
+    return data;
   } catch (error) {
     delete cache[key];
     localStorage.setItem(WORD_CACHE_KEY, JSON.stringify(cache));
