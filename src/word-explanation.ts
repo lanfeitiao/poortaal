@@ -112,7 +112,12 @@ function parseWordExplanation(raw: string): WordExplanation {
 }
 
 export function readSavedWordExplanation(value: unknown): WordExplanation | undefined {
-  try { return validateWordExplanation(value); }
+  try {
+    const data = validateWordExplanation(value);
+    // Old nonempty lists predate content review. Re-enrich them without losing
+    // the saved meaning/examples; a successful empty list remains final.
+    return data.usage?.some(use => !use.kind || !use.note) ? { ...data, usage: undefined } : data;
+  }
   catch { return undefined; }
 }
 

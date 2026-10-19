@@ -19,7 +19,8 @@ export function renderWordExamples(data: WordExplanation, state?: UsageLoadState
     return `<div class="word-example${use ? ' word-use' : ''}">
       <div class="example-nl"><span class="example-sentence">“${highlight(nl, use?.chunk)}”</span><button class="ex-tts-btn" data-action="play-example-tts" data-text="${escapeText(nl)}" title="Uitspraak beluisteren">🔊</button></div>
       <div class="example-en">${escapeText(en)}</div>
-      ${use ? `<div class="example-pattern"><span class="pattern-label">Samen gebruiken</span> <strong>${escapeText(use.chunk)}</strong>
+      ${use ? `<div class="example-pattern"><span class="pattern-label">${use.kind === 'pattern' ? 'Zinsbouw' : use.kind === 'collocation' ? 'Vaste combinatie' : 'Gebruik'}</span> <strong>${escapeText(use.chunk)}</strong>
+        ${use.note ? `<div class="use-note">${escapeText(use.note)}</div>` : ''}
         <div class="use-frame">${escapeText(use.frame)}</div>
         ${status ? `<div class="use-status">${status}</div>` : ''}
         <button type="button" class="use-button" data-action="practice-usage" data-word="${escapeText(data.word)}" data-usage="${index}">Probeer zelf</button></div>` : ''}
