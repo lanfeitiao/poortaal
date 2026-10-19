@@ -39,7 +39,7 @@ export function renderWordExamples(data: WordExplanation, state?: UsageLoadState
   return `<div class="card word-examples"><div class="card-label">Voorbeelden & gebruik</div>${examples}${notice}</div>`;
 }
 export function renderWordTips(data: WordExplanation): string {
-  const warning = data.tips.trim();
+  const warning = data.usage?.some(use => use.note?.trim().toLowerCase() === data.tips.trim().toLowerCase()) ? '' : data.tips.trim();
   const memory = data.fun_fact?.trim();
   if (!warning && !memory) return '';
   return `<div class="card word-tips"><div class="card-label">Tips</div>

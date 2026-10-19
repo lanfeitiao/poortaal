@@ -82,6 +82,7 @@ test('optional tips share one card with distinct labels and escaped contents', (
   const both = renderWordTips({ ...legacy, fun_fact: 'Remember it.' });
   assert.equal((both.match(/card-label/g) || []).length, 1);
   assert.ok(both.includes('Let op'));
+  assert.equal(renderWordTips({ ...legacy, tips: use.note, usage: [use] }), '');
 });
 test('missing, empty and failed usage results show a retry, loading does not', () => {
   for (const state of [undefined, 'network', 'http', 'format'] as const) {

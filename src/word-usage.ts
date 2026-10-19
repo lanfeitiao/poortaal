@@ -46,7 +46,7 @@ export function validateWordUsage(value: unknown): WordUsage[] {
 export const WORD_USAGE_RULES = `Include a "usage" array with ZERO or ONE carefully selected everyday use. Quality matters, not filling a quota.
 Each use has these string fields: kind, note, chunk, meaning_en, frame, example_nl, example_en, review_prompt.
 kind: "collocation" for a conventional lexical combination (such as een afspraak maken); "pattern" for a reusable grammatical construction (such as wachten op [iemand/iets]). These are different learning objects, not interchangeable labels.
-note: one short English sentence explaining the specific lexical choice or grammar that transfers to other situations. "These words are often used together" is not an explanation.
+note: one short English sentence naming the specific lexical choice or grammar that transfers to other situations (e.g. "Use maken with afspraak when arranging an appointment."). "These words are often used together" or "This verb choice is commonly used" is not an explanation.
 chunk: a conventional collocation or word-specific construction worth learning as a unit because of a preferred verb, preposition, reflexive form, idiomatic meaning, or non-obvious syntax. Do not promote a free combination of an adjective/adverb and an interchangeable action to a special learning chunk.
 For a pattern, show the reusable structure with [slots], keeping the target construction outside the slots. For a collocation, use the conventional dictionary form, not a concrete fragment copied from an example.
 meaning_en: what this combination lets the learner communicate.
