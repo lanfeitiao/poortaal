@@ -1,4 +1,4 @@
-import { validateWordUsage, WORD_USAGE_RULES, type WordUsage } from './word-usage.ts';
+import { usageKey, validateWordUsage, WORD_USAGE_RULES, type WordUsage } from './word-usage.ts';
 import type { ChatMessage, WordExplanation } from './word-explanation.ts';
 
 type CompleteChat = (messages: ChatMessage[], temperature?: number) => Promise<string>;
@@ -24,8 +24,10 @@ ${WORD_USAGE_RULES}` },
   const parsed = JSON.parse(raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, ''));
   const usage = validateWordUsage(parsed.usage).slice(0, 1);
   for (const use of usage) {
+    const hidesChunk = [...use.frame.matchAll(/\[([^\[\]]+)\]/g)]
+      .some(match => usageKey(match[1]) === usageKey(use.chunk));
     if (!use.kind || !use.note || !/\[[^\[\]]+\]/.test(use.frame)
-      || (use.kind === 'pattern' && !/\[[^\[\]]+\]/.test(use.chunk))) {
+      || hidesChunk || (use.kind === 'pattern' && !/\[[^\[\]]+\]/.test(use.chunk))) {
       throw new Error('Usage review did not return a classified, reusable construction');
     }
   }

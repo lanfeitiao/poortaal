@@ -58,6 +58,7 @@ test('legacy fragments refresh while meanings, examples and successful empty res
 
 test('an unavailable or malformed review never publishes the unchecked candidate', async () => {
   for (const response of ['not json', JSON.stringify({ usage: [fragment] }),
+    JSON.stringify({ usage: [{ ...fragment, kind: 'collocation', note: 'A wrong justification.' }] }),
     JSON.stringify({ usage: [{ ...pattern, chunk: fragment.chunk }] })]) {
     await assert.rejects(reviewWordUsage(word, async () => response));
   }
