@@ -17,12 +17,13 @@ Reject arbitrary example fragments, free adjective/adverb combinations, trivial 
 For a conjunction, a concrete subordinate clause is NOT a collocation. Replace it with a reusable clause-order pattern when useful.
 Keep or repair at most one genuinely useful candidate. Verify its classification, transferable note, slots, grammar, translation and practice prompt together.
 Reject a frame that brackets the entire target construction; keep the structure visible and replace only variable content.
-Return [] if nothing is worth teaching or you are uncertain. Do not justify a poor candidate merely because it was supplied.
-${WORD_USAGE_RULES}` },
+Return {"usage": []} if nothing is worth teaching or you are uncertain. Do not justify a poor candidate merely because it was supplied.
+${WORD_USAGE_RULES}
+Output a JSON object with the key "usage" and an array value, even when the array is empty. Every accepted use must include all eight fields.` },
     { role: 'user', content: JSON.stringify({ word: data.word, type: data.type, meaning: data.meaning_en, candidates: data.usage }) },
   ], 0.1);
   const parsed = JSON.parse(raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, ''));
-  const usage = validateWordUsage(parsed.usage).slice(0, 1);
+  const usage = validateWordUsage(Array.isArray(parsed) ? parsed : parsed?.usage).slice(0, 1);
   for (const use of usage) {
     const hidesChunk = [...use.frame.matchAll(/\[([^\[\]]+)\]/g)]
       .some(match => usageKey(match[1]) === usageKey(use.chunk));

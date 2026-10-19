@@ -44,6 +44,13 @@ test('a rejected free phrase leaves a normal example and does not regenerate an 
   assert.equal(await enrichWordUsage(result, async () => { throw new Error('Do not retry empty results'); }), result);
 });
 
+test('review accepts a bare empty array as a legitimate rejection without retrying', async () => {
+  let calls = 0;
+  assert.deepEqual(await reviewWordUsage(word, async () => { calls++; return '[]'; }), []);
+  assert.equal(calls, 1);
+  assert.deepEqual(await reviewWordUsage({ ...word, usage: [] }, async () => { throw new Error('Unnecessary review'); }), []);
+});
+
 test('legacy fragments refresh while meanings, examples and successful empty results survive', async () => {
   const restored = readSavedWordExplanation(word)!;
   assert.equal(restored.usage, undefined);
