@@ -62,6 +62,22 @@
   },
   "cases": [
     {
+      "id": "hoewel-clause-pattern",
+      "input": "hoewel",
+      "risk": "An ordinary subordinate clause is mislabelled as a collocation, or a useful clause-order pattern is omitted.",
+      "reference_facts": ["hoewel means although and introduces a subordinate clause", "The verbal group belongs at the end of the subordinate clause"],
+      "critical_failures": ["teaches hoewel het regent as a fixed collocation", "brackets away the entire target clause", "teaches main-clause word order after hoewel"],
+      "quality_criteria": ["provides a reusable pattern labelled pattern, with visible slots and a specific word-order note", "keeps the example grammatical and easy to reuse", "does not merely copy the concrete example into chunk"]
+    },
+    {
+      "id": "voorzichtig-free-combination",
+      "input": "voorzichtig",
+      "risk": "A free adverb/action combination is promoted to a memorisable collocation.",
+      "reference_facts": ["voorzichtig rijden is an ordinary compositional combination", "voorzichtig zijn met iets teaches a reusable complement construction"],
+      "critical_failures": ["teaches voorzichtig rijden or voorzichtig lopen as a fixed collocation", "invents a frame by only appending a reason, time or place"],
+      "quality_criteria": ["selects a useful construction with met when appropriate", "explains the specific construction rather than saying the words often occur together", "does not invent extra uses to fill a quota"]
+    },
+    {
       "id": "vervangen-separability",
       "input": "vervangen",
       "risk": "A model may incorrectly infer separability from the spelling and teach a false conjugation pattern.",
