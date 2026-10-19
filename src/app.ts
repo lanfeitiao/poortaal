@@ -16,7 +16,6 @@ import {
   generateWordExplanation,
   InvalidWordExplanationError,
   WordExplanationRequestError,
-  validateWordExplanation,
   readSavedWordExplanation,
   type ChatMessage,
   type WordExplanation,

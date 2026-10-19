@@ -52,7 +52,7 @@ test('returns a validated word explanation for valid JSON', async () => {
   assert.deepEqual(result, validExplanation);
 });
 test('fresh examples use the same sentences as attached patterns', async () => {
-  const use = { chunk: 'gezellig zijn', meaning_en: 'be pleasant', frame: 'Het is gezellig bij [plaats].', example_nl: 'Het is gezellig bij ons thuis.', example_en: 'It is pleasant at our home.', review_prompt: 'Describe the atmosphere at home.' };
+  const use = { kind: 'collocation' as const, note: 'Use maken to describe making a place feel cosy.', chunk: 'het gezellig maken', meaning_en: 'make it cosy', frame: 'Ik maak het gezellig met [iets].', example_nl: 'Ik maak het gezellig met kaarsen.', example_en: 'I make it cosy with candles.', review_prompt: 'Describe making a room feel cosy.' };
   const result = await generateWordExplanation('gezellig', async () => JSON.stringify({ ...validExplanation, usage: [use] }));
   assert.deepEqual(result.examples[0], { nl: use.example_nl, en: use.example_en });
   assert.equal(result.examples.length, 1);
@@ -66,7 +66,7 @@ test('one-example words and legacy two-example words remain readable', () => {
   }
 });
 test('fresh lookups retain only one use and example even if the model pads its response', async () => {
-  const use = { chunk: 'gezellig zijn', meaning_en: 'be pleasant', frame: 'Het is gezellig bij [plaats].', example_nl: 'Het is gezellig bij ons thuis.', example_en: 'It is pleasant at our home.', review_prompt: 'Describe the atmosphere at home.' };
+  const use = { kind: 'collocation' as const, note: 'Use maken to describe making a place feel cosy.', chunk: 'het gezellig maken', meaning_en: 'make it cosy', frame: 'Ik maak het gezellig met [iets].', example_nl: 'Ik maak het gezellig met kaarsen.', example_en: 'I make it cosy with candles.', review_prompt: 'Describe making a room feel cosy.' };
   const result = await generateWordExplanation('gezellig', async messages => {
     assert.ok(messages[0].content.includes('ZERO or ONE'));
     assert.ok(messages[0].content.includes('ordinary free combination'));

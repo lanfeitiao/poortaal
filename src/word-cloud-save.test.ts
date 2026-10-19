@@ -99,7 +99,7 @@ test('latest remote definitions survive stale saves while missing usages are fil
   const explanation = { word: 'afspraak', type: 'zelfstandig naamwoord', meaning_nl: 'Een afspraak.',
     meaning_en: 'appointment', examples: [{ nl: 'Mijn afspraak is morgen.', en: 'My appointment is tomorrow.' },
       { nl: 'Ik heb een afspraak.', en: 'I have an appointment.' }], tips: 'Use maken.', fun_fact: null };
-  const use = { chunk: 'een afspraak maken', meaning_en: 'make an appointment', frame: 'Ik wil een afspraak maken.',
+  const use = { kind: 'collocation' as const, note: 'Use maken when arranging an appointment.', chunk: 'een afspraak maken', meaning_en: 'make an appointment', frame: 'Ik wil een afspraak maken.',
     example_nl: 'Ik wil een afspraak maken.', example_en: 'I want an appointment.', review_prompt: 'Arrange a time.' };
   const local = { ...row([attempt('local')]), word_data: { ...explanation, usage: [use], usage_progress: [attempt('local')] } };
   for (const usage of [undefined, []]) {
@@ -120,7 +120,7 @@ test('explicit retries persist empty usages but preserve newer remote uses after
   const before: WordExplanation = { word: 'afspraak', type: 'zelfstandig naamwoord', meaning_nl: 'Een afspraak.',
     meaning_en: 'appointment', examples: [{ nl: 'Ik heb een afspraak.', en: 'I have an appointment.' },
       { nl: 'Mijn afspraak is morgen.', en: 'My appointment is tomorrow.' }], tips: '', fun_fact: null, usage: [] };
-  const use = { chunk: 'een afspraak maken', meaning_en: 'make an appointment', frame: 'Ik wil een afspraak maken.',
+  const use = { kind: 'collocation' as const, note: 'Use maken when arranging an appointment.', chunk: 'een afspraak maken', meaning_en: 'make an appointment', frame: 'Ik wil een afspraak maken.',
     example_nl: 'Ik wil een afspraak maken.', example_en: 'I want an appointment.', review_prompt: 'Arrange a time.' };
   const local = { ...row(), word_data: { ...before, usage: [use], usage_progress: [attempt('local')] } };
   for (const concurrent of [false, true]) {
