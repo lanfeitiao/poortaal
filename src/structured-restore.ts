@@ -18,6 +18,10 @@ export function restoreSession(value: unknown, owner: string): StructuredSession
     const r = object(item);
     const round: PracticeRound = { draft: text(r.draft, 2000, true), hintsUsed: integer(r.hintsUsed, 3) };
     round.draft = r.draft as string;
+    if (r.voiceSettled !== undefined) {
+      if (typeof r.voiceSettled !== 'boolean') throw new Error('Invalid voice settlement');
+      round.voiceSettled = r.voiceSettled;
+    }
     if (r.turns !== undefined) {
       if (!Array.isArray(r.turns) || r.turns.length > 40) throw new Error('Invalid transcript');
       round.turns = r.turns.map(t => ({ role: choice(object(t).role, ['user', 'assistant']), content: text(object(t).content, 2000) }));
@@ -43,7 +47,7 @@ export function restoreSession(value: unknown, owner: string): StructuredSession
     throw new Error('Invalid pending request');
   }
   return { version: 1, id: text(v.id, 100), owner, word: text(v.word, 200),
-    ...(v.delivery === undefined ? {} : { delivery: choice(v.delivery, ['voice']) }),
+    ...(v.delivery === undefined ? {} : { delivery: choice(v.delivery, ['voice'] as const) }),
     ...(v.meaning === undefined ? {} : { meaning: text(v.meaning) }),
     ...(v.studiedScenario === undefined ? {} : { studiedScenario: validateScenario(v.studiedScenario) }),
     usage: v.usage === undefined ? undefined : validateWordUsage([v.usage])[0],

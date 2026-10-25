@@ -62,13 +62,14 @@ export class StructuredPractice {
     } catch { this.fail(); }
     // Keep the textarea and caret in place during typing.
   }
-  captureVoice(turns: NonNullable<StructuredSession['rounds'][number]['turns']>, helped = false): void {
+  captureVoice(turns: NonNullable<StructuredSession['rounds'][number]['turns']>, helped = false, settled = false): void {
     const s = this.session;
     if (!s || s.delivery !== 'voice' || s.phase !== 'answer' || this.busy) return;
     const draft = turns.filter(t => t.role === 'user').map(t => t.content).join('\n');
+    if (!draft.trim() && currentRound(s).draft.trim()) return;
     if (draft.length > 2000) { this.error = 'Deze ronde is lang. Rond af en begin een kortere poging.'; this.notify(); return; }
     this.mutate(() => ({ ...s, supportUsed: s.supportUsed || helped, pending: null,
-      rounds: s.rounds.map((r, i) => i === s.round ? { ...r, draft, turns } : r) }));
+      rounds: s.rounds.map((r, i) => i === s.round ? { ...r, draft, turns, voiceSettled: settled } : r) }));
   }
   hint(): void {
     const s = this.session;
@@ -91,6 +92,9 @@ export class StructuredPractice {
   async request(): Promise<void> {
     const s = this.session;
     if (!s || this.busy || !['prepare', 'answer'].includes(s.phase)) return;
+    if (s.delivery === 'voice' && s.phase === 'answer' && !currentRound(s).voiceSettled) {
+      this.showError('Start het gesprek om je antwoord af te maken voordat je feedback ophaalt.'); return;
+    }
     if (s.phase === 'answer' && !currentRound(s).draft.trim()) {
       this.error = 'Schrijf eerst je antwoord in het Nederlands.'; this.notify(); return;
     }

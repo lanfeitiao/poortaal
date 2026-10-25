@@ -65,6 +65,7 @@ function renderEncounterIntro(): void {
 function supportLabel(level: SupportLevel): string { switch (level) { case 'none': return ''; case 'meaning': return '💡 Thought'; case 'chunks': return '🧩 Pieces'; case 'frame': return '✍️ Sentence frame'; case 'model': return '🗣️ Borrow a line'; } }
 function renderSupport(): void {
   if (!session) return; const support = el('encounterSupport'); const actions = el('encounterActions'); if (!support || !actions) return;
+  if (spokenSession()) { support.innerHTML = ''; actions.innerHTML = ''; return; }
   const level = session.currentSupport; const content = supportContent(session.encounter, level);
   if (level === 'none' || content === null) support.innerHTML = '';
   else { const rendered = Array.isArray(content) ? content.map(part => `<span style="display:inline-block;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:999px;padding:4px 9px;margin:3px;">${escapeHtml(part)}</span>`).join('') : escapeHtml(content); support.innerHTML = `<div style="background:#F9FAFB;border-radius:12px;padding:10px 12px;margin:6px 0;font-size:.9rem;color:#374151;"><div style="font-size:.75rem;font-weight:600;color:#6B7280;margin-bottom:4px;">${supportLabel(level)}</div><div>${rendered}</div>${level === 'model' ? '<div style="font-size:.78rem;color:#6B7280;margin-top:6px;">Now make it yours.</div>' : ''}</div>`; }
@@ -339,7 +340,7 @@ function spokenTurns() {
     role: g.role === 'user' ? 'user' as const : 'assistant' as const, content: g.text,
   }));
 }
-function captureSpokenTurns(): void {
+function captureSpokenTurns(settled = false): void {
   const s = spokenSession(); if (!s || s.phase !== 'answer') return;
   const turns = spokenTurns().filter(t => t.role !== 'user' || !voiceAction(t.content, false, offeredFeedback));
   let helped = false, produced = false;
@@ -347,7 +348,7 @@ function captureSpokenTurns(): void {
     if (t.role === 'user' && detectsTargetProduction(s.word, t.content)) produced = true;
     if (t.role === 'assistant' && !produced && detectsTargetProduction(s.word, t.content)) helped = true;
   }
-  structuredPractice.captureVoice(turns, helped);
+  structuredPractice.captureVoice(turns, helped, settled);
 }
 function scheduleVoiceTurn(): void {
   if (!spokenSession() || finishing) return;
@@ -377,7 +378,7 @@ async function finishSpokenRound(): Promise<void> {
   try {
     const settled = await waitForTranscriptIdle(() => lastCaptionReceivedAtMs, current);
     if (!current()) return;
-    captureSpokenTurns();
+    captureSpokenTurns(settled && !connectionFailed);
     if (!settled || connectionFailed) { structuredPractice.showError('De verbinding is onderbroken of je laatste woorden zijn nog niet zeker. Probeer deze ronde opnieuw.'); return; }
     if (structuredPractice.error || !currentRound(spokenSession()!).draft.trim()) { structuredPractice.showError('Er is nog geen duidelijk antwoord bewaard. Spreek eerst je antwoord.'); return; }
     await structuredPractice.request();
@@ -385,8 +386,11 @@ async function finishSpokenRound(): Promise<void> {
       currentClient.resumeInput(); microphoneReady = true;
       speakInstruction(spokenFeedback(spokenSession()!));
     }
+  } catch {
+    if (current()) structuredPractice.showError('Feedback kon niet worden opgehaald. Je antwoord blijft bewaard.');
   } finally {
-    if (current()) {
+    if (current() && connectionFailed) { stopRealtimeEncounter(false); setStatus('Verbinding verbroken. Je oefening is bewaard.'); }
+    else if (current()) {
       finishing = false; if (button) button.disabled = false;
       currentClient.resumeInput(); microphoneReady = true;
       setButton(spokenSession()?.phase === 'feedback' ? '■ Afronden' : 'Feedback & volgende stap');

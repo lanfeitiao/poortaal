@@ -5,6 +5,7 @@ import type { UsageAttempt, UsageOutcome } from './word-learning.ts';
 export type PracticeRound = {
   draft: string; hintsUsed: number; submitted?: string; submittedAt?: number; feedback?: StructuredFeedback;
   turns?: { role: 'user' | 'assistant'; content: string }[];
+  voiceSettled?: boolean;
 };
 export type StructuredSession = {
   version: 1; id: string; owner: string; word: string; usage?: WordUsage;
