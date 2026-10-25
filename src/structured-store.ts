@@ -38,7 +38,7 @@ export function samePractice(session: StructuredSession, word: string, chunk?: s
   return usageKey(session.word) === usageKey(word) && usageKey(session.usage?.chunk || session.word) === usageKey(chunk || word);
 }
 export function hasPractised(word: string, chunk?: string): boolean {
-  return readSessions().sessions.some(s => samePractice(s, word, chunk) && !!s.scenario)
+  return readSessions().sessions.some(s => samePractice(s, word, chunk) && !!s.scenario && (s.delivery !== 'voice' || s.rounds.some(r => !!r.submitted)))
     || getWordAttempts(word).some(a => !a.discarded && a.source === 'conversation' && usageKey(a.chunk) === usageKey(chunk || word));
 }
 export function saveStructuredProgress(session: StructuredSession): void {
