@@ -44,7 +44,8 @@ export class StructuredPractice {
     if (!s || this.busy || s.phase !== 'answer' || value.length > 2000) return;
     try {
       const rounds = s.rounds.map((r, i) => i === s.round ? { draft: value, hintsUsed: r.hintsUsed } : r);
-      this.write({ ...s, rounds, pending: null }); this.error = '';
+      this.session = { ...s, rounds, pending: null };
+      this.write(this.session); this.error = '';
     } catch { this.fail(); }
     // Keep the textarea and caret in place during typing.
   }

@@ -17,6 +17,7 @@ export function restoreSession(value: unknown, owner: string): StructuredSession
   for (const [index, item] of v.rounds.entries()) {
     const r = object(item);
     const round: PracticeRound = { draft: text(r.draft, 2000, true), hintsUsed: integer(r.hintsUsed, 3) };
+    round.draft = r.draft as string;
     if (r.submitted !== undefined) {
       round.submitted = text(r.submitted, 2000); round.submittedAt = integer(r.submittedAt);
     }
