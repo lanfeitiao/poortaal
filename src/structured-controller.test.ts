@@ -123,3 +123,18 @@ test('a spoken task continues a studied scenario without mistaking exposure for 
   p.captureVoice([{ role: 'user', content: answer }], false, true); await p.request();
   assert.equal(getWordAttempts('afspraak')[0]?.outcome, 'supported');
 });
+test('verified tutor models of inflected and separable verbs cannot become independent mastery', async () => {
+  for (const [word, line] of [['regelen', 'Ik regel het morgen.'], ['opbellen', 'Ik bel je morgen op.'], ['vervangen', 'Ik vervang de lamp.']]) {
+    const p = new StructuredPractice(noop, async messages => {
+      const input = JSON.parse(messages[1].content);
+      return JSON.stringify(input.answer ? { ...goodFeedback(input.situation, input.answer),
+        supportEvidence: { tutorQuote: line, learnerQuote: line } } : scenario);
+    });
+    await p.start(word, undefined, false, { voice: true });
+    p.captureVoice([{ role: 'assistant', content: line }, { role: 'user', content: line }], false, true);
+    await p.request();
+    assert.equal(getWordAttempts(word)[0]?.outcome, 'supported');
+    const restored = new StructuredPractice(noop); restored.restore();
+    assert.deepEqual(restored.session?.rounds[0].feedback?.supportEvidence, { tutorQuote: line, learnerQuote: line });
+  }
+});

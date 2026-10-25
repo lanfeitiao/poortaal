@@ -25,3 +25,13 @@ test('feedback refuses invented evidence, multiple corrections and an unchanged 
     assert.throws(() => validateStructuredFeedback(bad, answer, scenario.situation));
   }
 });
+test('modelling evidence must quote a real earlier tutor turn and a later learner answer', () => {
+  const f = { ...goodFeedback(), supportEvidence: { tutorQuote: answer, learnerQuote: answer } };
+  const turns = [{ role: 'assistant' as const, content: answer }, { role: 'user' as const, content: answer }];
+  assert.deepEqual(validateStructuredFeedback(f, answer, scenario.situation, turns, true).supportEvidence, f.supportEvidence);
+  assert.throws(() => validateStructuredFeedback(f, answer, scenario.situation, [...turns].reverse(), true));
+  assert.throws(() => validateStructuredFeedback({ ...f, supportEvidence: { ...f.supportEvidence, tutorQuote: 'invented tutor text' } }, answer, scenario.situation, turns, true));
+  const { supportEvidence: _missing, ...legacy } = goodFeedback();
+  assert.throws(() => validateStructuredFeedback(legacy, answer, scenario.situation, turns, true));
+  assert.equal(validateStructuredFeedback(legacy, answer, scenario.situation).supportEvidence, undefined);
+});
