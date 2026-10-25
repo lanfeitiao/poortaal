@@ -371,6 +371,7 @@ function scheduleVoiceTurn(): void {
 async function finishSpokenRound(): Promise<void> {
   const s = spokenSession(), currentClient = client;
   if (!s || !currentClient || finishing || s.phase !== 'answer') return;
+  if (!microphoneReady && !timelineTranscriptFragments.some(f => f.role === 'user')) { stopRealtimeEncounter(); return; }
   const token = generationId, owner = learningOwner(), round = s.round;
   const current = () => token === generationId && client === currentClient && owner === learningOwner()
     && spokenSession()?.id === s.id && spokenSession()?.round === round;

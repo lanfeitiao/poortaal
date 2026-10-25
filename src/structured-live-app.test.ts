@@ -49,3 +49,12 @@ test('switching from guided text examples into speech keeps the assistance prove
   f.click('#voiceModeBtn'); await f.wait(() => f.session()?.delivery === 'voice');
   assert.equal(f.session()?.supportUsed, true);
 });
+test('cancel during microphone setup neither releases the opening guard early nor records success', async t => {
+  const f = await liveFixture(t);
+  f.click('[data-action="start-practice-word"]'); await f.wait(() => f.session()?.phase === 'answer');
+  f.click('#voiceStartBtn'); f.click('#voiceStartBtn');
+  await new Promise(setImmediate);
+  assert.equal(f.attempts().length, 0);
+  assert.equal(f.session()?.phase, 'answer');
+  assert.equal(f.sent.filter(e => e.event_id === 'encounter-opening').length, 0);
+});
