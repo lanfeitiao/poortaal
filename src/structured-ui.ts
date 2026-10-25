@@ -1,16 +1,26 @@
 import { StructuredPractice } from './structured-controller.ts';
 import { renderStructured } from './structured-view.ts';
 import { sessionStorageKey } from './structured-store.ts';
+import { renderVoicePractice } from './structured-voice-view.ts';
 
 const root = () => document.getElementById('structuredPractice');
 export const structuredPractice = new StructuredPractice(() => {
   const panel = root();
-  if (panel) panel.innerHTML = renderStructured(structuredPractice.session, structuredPractice.busy, structuredPractice.error);
+  const s = structuredPractice.session;
+  if (panel && s?.delivery !== 'voice') panel.innerHTML = renderStructured(s, structuredPractice.busy, structuredPractice.error);
+  const voice = document.getElementById('voicePracticeSteps');
+  if (voice) voice.innerHTML = s?.delivery === 'voice' ? renderVoicePractice(s, structuredPractice.busy, structuredPractice.error) : '';
 });
 window.addEventListener('storage', event => {
   if ((event as StorageEvent).key === sessionStorageKey()) structuredPractice.refresh();
 });
 export function connectStructuredPractice(done: () => void): void {
+  document.getElementById('voicePracticeSteps')?.addEventListener('click', event => {
+    const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-voice]');
+    if (!button || button.disabled) return;
+    if (button.dataset.voice === 'done') done();
+    else window.dispatchEvent(new CustomEvent('poortaal:voice-action', { detail: button.dataset.voice }));
+  });
   root()?.addEventListener('input', event => {
     const input = event.target as HTMLTextAreaElement;
     if (input.id !== 'structuredAnswer') return;

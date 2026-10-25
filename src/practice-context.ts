@@ -2,12 +2,15 @@ import { chooseWordUsage, type UsageAttempt } from './word-learning.ts';
 import { getWordAttempts } from './learning-store.ts';
 import type { WordExplanation } from './word-explanation.ts';
 import type { WordUsage } from './word-usage.ts';
+import type { PracticeScenario } from './structured-contract.ts';
 
-export type PracticeContext = { id: string; word: string; usage?: WordUsage; recent: UsageAttempt[]; helpUsed: boolean };
+export type PracticeContext = { id: string; word: string; usage?: WordUsage; recent: UsageAttempt[]; helpUsed: boolean; meaning?: string; studiedScenario?: PracticeScenario };
 let context: PracticeContext | null = null;
-export function setPracticeContext(data: Pick<WordExplanation, 'word' | 'usage'>, count = 0, selected?: number): void {
+export function setPracticeContext(data: Pick<WordExplanation, 'word' | 'usage'> & Partial<Pick<WordExplanation, 'meaning_en' | 'scene'>>, count = 0, selected?: number): void {
   const recent = getWordAttempts(data.word);
   context = { id: crypto.randomUUID(), word: data.word, usage: data.usage?.[selected ?? -1] || chooseWordUsage(data, recent, count), recent, helpUsed: selected !== undefined };
+  if (data.meaning_en) context.meaning = data.meaning_en;
+  if (data.scene) context.studiedScenario = data.scene.scenario;
 }
 export function markPracticeHelp(): void { if (context) context.helpUsed = true; }
 export function getPracticeContext(): PracticeContext | null { return context; }

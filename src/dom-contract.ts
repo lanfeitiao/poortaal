@@ -26,6 +26,7 @@ const REQUIRED_ELEMENT_IDS = [
   'textPracticePanel',
   'practiceChatWord',
   'voicePracticePanel',
+  'voicePracticeSteps',
   'voicePracticeWord',
   'voiceStatus',
   'voiceVisualizer',
