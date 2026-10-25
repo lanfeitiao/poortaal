@@ -243,8 +243,8 @@ function handleStateChange(state: RealtimeConnectionState): void {
       } catch (error) { console.error('Could not start encounter:', error); }
       break;
     case 'listening': microphoneReady = true; setVisualizer(true); setStatus('Ik luister…'); break;
-    case 'error': microphoneReady = false; setVisualizer(false); setStatus('Verbinding mislukt. Probeer opnieuw.'); break;
-    case 'closed': microphoneReady = false; setVisualizer(false); if (active) setStatus('Sessie beëindigd'); break;
+    case 'error': stopRealtimeEncounter(false); microphoneReady = false; setVisualizer(false); setStatus('Verbinding mislukt. Je oefening is bewaard; probeer opnieuw.'); break;
+    case 'closed': stopRealtimeEncounter(false); microphoneReady = false; setVisualizer(false); setStatus('Verbinding beëindigd. Je kunt opnieuw verbinden.'); break;
   }
 }
 function refreshCompletionMessages(): void {

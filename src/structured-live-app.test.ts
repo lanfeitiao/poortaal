@@ -92,3 +92,22 @@ test('leaving immediately after a displayed caption flushes that answer as unset
   assert.equal(f.session().rounds[0].voiceSettled, false);
   assert.equal(f.attempts().length, 0);
 });
+test('roleplay acceptance remains in the answer after a later feedback confirmation', async t => {
+  const f = await liveFixture(t);
+  f.click('[data-action="start-practice-word"]'); await f.wait(() => f.session()?.phase === 'answer');
+  f.click('#voiceStartBtn'); await f.wait(() => f.sent.some(e => e.event_id === 'encounter-opening'));
+  f.caption('tutor', 'Wil je morgen komen?'); f.caption('user', 'Ja graag.');
+  f.caption('tutor', 'Wat wil je afspreken?'); f.caption('user', answer);
+  f.caption('tutor', 'Wil je kort feedback?'); f.caption('user', 'Ja graag.');
+  await f.wait(() => f.session()?.phase === 'feedback');
+  assert.equal(f.session().rounds[0].submitted, 'Ja graag.\n' + answer);
+});
+test('an unexpected server close saves received speech and allows immediate reconnection', async t => {
+  const f = await liveFixture(t);
+  f.click('[data-action="start-practice-word"]'); await f.wait(() => f.session()?.phase === 'answer');
+  f.click('#voiceStartBtn'); await f.wait(() => f.sent.some(e => e.event_id === 'encounter-opening'));
+  f.caption('user', answer); f.closeConnection();
+  assert.equal(f.session().rounds[0].draft, answer);
+  f.click('#voiceStartBtn'); await f.wait(() => f.sent.filter(e => e.event_id === 'encounter-opening').length === 2);
+  assert.equal(f.attempts().length, 0);
+});

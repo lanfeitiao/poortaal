@@ -56,6 +56,7 @@ export async function liveFixture(t: TestContext) {
   t.after(() => click('#practiceBackBtn'));
   let clock = 0;
   return { document, storage, sent, track, events, click,
+    closeConnection() { channel.emit('session.closed'); },
     caption(role: 'user' | 'tutor', delta: string) { clock += 1000; channel.emit(`session.${role === 'user' ? 'input' : 'output'}_transcript.delta`, { delta, start_ms: clock, end_ms: clock + 500 }); },
     async wait(check: () => boolean) {
       for (let i = 0; !check() && i < 220; i++) await new Promise(r => setTimeout(r, 20));
