@@ -38,10 +38,14 @@ test('bundled application boots with the real DOM and preserves word stats acros
     assert.ok(check());
   };
   const panel = document.getElementById('structuredPractice')!;
+  const spoken = document.getElementById('voicePracticeSteps')!;
   click('[data-action="start-practice-word"]');
   assert.equal((document.getElementById('voiceModeBtn') as HTMLButtonElement).disabled, true);
-  await wait(() => panel.textContent!.includes('Een kort gesprek'));
+  await wait(() => spoken.textContent!.includes(scenario.situation));
+  assert.equal(document.getElementById('voicePracticePanel')!.style.display, '');
+  assert.ok(!spoken.textContent!.includes(scenario.expressions[0]));
   assert.equal((document.getElementById('voiceModeBtn') as HTMLButtonElement).disabled, false);
+  click('#textModeBtn'); await wait(() => panel.textContent!.includes('Een kort gesprek'));
   click('[data-structured="continue"]');
   const input = document.getElementById('structuredAnswer') as HTMLTextAreaElement;
   input.value = answer; input.dispatchEvent(new dom.Event('input', { bubbles: true }));
@@ -51,7 +55,8 @@ test('bundled application boots with the real DOM and preserves word stats acros
   assert.equal(JSON.parse(storage.get('poortaal_word_stats')!).afspraak.practices, 1);
   click('[data-action="start-practice-word"]');
   assert.equal((document.getElementById('voiceModeBtn') as HTMLButtonElement).disabled, true);
-  await wait(() => !!document.getElementById('structuredAnswer'));
+  await wait(() => spoken.textContent!.includes(scenario.situation));
+  click('#textModeBtn'); await wait(() => !!document.getElementById('structuredAnswer'));
   assert.ok(!panel.textContent!.includes(scenario.expressions[0]));
   click('#voiceModeBtn'); assert.equal(document.getElementById('voicePracticePanel')!.style.display, '');
   click('#textModeBtn'); assert.equal(document.getElementById('voicePracticePanel')!.style.display, 'none');

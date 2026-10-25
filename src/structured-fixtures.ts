@@ -6,6 +6,7 @@ export const practiceUsage: WordUsage = { kind: 'collocation', note: 'Use maken 
   example_nl: 'Ik wil een afspraak maken voor maandag.', example_en: 'I want to make an appointment for Monday.',
   review_prompt: 'Arrange an appointment.' };
 export const scenario: PracticeScenario = {
+  openingLine: 'Goedemorgen, waarmee kan ik je helpen?',
   situation: 'Je belt de huisarts. Je hebt morgen tijd.', task: 'Vraag of je morgen kunt komen. Vertel wanneer je tijd hebt.',
   expressions: ['Ik wil een afspraak maken.', 'Kan ik morgen komen?'],
   dialogue: [{ speaker: 'Jij', line: 'Ik wil een afspraak maken.' }, { speaker: 'Assistent', line: 'Wanneer kun je komen?' }],
@@ -16,5 +17,6 @@ export function goodFeedback(situation = scenario.situation, quote = answer): St
   return { task: 'completed', target: 'correct', naturalness: 'natural', evidence: quote,
     strength: { text: 'Je vraagt duidelijk om een afspraak.', quote }, improvement: null,
     retry: { situation: situation + ' Je kunt nu alleen vrijdag.', task: 'Vraag om een ander tijdstip.',
+      openingLine: 'Morgen kan niet. Wanneer kun je wel?',
       change: 'Je kunt alleen vrijdag.', hints: ['Welke dag kun je?', 'Kan ik…', 'Kan ik vrijdag komen? Ik wil een afspraak maken.'] } };
 }
