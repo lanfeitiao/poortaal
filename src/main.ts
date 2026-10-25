@@ -28,6 +28,7 @@ import {
   trySuggestion,
 } from './app';
 import { stopRealtimeEncounter, toggleRealtimeEncounter } from './realtime/encounter-controller';
+import { connectStructuredPractice } from './structured-ui';
 
 assertRequiredDom();
 
@@ -109,6 +110,7 @@ function handleActionClick(event: MouseEvent) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  connectStructuredPractice(showPracticePicker);
   onClick('logoutBtn', doLogout);
   onClick('loginBtn', openAuthModal);
   onClick('historyBtn', toggleHistory);

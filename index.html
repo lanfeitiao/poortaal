@@ -368,21 +368,14 @@ main { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
     </div>
     <div id="practiceChatSection" style="display:none;">
       <button class="practice-back-btn" id="practiceBackBtn">← Terug naar woordkeuze</button>
+      <h3>Oefenen: <span id="practiceChatWord"></span></h3>
       <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;">
-        <button class="practice-mode-btn active" id="voiceModeBtn">🎙️ Stem</button>
-        <button class="practice-mode-btn" id="textModeBtn">💬 Tekst</button>
+        <button class="practice-mode-btn active" id="textModeBtn">💬 Stap voor stap</button>
+        <button class="practice-mode-btn" id="voiceModeBtn">🎙️ Stem</button>
       </div>
       <div id="practiceUsage"></div>
-      <div id="textPracticePanel" style="display:none;">
-        <div class="card">
-          <div class="chat-header"><h3>🗣️ Oefen: <span id="practiceChatWord"></span></h3></div>
-          <div class="chat-messages" id="chatMessages"></div>
-          <div class="chat-input-row">
-            <input type="text" id="chatInput" placeholder="Typ je antwoord...">
-            <button id="chatSendBtn">Stuur</button>
-          </div>
-          <button type="button" class="use-button secondary" id="textFeedbackBtn">Afronden & terugkijken</button>
-        </div>
+      <div id="textPracticePanel">
+        <section id="structuredPractice" class="card structured-practice" aria-label="Stap voor stap oefenen"></section>
       </div>
       <div id="voicePracticePanel">
         <div class="card">

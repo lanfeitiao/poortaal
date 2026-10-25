@@ -9,6 +9,7 @@ import { renderWordExamples, renderWordTips, type UsageLoadState } from './word-
 import { cloudWordLearning, getWordAttempts, learningOwner, setLearningOwner, clearWordLearning, recordWordAttempt } from './learning-store';
 import { setPracticeContext, getPracticeContext, clearPracticeContext, markPracticeHelp } from './practice-context';
 import { resetPracticeFeedback } from './practice-feedback';
+import { structuredPractice } from './structured-ui';
 import { needsUsageReview, wordReview } from './word-learning';
 import { createWordWriteQueue } from './word-write-queue';
 import { mergeCloudWordStats, saveWordWithVersion, supabaseWordStore } from './word-cloud-save';
@@ -765,12 +766,11 @@ function startPracticeWithInput() { const input = document.getElementById('pract
 function showPracticePicker(recordCompletion = true) {
   practiceGeneration++; resetPracticeFeedback();
   const word = document.getElementById('practiceChatWord').textContent?.toLowerCase().trim();
-  const completed = consumeRealtimePracticeCompletion() || practiceMessages.some(m => m.role === 'user');
+  const completed = consumeRealtimePracticeCompletion();
   if (recordCompletion && word && completed) { updateWordStats(word, 'practice'); renderHistory(); }
   document.getElementById('practicePickerSection').style.display = '';
   document.getElementById('practiceChatSection').style.display = 'none';
-  practiceMessages = []; practiceLoading = false; clearPracticeContext();
-  (document.getElementById('chatSendBtn') as HTMLButtonElement).disabled = false;
+  structuredPractice.stop(true); clearPracticeContext();
   resetRealtimeEncounterUi(); switchPracticeMode('voice');
 }
 window.addEventListener('poortaal:learning-owner', () => {
@@ -790,7 +790,7 @@ async function startPracticeForWord(word: string, usage?: number) {
   document.getElementById('practiceChatSection').style.display = '';
   document.getElementById('practiceChatWord').textContent = data?.word || word;
   document.getElementById('practiceUsage')!.innerHTML = '';
-  practiceMessages = []; practiceLoading = false; resetRealtimeEncounterUi(); switchPracticeMode('voice');
+  structuredPractice.stop(); resetRealtimeEncounterUi(); switchPracticeMode('text');
   const start = document.getElementById('voiceStartBtn') as HTMLButtonElement;
   const textMode = document.getElementById('textModeBtn') as HTMLButtonElement;
   start.disabled = true; textMode.disabled = true;
@@ -809,6 +809,8 @@ async function startPracticeForWord(word: string, usage?: number) {
       document.getElementById('practiceUsage')!.innerHTML = renderPracticeUsage(getPracticeContext());
       start.disabled = false; textMode.disabled = false;
       document.getElementById('voiceStatus').textContent = 'Druk op de knop om te beginnen';
+      const context = getPracticeContext()!;
+      await structuredPractice.start(context.word, context.usage, context.helpUsed);
     }
   }
 }
@@ -846,7 +848,18 @@ function finishReview(knew: boolean) {
 }
 function closeMicroReview() { if (microReviewInterval) { clearInterval(microReviewInterval); microReviewInterval = null; } microReviewPrompt = null; document.getElementById('microReviewOverlay').classList.remove('open'); }
 
-function switchPracticeMode(mode: 'text' | 'voice') { document.getElementById('textModeBtn').classList.toggle('active', mode === 'text'); document.getElementById('voiceModeBtn').classList.toggle('active', mode === 'voice'); document.getElementById('textPracticePanel').style.display = mode === 'text' ? '' : 'none'; document.getElementById('voicePracticePanel').style.display = mode === 'voice' ? '' : 'none'; if (mode === 'voice') { const word = document.getElementById('practiceChatWord').textContent || ''; document.getElementById('voicePracticeWord').textContent = word; } else { void startTextPracticeScenario(); } }
+function switchPracticeMode(mode: 'text' | 'voice') {
+  document.getElementById('textModeBtn').classList.toggle('active', mode === 'text');
+  document.getElementById('voiceModeBtn').classList.toggle('active', mode === 'voice');
+  document.getElementById('textPracticePanel').style.display = mode === 'text' ? '' : 'none';
+  document.getElementById('voicePracticePanel').style.display = mode === 'voice' ? '' : 'none';
+  document.getElementById('practiceUsage').style.display = mode === 'voice' ? '' : 'none';
+  document.getElementById('practiceFeedback').hidden = true;
+  if (mode === 'voice') {
+    structuredPractice.support(); markPracticeHelp();
+    document.getElementById('voicePracticeWord').textContent = document.getElementById('practiceChatWord').textContent || '';
+  }
+}
 
 export {
   closeAuthModal,
