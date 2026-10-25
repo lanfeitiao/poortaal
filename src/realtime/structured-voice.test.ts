@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { spokenEncounter, spokenFeedback, voiceAction, voiceFlowPolicy } from './structured-voice.ts';
+import { spokenEncounter, spokenFeedback, voiceAction, voiceFlowPolicy, voiceControl, answerFragments } from './structured-voice.ts';
 import { createSession } from '../structured-session.ts';
 import { answer, goodFeedback, practiceUsage, scenario } from '../structured-fixtures.ts';
 
@@ -24,4 +24,21 @@ test('a voice task has one natural opening and no unsolicited lesson or third at
   s.rounds[0] = { draft: answer, hintsUsed: 0, feedback: goodFeedback() };
   assert.ok(spokenFeedback(s).includes('Wil je nog één variant'));
   assert.throws(() => spokenEncounter({ ...s, scenario: { ...scenario, openingLine: undefined } }));
+});
+test('a help request after a paused answer is a control even without opposite-role captions', () => {
+  const fragments = [
+    { role: 'user' as const, text: 'Ik wil graag… ', startMs: 0, endMs: 500, sequence: 0 },
+    { role: 'user' as const, text: 'Hint', startMs: 1800, endMs: 2200, sequence: 1 },
+    { role: 'user' as const, text: ' graag.', startMs: 2200, endMs: 2500, sequence: 2 },
+  ];
+  assert.equal(voiceControl(fragments, false)?.action, 'hint');
+  assert.equal(answerFragments(fragments).map(f => f.text).join(''), 'Ik wil graag… ');
+  assert.equal(fragments.length, 3);
+});
+test('one caption can contain answer text followed by a control without losing the answer prefix', () => {
+  const fragments = [{ role: 'user' as const, text: 'Ik wil een afspraak maken. Feedback graag.', startMs: 0, endMs: 1000, sequence: 0 }];
+  assert.equal(voiceControl(fragments, false)?.action, 'feedback');
+  assert.equal(answerFragments(fragments)[0].text, 'Ik wil een afspraak maken. ');
+  assert.equal(fragments[0].text, 'Ik wil een afspraak maken. Feedback graag.');
+  assert.equal(voiceControl([{ ...fragments[0], text: 'Ik heb een hint voor mijn vriend.' }], false), null);
 });
