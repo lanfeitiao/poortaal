@@ -208,7 +208,9 @@ function handleRealtimeEvent(event: RealtimeServerEvent): void {
       return;
     case 'session.output_transcript.delta':
       if (!finishing) updateTranscriptActivity('tutor', event);
-      appendTimelineTranscriptDelta('tutor', event); return;
+      appendTimelineTranscriptDelta('tutor', event);
+      if (spokenSession()?.phase === 'answer' && /wil je.*feedback/i.test(groupTranscriptFragments(timelineTranscriptFragments).at(-1)?.text || '')) offeredFeedback = true;
+      scheduleVoiceTurn(); return;
     case 'session.delegation.created':
       if (finishing) return;
       if (transcriptIdleTimer) clearTimeout(transcriptIdleTimer);
@@ -362,3 +364,65 @@ function scheduleVoiceTurn(): void {
     if (action) { handledVoiceTurn = key; void handleVoiceAction(action); }
   }, 1200);
 }
+async function finishSpokenRound(): Promise<void> {
+  const s = spokenSession(), currentClient = client;
+  if (!s || !currentClient || finishing || s.phase !== 'answer') return;
+  const token = generationId, owner = learningOwner(), round = s.round;
+  const current = () => token === generationId && client === currentClient && owner === learningOwner()
+    && spokenSession()?.id === s.id && spokenSession()?.round === round;
+  finishing = true; microphoneReady = false; currentClient.pauseInput(); setVisualizer(false);
+  const button = el('voiceStartBtn') as HTMLButtonElement | null;
+  if (button) button.disabled = true;
+  setStatus('Je laatste woorden verwerken…');
+  try {
+    const settled = await waitForTranscriptIdle(() => lastCaptionReceivedAtMs, current);
+    if (!current()) return;
+    captureSpokenTurns();
+    if (!settled || connectionFailed) { structuredPractice.showError('De verbinding is onderbroken of je laatste woorden zijn nog niet zeker. Probeer deze ronde opnieuw.'); return; }
+    if (structuredPractice.error || !currentRound(spokenSession()!).draft.trim()) { structuredPractice.showError('Er is nog geen duidelijk antwoord bewaard. Spreek eerst je antwoord.'); return; }
+    await structuredPractice.request();
+    if (current() && spokenSession()?.phase === 'feedback') {
+      currentClient.resumeInput(); microphoneReady = true;
+      speakInstruction(spokenFeedback(spokenSession()!));
+    }
+  } finally {
+    if (current()) {
+      finishing = false; if (button) button.disabled = false;
+      currentClient.resumeInput(); microphoneReady = true;
+      setButton(spokenSession()?.phase === 'feedback' ? '■ Afronden' : 'Feedback & volgende stap');
+      setStatus(spokenSession()?.phase === 'feedback' ? 'Zeg nog een keer of klaar.' : 'Je kunt verder spreken of opnieuw afronden.');
+    }
+  }
+}
+async function handleVoiceAction(action: string): Promise<void> {
+  const s = spokenSession(); if (!s || finishing || structuredPractice.busy) return;
+  try {
+    if (action === 'load') { await structuredPractice.request(); return; }
+    if (action === 'hint' && s.phase === 'answer') {
+      const before = currentRound(s).hintsUsed; if (before >= 3) return;
+      structuredPractice.hint();
+      if (currentRound(spokenSession()!).hintsUsed > before) { markPracticeHelp(); speakInstruction(currentTask(spokenSession()!)!.hints[before]); }
+    } else if (action === 'feedback' && s.phase === 'answer') {
+      if (active) await finishSpokenRound();
+      else {
+        await structuredPractice.request();
+        if (spokenSession()?.id === s.id && spokenSession()?.phase === 'feedback') speakInstruction(spokenFeedback(spokenSession()!));
+      }
+    } else if (action === 'listen' && s.phase === 'feedback') speakInstruction(spokenFeedback(s));
+    else if (action === 'retry' && s.phase === 'feedback' && s.round === 0) {
+      structuredPractice.advance('retry');
+      if (spokenSession()?.phase !== 'answer') return;
+      if (active && client) {
+        session = new EncounterSession(spokenEncounter(spokenSession()!), 'none');
+        handledVoiceTurn = -1; offeredFeedback = false; renderEncounterIntro(); client.resumeInput(); microphoneReady = true;
+        client.send({ type: 'session.instructions.append', event_id: crypto.randomUUID(), delegation_id: null,
+          content: `${voiceFlowPolicy(spokenSession()!)}\nNow start the ONLY retry in this new situation: ${JSON.stringify(currentTask(spokenSession()!))}. Say only openingLine once, then listen. Never recite hints.` });
+        setButton('Feedback & volgende stap'); setStatus('Een nieuwe variant — je kunt spreken.');
+      } else await toggleRealtimeEncounter();
+    } else if (action === 'finish' && s.phase === 'feedback') {
+      structuredPractice.advance(s.round ? 'finish' : 'skip');
+      if (spokenSession()?.phase === 'complete') { stopRealtimeEncounter(); setStatus('Je oefening is afgerond.'); }
+    }
+  } catch { structuredPractice.showError('Deze stap kon niet worden uitgevoerd. Je bewaarde oefening blijft beschikbaar.'); }
+}
+window.addEventListener('poortaal:voice-action', event => { void handleVoiceAction((event as CustomEvent<string>).detail); });
