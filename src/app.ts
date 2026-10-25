@@ -618,7 +618,9 @@ function renderHistory() {
   list.innerHTML = rows.join(''); initSwipeHandlers(list); const parts: string[] = []; if (counts.strong) parts.push(`🌳 ${counts.strong} sterk`); if (counts.growing) parts.push(`🪴 ${counts.growing} groeiend`); if (counts.sprout) parts.push(`🌿 ${counts.sprout} kiempjes`); if (counts.seed) parts.push(`🌱 ${counts.seed} zaaisel`); if (counts.wilting) parts.push(`🥀 ${counts.wilting} verwelkt`); summaryEl.innerHTML = parts.join(' · ');
 }
 function deleteHistoryItem(word: string) {
-  if (structuredPractice.session?.word.toLowerCase().trim() === word.toLowerCase().trim()) structuredPractice.stop(true);
+  if (structuredPractice.session?.word.toLowerCase().trim() === word.toLowerCase().trim()) {
+    stopRealtimeEncounter(); structuredPractice.stop(true);
+  }
   clearStructuredWord(word);
   const w = word.toLowerCase().trim(); clearWordLearning(w);
   searchHistory = searchHistory.filter(h => h.word !== w);

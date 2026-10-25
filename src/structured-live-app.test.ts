@@ -81,3 +81,14 @@ test('asking for a hint while stuck mid-answer works without a tutor caption bet
   assert.ok(f.session().rounds[0].draft.includes('Ik wil graag'));
   assert.ok(!f.session().rounds[0].draft.includes('Hint'));
 });
+test('leaving immediately after a displayed caption flushes that answer as unsettled', async t => {
+  const f = await liveFixture(t);
+  f.click('[data-action="start-practice-word"]'); await f.wait(() => f.session()?.phase === 'answer');
+  const id = f.session().id;
+  f.click('#voiceStartBtn'); await f.wait(() => f.sent.some(e => e.event_id === 'encounter-opening'));
+  f.caption('user', answer); f.click('#practiceBackBtn');
+  f.click('[data-action="start-practice-word"]'); await f.wait(() => f.session()?.id === id);
+  assert.equal(f.session().rounds[0].draft, answer);
+  assert.equal(f.session().rounds[0].voiceSettled, false);
+  assert.equal(f.attempts().length, 0);
+});

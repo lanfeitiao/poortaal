@@ -315,6 +315,7 @@ async function finishRealtimeEncounter(): Promise<void> {
   void finishPracticeFeedback(snapshot);
 }
 export function stopRealtimeEncounter(resetStatus = true): void {
+  if (voiceTurnTimer && spokenSession()?.owner === learningOwner()) captureSpokenTurns();
   feedbackAudio?.pause(); feedbackAudio = null;
   if (voiceTurnTimer) clearTimeout(voiceTurnTimer); voiceTurnTimer = null;
   generationId += 1; generating = false; finishing = false;
