@@ -65,3 +65,27 @@ test('storage failure before submission blocks the AI call and keeps the typed a
   p.draft(answer); await p.request();
   assert.equal(calls, 1); assert.equal(p.session?.rounds[0].draft, answer); assert.ok(p.error);
 });
+test('saved feedback replays a failed Learning Store write exactly once after refresh', async t => {
+  const p = new StructuredPractice(noop, chat);
+  await p.start('afspraak', practiceUsage); p.advance('continue'); p.draft(answer);
+  const original = storage.setItem;
+  const mock = t.mock.method(storage, 'setItem', (key, value) => {
+    if (key.startsWith('poortaal_word_learning:')) throw new Error('quota');
+    original(key, value);
+  });
+  await p.request();
+  assert.equal(activeSession()?.phase, 'feedback'); assert.ok(p.error);
+  mock.mock.restore();
+  const restored = new StructuredPractice(noop, chat); restored.restore(); restored.syncProgress();
+  assert.equal(getWordAttempts('afspraak').length, 1); assert.equal(restored.error, '');
+});
+test('a stale tab cannot submit over a newer draft or hint record', async () => {
+  const first = new StructuredPractice(noop, chat);
+  await first.start('afspraak', practiceUsage); first.advance('continue'); first.draft(answer);
+  let calls = 0;
+  const second = new StructuredPractice(noop, async m => { calls++; return chat(m); }); second.restore();
+  first.hint(); await second.request();
+  assert.equal(calls, 0); assert.ok(second.error);
+  second.refresh(); assert.equal(second.session?.rounds[0].hintsUsed, 1);
+  await second.request(); assert.equal(calls, 1);
+});
