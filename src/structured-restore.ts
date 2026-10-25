@@ -13,7 +13,8 @@ export function restoreSession(value: unknown, owner: string): StructuredSession
   }
   const scenario = v.scenario === undefined ? undefined : validateScenario(v.scenario);
   if (!Array.isArray(v.rounds) || v.rounds.length < 1 || v.rounds.length > 2) throw new Error('Invalid rounds');
-  const rounds: PracticeRound[] = v.rounds.map((item, index) => {
+  const rounds: PracticeRound[] = [];
+  for (const [index, item] of v.rounds.entries()) {
     const r = object(item);
     const round: PracticeRound = { draft: text(r.draft, 2000, true), hintsUsed: integer(r.hintsUsed, 3) };
     if (r.submitted !== undefined) {
@@ -24,8 +25,8 @@ export function restoreSession(value: unknown, owner: string): StructuredSession
       if (!round.submitted || !situation) throw new Error('Feedback without response');
       round.feedback = validateStructuredFeedback(r.feedback, round.submitted, situation);
     }
-    return round;
-  });
+    rounds.push(round);
+  }
   const round = integer(v.round, 1) as 0 | 1;
   const phase = choice(v.phase, ['prepare', 'guide', 'answer', 'feedback', 'complete']);
   const pending = v.pending === null ? null : choice(v.pending, ['scenario', 'feedback']);
