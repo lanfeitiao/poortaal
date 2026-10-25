@@ -4,6 +4,7 @@ import type { UsageAttempt, UsageOutcome } from './word-learning.ts';
 
 export type PracticeRound = {
   draft: string; hintsUsed: number; submitted?: string; submittedAt?: number; feedback?: StructuredFeedback;
+  turns?: { role: 'user' | 'assistant'; content: string }[];
 };
 export type StructuredSession = {
   version: 1; id: string; owner: string; word: string; usage?: WordUsage;
@@ -11,6 +12,7 @@ export type StructuredSession = {
   phase: 'prepare' | 'guide' | 'answer' | 'feedback' | 'complete';
   pending: 'scenario' | 'feedback' | null; round: 0 | 1; rounds: PracticeRound[];
   scenario?: PracticeScenario; skippedRetry: boolean;
+  delivery?: 'voice'; meaning?: string; studiedScenario?: PracticeScenario;
 };
 export function createSession(owner: string, word: string, usage: WordUsage | undefined, guided: boolean, helped: boolean): StructuredSession {
   return { version: 1, id: crypto.randomUUID(), owner, word, usage, revision: 0, updatedAt: Date.now(),

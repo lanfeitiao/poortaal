@@ -1,5 +1,6 @@
 import { validateWordUsage, WORD_USAGE_RULES, type WordUsage } from './word-usage.ts';
 import { InvalidUsageReviewError, reviewWordUsage } from './usage-review.ts';
+import { readLearningScene, type LearningScene } from './learning-scene.ts';
 
 export type ChatMessage = {
   role: 'system' | 'user' | 'assistant';
@@ -20,6 +21,7 @@ export type WordExplanation = {
   tips: string;
   fun_fact: string | null;
   usage?: WordUsage[];
+  scene?: LearningScene;
 };
 
 type ChatCompletion = (
@@ -98,6 +100,8 @@ export function validateWordExplanation(value: unknown): WordExplanation {
     tips: value.tips == null ? '' : typeof value.tips === 'string' ? value.tips.trim() : requireNonEmptyString(value, 'tips'),
     fun_fact: funFact as string | null,
     ...(usage === undefined ? {} : { usage }),
+    ...(readLearningScene(value.scene, { word: value.word as string, meaning_en: value.meaning_en as string, usage })
+      ? { scene: readLearningScene(value.scene, { word: value.word as string, meaning_en: value.meaning_en as string, usage }) } : {}),
   };
 }
 

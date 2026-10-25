@@ -18,6 +18,10 @@ export function restoreSession(value: unknown, owner: string): StructuredSession
     const r = object(item);
     const round: PracticeRound = { draft: text(r.draft, 2000, true), hintsUsed: integer(r.hintsUsed, 3) };
     round.draft = r.draft as string;
+    if (r.turns !== undefined) {
+      if (!Array.isArray(r.turns) || r.turns.length > 40) throw new Error('Invalid transcript');
+      round.turns = r.turns.map(t => ({ role: choice(object(t).role, ['user', 'assistant']), content: text(object(t).content, 2000) }));
+    }
     if (r.submitted !== undefined) {
       round.submitted = text(r.submitted, 2000); round.submittedAt = integer(r.submittedAt);
     }

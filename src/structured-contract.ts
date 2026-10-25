@@ -1,4 +1,4 @@
-export type PracticeTask = { situation: string; task: string; hints: [string, string, string] };
+export type PracticeTask = { situation: string; task: string; hints: [string, string, string]; openingLine?: string };
 export type PracticeScenario = PracticeTask & {
   expressions: string[];
   dialogue: { speaker: string; line: string }[];
@@ -36,6 +36,7 @@ export function list(value: unknown, min: number, max: number): unknown[] {
 export function validateTask(value: unknown): PracticeTask {
   const v = object(value);
   return { situation: text(v.situation), task: text(v.task),
+    ...(v.openingLine === undefined ? {} : { openingLine: text(v.openingLine, 300) }),
     hints: list(v.hints, 3, 3).map(h => text(h)) as PracticeTask['hints'] };
 }
 export function validateScenario(value: unknown): PracticeScenario {
