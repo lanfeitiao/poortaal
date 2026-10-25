@@ -9,7 +9,9 @@ export class StructuredPractice {
   busy = false;
   error = '';
   private ticket = 0;
-  constructor(private notify: () => void, private chat?: CompleteChat) {}
+  private notify: () => void;
+  private chat?: CompleteChat;
+  constructor(notify: () => void, chat?: CompleteChat) { this.notify = notify; this.chat = chat; }
   private write(next: StructuredSession): void { this.session = saveSession(next); }
   private fail(): void { this.error = 'Opslaan of laden is niet gelukt. Probeer opnieuw. Je bewaarde antwoord blijft staan.'; }
   stop(leave = false): void {
