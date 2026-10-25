@@ -62,6 +62,7 @@ export function validateStructuredFeedback(value: unknown, answer: string, situa
       better: text(fix.better), explanation: text(fix.explanation) };
   }
   const next = { ...validateTask(retry), change: text(retry.change, 300) };
+  if (target === 'incorrect' && improvement?.kind === 'naturalness') throw new InvalidStructuredOutput('Naturalness alone is not a usage error');
   if (next.situation === situation) throw new InvalidStructuredOutput('Retry must change the situation');
   return { task: choice(v.task, ['completed', 'partial', 'not-yet']), target,
     naturalness: choice(v.naturalness, ['natural', 'understandable', 'unclear']), evidence,
