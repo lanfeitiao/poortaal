@@ -6,7 +6,7 @@ const outcomeLabels = { independent: 'Zelfstandig gelukt', supported: 'Gelukt me
 function button(action: string, label: string, disabled = false): string {
   return `<button type="button" class="use-button" data-structured="${action}" ${disabled ? 'disabled' : ''}>${label}</button>`;
 }
-function feedbackView(f: StructuredFeedback): string {
+export function feedbackView(f: StructuredFeedback): string {
   const tasks = { completed: 'Je doel is bereikt.', partial: 'Je doel is deels bereikt.', 'not-yet': 'Je doel is nog niet bereikt.' };
   const targets = { correct: 'Goed gebruikt.', incorrect: 'Dit gebruik klopt nog niet.', 'not-used': 'Nog niet gebruikt.', uncertain: 'Nog niet duidelijk genoeg om te beoordelen.' };
   const natural = { natural: 'Klinkt natuurlijk.', understandable: 'Is begrijpelijk.', unclear: 'Is nog niet duidelijk.' };
