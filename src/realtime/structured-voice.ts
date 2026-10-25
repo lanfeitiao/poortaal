@@ -5,7 +5,8 @@ export type VoiceAction = 'hint' | 'feedback' | 'retry' | 'finish' | null;
 export function voiceAction(text: string, feedback: boolean, offered = false): VoiceAction {
   const s = text.toLowerCase().replace(/[.!?,。？！]/g, '').trim();
   if (s.length > 120) return null;
-  if (/^(?:klaar|stop|stoppen|afronden|overslaan|nee(?: bedankt)?|no(?: thanks)?|skip|结束|跳过)$/.test(s)) return feedback ? 'finish' : 'feedback';
+  if (feedback && /^(?:nee(?: bedankt)?|no(?: thanks)?|skip|overslaan|跳过)$/.test(s)) return 'finish';
+  if (/^(?:klaar|stop|stoppen|afronden|结束)$/.test(s)) return feedback ? 'finish' : 'feedback';
   if (feedback && /^(?:ja(?: graag)?|yes(?: please)?|nog (?:een keer|eens)|opnieuw|laten we het proberen|再试一次|继续)$/.test(s)) return 'retry';
   if (/^(?:(?:mag|kan|kun) (?:ik|je|jij|u) (?:me |mij )?(?:een )?(?:hint|voorbeeld|helpen)(?: geven)?|(?:een )?hint(?: graag)?|help me|ik weet het niet|给我一个提示|提示|示范)$/.test(s)) return 'hint';
   if (!feedback && (/^(?:feedback(?: graag)?|hoe ging het|ik ben klaar|geef (?:me )?feedback|反馈)$/.test(s) || (offered && /^(?:ja(?: graag)?|yes)$/.test(s)))) return 'feedback';

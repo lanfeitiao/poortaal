@@ -15,6 +15,7 @@ export class StructuredPractice {
   constructor(notify: () => void, chat?: CompleteChat) { this.notify = notify; this.chat = chat; }
   private write(next: StructuredSession): void { this.session = saveSession(next); }
   private fail(): void { this.error = 'Opslaan of laden is niet gelukt. Probeer opnieuw. Je bewaarde antwoord blijft staan.'; }
+  showError(message: string): void { this.error = message; this.notify(); }
   stop(leave = false): void {
     if (leave && this.session?.owner === learningOwner()) {
       try { leaveSession(); } catch { /* The session remains resumable. */ }

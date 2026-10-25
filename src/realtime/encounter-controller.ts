@@ -10,6 +10,10 @@ import { getPracticeContext, markPracticeHelp } from '../practice-context';
 import { getWordAttempts, learningOwner } from '../learning-store';
 import { resetPracticeFeedback, finishPracticeFeedback } from '../practice-feedback';
 import { waitForTranscriptIdle } from './transcript-settle';
+import { structuredPractice } from '../structured-ui';
+import { currentRound, currentTask } from '../structured-session';
+import { spokenEncounter, spokenFeedback, voiceAction, voiceFlowPolicy } from './structured-voice';
+import { detectsTargetProduction } from './production-evaluator';
 
 const API_BASE = 'https://poortaal-api.weilin1990.workers.dev';
 
@@ -34,6 +38,10 @@ let completionSentenceNode: HTMLElement | null = null;
 let finishing = false;
 let lastCaptionReceivedAtMs = 0;
 let connectionFailed = false;
+let voiceTurnTimer: ReturnType<typeof setTimeout> | null = null;
+let handledVoiceTurn = -1;
+let offeredFeedback = false;
+const spokenSession = () => structuredPractice.session?.delivery === 'voice' ? structuredPractice.session : null;
 
 function el(id: string): HTMLElement | null { return document.getElementById(id); }
 function escapeHtml(value: string): string { return value.replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char] || char)); }
@@ -64,11 +72,12 @@ function renderSupport(): void {
   if (level !== 'model') { const more = document.createElement('button'); more.type = 'button'; more.textContent = level === 'none' ? '💡 Need a nudge?' : 'A little more help →'; more.style.cssText = 'border:1px solid #BFDBFE;background:white;color:#2563EB;border-radius:10px;padding:8px 11px;font:inherit;font-size:.82rem;cursor:pointer;'; more.addEventListener('click', requestMoreSupport); actions.appendChild(more); }
   if (level !== 'none') { const hide = document.createElement('button'); hide.type = 'button'; hide.textContent = 'Let me try'; hide.style.cssText = 'border:0;background:transparent;color:#6B7280;padding:8px 5px;font:inherit;font-size:.82rem;cursor:pointer;'; hide.addEventListener('click', hideSupport); actions.appendChild(hide); }
 }
-function requestMoreSupport(): void { if (!session) return; markPracticeHelp(); session.requestMoreSupport(); renderSupport(); }
+function requestMoreSupport(): void { if (spokenSession()) { void handleVoiceAction('hint'); return; } if (!session) return; markPracticeHelp(); session.requestMoreSupport(); renderSupport(); }
 function hideSupport(): void { if (!session) return; session.hideSupport(); renderSupport(); }
 function eventText(event: RealtimeServerEvent, ...keys: string[]): string { for (const key of keys) { const value = event[key]; if (typeof value === 'string') return value; } return ''; }
 function eventNumber(event: RealtimeServerEvent, ...keys: string[]): number | undefined { for (const key of keys) { const value = event[key]; if (typeof value === 'number') return value; } return undefined; }
 function scheduleCompletion(delayMs = 900): void {
+  if (spokenSession()) return;
   if (completionShown) return;
   if (completionTimer) clearTimeout(completionTimer);
   completionTimer = setTimeout(() => {
@@ -122,6 +131,7 @@ function clearCompletion(): void {
   restoreActivityStatus();
 }
 function reconcileProduction(groups: TranscriptGroup[]): void {
+  if (spokenSession()) return;
   if (!session) return;
   const wasSuccessful = session.evidence.successfulProduction;
   const previousSentence = session.evidence.learnerSentence;
@@ -194,6 +204,7 @@ function handleRealtimeEvent(event: RealtimeServerEvent): void {
     case 'session.input_transcript.delta':
       if (!finishing) updateTranscriptActivity('user', event);
       appendTimelineTranscriptDelta('user', event);
+      scheduleVoiceTurn();
       return;
     case 'session.output_transcript.delta':
       if (!finishing) updateTranscriptActivity('tutor', event);
