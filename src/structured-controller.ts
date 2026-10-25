@@ -66,4 +66,47 @@ export class StructuredPractice {
     try { this.write(next()); this.error = ''; } catch { this.fail(); }
     this.notify();
   }
+  async request(): Promise<void> {
+    const s = this.session;
+    if (!s || this.busy || !['prepare', 'answer'].includes(s.phase)) return;
+    if (s.phase === 'answer' && !currentRound(s).draft.trim()) {
+      this.error = 'Schrijf eerst je antwoord in het Nederlands.'; this.notify(); return;
+    }
+    const ticket = ++this.ticket;
+    const current = () => ticket === this.ticket && s.owner === learningOwner() && this.session?.id === s.id;
+    this.busy = true; this.error = ''; this.notify();
+    const run = async () => {
+      if (!current()) return;
+      const round = currentRound(this.session!);
+      const pending = s.phase === 'prepare' ? 'scenario' : 'feedback';
+      this.write({ ...this.session!, pending, rounds: this.session!.rounds.map((r, i) =>
+        i !== s.round || pending === 'scenario' ? r : { ...r, submitted: round.draft.trim(), submittedAt: r.submittedAt ?? Date.now() }) });
+      const snapshot = this.session!;
+      if (pending === 'scenario') {
+        const previous = readSessions().sessions.filter(p => samePractice(p, s.word, s.usage?.chunk))
+          .flatMap(p => p.scenario ? [p.scenario.situation] : []);
+        const scenario = await generateScenario(snapshot, previous, this.chat);
+        if (current()) this.write({ ...this.session!, scenario, pending: null, phase: s.mode === 'guided' ? 'guide' : 'answer' });
+      } else {
+        const feedback = await evaluateResponse(snapshot, this.chat);
+        if (!current()) return;
+        this.write({ ...this.session!, pending: null, phase: 'feedback',
+          rounds: this.session!.rounds.map((r, i) => i === s.round ? { ...r, feedback } : r) });
+        this.syncProgress();
+      }
+    };
+    try {
+      // Web Locks prevent two open tabs from requesting feedback for the same session.
+      if (typeof navigator !== 'undefined' && navigator.locks) {
+        await navigator.locks.request(`poortaal-practice:${s.owner}:${s.id}`, { ifAvailable: true }, async lock => {
+          if (!lock) throw new Error('Practice request already running');
+          await run();
+        });
+      } else await run();
+    } catch {
+      if (current()) this.error = 'De aanvraag is niet gelukt. Je bewaarde antwoord blijft staan. Probeer de aanvraag opnieuw.';
+    } finally {
+      if (current()) { this.busy = false; this.notify(); }
+    }
+  }
 }
