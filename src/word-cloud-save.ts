@@ -2,6 +2,7 @@ import { mergeAttempts, validateAttempts } from './word-learning.ts';
 import { readSavedWordExplanation, type WordExplanation } from './word-explanation.ts';
 import { mergeUsageEnrichment } from './usage-generation.ts';
 import { usageKey } from './word-usage.ts';
+import { readLearningScene } from './learning-scene.ts';
 
 type WordRow = { user_id: string; word: string; word_data: unknown; updated_at?: string | null; [key: string]: unknown };
 type Result = { data: WordRow | null; error: { code?: string } | null };
@@ -18,7 +19,8 @@ function mergeWordData(word: string, local: unknown, remote: unknown, retried?: 
     .filter(a => usageKey(a.word) === usageKey(word));
   const base = saved ? mergeUsageEnrichment(saved, { usage: current?.usage }, retried) : current;
   const progress = mergeAttempts(attempts(local), attempts(remote));
-  return base || progress.length ? { ...base, usage_progress: progress } : null;
+  const scene = base && (readLearningScene(base.scene, base) || readLearningScene(current?.scene, base));
+  return base || progress.length ? { ...base, ...(scene ? { scene } : {}), usage_progress: progress } : null;
 }
 
 export function mergeCloudWordStats(a: Record<string, unknown>, b: Record<string, unknown>) {

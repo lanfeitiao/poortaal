@@ -17,6 +17,7 @@ import {
   playTTS,
   revealAnswer,
   retryWordUsage,
+  retryLearningScene,
   showPracticePicker,
   signInWithGoogle,
   startMicroReview,
@@ -49,6 +50,9 @@ function handleActionClick(event: MouseEvent) {
   const word = target.dataset.word;
 
   switch (target.dataset.action) {
+    case 'retry-learning-scene':
+      if (word) void retryLearningScene(word);
+      break;
     case 'start-review':
       startReviewSession();
       break;

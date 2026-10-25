@@ -11,6 +11,8 @@ import { setPracticeContext, getPracticeContext, clearPracticeContext, markPract
 import { resetPracticeFeedback } from './practice-feedback';
 import { structuredPractice } from './structured-ui';
 import { clearStructuredWord } from './structured-store';
+import { generateLearningScene, readLearningScene, sceneUsage } from './learning-scene';
+import { renderLearningScene } from './learning-scene-view';
 import { needsUsageReview, wordReview } from './word-learning';
 import { createWordWriteQueue } from './word-write-queue';
 import { mergeCloudWordStats, saveWordWithVersion, supabaseWordStore } from './word-cloud-save';
@@ -763,8 +765,43 @@ function renderWordCard(data: WordExplanation) {
     <div class="word-header"><h1>${word}</h1><span class="word-type">${escapeHtml(data.type)}</span>
     <button class="tts-btn" id="ttsBtn" data-action="play-word-tts" data-word="${word}" title="Uitspraak beluisteren">🔊</button></div>
     <div class="meaning"><div class="meaning-nl">${escapeHtml(data.meaning_nl)}</div><div class="meaning-en">${escapeHtml(data.meaning_en)}</div></div></div>
-    ${renderWordExamples(data, usageStates.get(usageKey))}${renderWordTips(data)}
-    <button class="practice-btn" data-action="practice-word" data-word="${word}">🎭 Oefenen met “${word}”</button>`;
+    ${renderLearningScene(data, sceneStates.get(usageKey))}${renderWordTips(data)}
+    <button class="practice-btn" data-action="practice-word" data-word="${word}">🎙️ Probeer het in een gesprek</button>`;
+  if (!readLearningScene(data.scene, data)) void loadLearningScene(data);
+}
+
+const sceneStates = new Map<string, 'loading' | 'error'>();
+const sceneRequests = new Map<string, Promise<void>>();
+async function loadLearningScene(data: WordExplanation, retry = false): Promise<void> {
+  const owner = learningOwner(), key = data.word.toLowerCase().trim(), token = `${owner}:${key}`;
+  if (readLearningScene(data.scene, data) || (!retry && sceneStates.has(token))) return;
+  if (sceneRequests.has(token)) return sceneRequests.get(token);
+  sceneStates.set(token, 'loading');
+  const request = (async () => {
+    try {
+      const enriched = await loadWordUsage(data);
+      if (enriched.usage === undefined) throw new Error('Usage still unavailable');
+      const scene = await generateLearningScene(enriched, callOpenAI);
+      const latest = getCachedWord(key);
+      if (owner !== learningOwner() || !latest || latest.meaning_en !== scene.sense || sceneUsage(latest) !== scene.usage) return;
+      const saved = { ...latest, scene }; setWordCache(key, saved);
+      const entry = searchHistory.find(h => h.word === key);
+      if (entry) { entry.wordData = saved; localStorage.setItem('poortaal_history', JSON.stringify(searchHistory)); }
+      void saveHistoryToCloud(key, saved); void saveWordStatsToCloud(key);
+      sceneStates.delete(token);
+    } catch { sceneStates.set(token, 'error'); }
+    finally {
+      sceneRequests.delete(token);
+      if (owner === learningOwner() && currentWord?.toLowerCase().trim() === key) {
+        currentWordData = getCachedWord(key) || data; renderWordCard(currentWordData);
+      }
+    }
+  })();
+  sceneRequests.set(token, request); return request;
+}
+export async function retryLearningScene(word: string): Promise<void> {
+  const data = getCachedWord(word);
+  if (data) await loadLearningScene(data, true);
 }
 
 // --- Practice ---
