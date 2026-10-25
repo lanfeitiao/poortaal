@@ -59,7 +59,7 @@ Return {"task":"completed|partial|not-yet", "target":"correct|incorrect|not-used
 "strength":{"text":"brief positive observation","quote":"exact learner quote or empty"},
 "improvement":null, "retry":{${TASK}, "change":"one changed condition"}}.
 If improvement is needed, use {"kind":"error|naturalness","quote":"exact learner quote","better":"Dutch alternative","explanation":"brief reason"}.` },
-    { role: 'user', content: JSON.stringify({ word: session.word, usage: session.usage,
+    { role: 'user', content: JSON.stringify({ word: session.word, meaning: session.meaning, usage: session.usage,
       situation: task.situation, task: task.task, answer: round.submitted, hintsUsed: round.hintsUsed,
       transcript: round.turns,
       supportUsed: session.supportUsed || session.round === 1, previousFeedback: session.round === 1 ? session.rounds[0]?.feedback : undefined }) },

@@ -41,6 +41,7 @@ let connectionFailed = false;
 let voiceTurnTimer: ReturnType<typeof setTimeout> | null = null;
 let handledVoiceTurn = -1;
 let offeredFeedback = false;
+let feedbackAudio: HTMLAudioElement | null = null;
 const spokenSession = () => structuredPractice.session?.delivery === 'voice' ? structuredPractice.session : null;
 
 function el(id: string): HTMLElement | null { return document.getElementById(id); }
@@ -312,6 +313,7 @@ async function finishRealtimeEncounter(): Promise<void> {
   void finishPracticeFeedback(snapshot);
 }
 export function stopRealtimeEncounter(resetStatus = true): void {
+  feedbackAudio?.pause(); feedbackAudio = null;
   if (voiceTurnTimer) clearTimeout(voiceTurnTimer); voiceTurnTimer = null;
   generationId += 1; generating = false; finishing = false;
   if (completionTimer && session?.evidence.successfulProduction && !completionShown) showCompletion();
@@ -328,7 +330,8 @@ export function resetRealtimeEncounterUi(): void { const root = transcriptRoot()
 
 function speakInstruction(line: string): void {
   if (!client || !active) {
-    const audio = new Audio(`${API_BASE}/tts?q=${encodeURIComponent(line)}&tl=nl`);
+    feedbackAudio?.pause();
+    const audio = new Audio(`${API_BASE}/tts?q=${encodeURIComponent(line)}&tl=nl`); feedbackAudio = audio;
     void audio.play().catch(() => structuredPractice.showError('Geluid kon niet starten. Probeer de luisterknop opnieuw.'));
     return;
   }
