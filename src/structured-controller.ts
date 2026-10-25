@@ -3,6 +3,7 @@ import { evaluateResponse, generateScenario, type CompleteChat } from './structu
 import { advanceSession, createSession, currentRound, type StructuredSession } from './structured-session.ts';
 import { activeSession, hasPractised, leaveSession, readSessions, samePractice, saveSession, saveStructuredProgress } from './structured-store.ts';
 import type { WordUsage } from './word-usage.ts';
+import type { PracticeScenario } from './structured-contract.ts';
 
 export class StructuredPractice {
   session: StructuredSession | null = null;
@@ -34,12 +35,14 @@ export class StructuredPractice {
     if (saved?.revision === current.revision) return;
     this.stop(); this.session = saved || null; this.syncProgress(); this.notify();
   }
-  async start(word: string, usage?: WordUsage, helped = false): Promise<void> {
+  async start(word: string, usage?: WordUsage, helped = false, options?: { voice: boolean; meaning?: string; studiedScenario?: PracticeScenario }): Promise<void> {
     this.stop();
-    const saved = readSessions().sessions.reverse().find(s => samePractice(s, word, usage?.chunk) && s.phase !== 'complete');
+    const saved = readSessions().sessions.reverse().find(s => samePractice(s, word, usage?.chunk) && s.phase !== 'complete' && (s.delivery === 'voice') === !!options?.voice);
     try {
       this.write(saved ? { ...saved, supportUsed: saved.supportUsed || (helped && !saved.rounds[0]?.feedback) }
-        : createSession(learningOwner(), word, usage, !hasPractised(word, usage?.chunk), helped));
+        : { ...createSession(learningOwner(), word, usage, !options?.voice && !hasPractised(word, usage?.chunk), helped),
+          ...(options?.voice ? { delivery: 'voice' as const } : {}), ...(options?.meaning ? { meaning: options.meaning } : {}),
+          ...(options?.studiedScenario ? { studiedScenario: options.studiedScenario } : {}) });
       this.syncProgress(); this.notify();
       if (this.session?.phase === 'prepare' && !this.session.pending) await this.request();
     } catch { this.fail(); this.notify(); }
@@ -57,6 +60,14 @@ export class StructuredPractice {
       this.write(this.session); this.error = '';
     } catch { this.fail(); }
     // Keep the textarea and caret in place during typing.
+  }
+  captureVoice(turns: NonNullable<StructuredSession['rounds'][number]['turns']>, helped = false): void {
+    const s = this.session;
+    if (!s || s.delivery !== 'voice' || s.phase !== 'answer' || this.busy) return;
+    const draft = turns.filter(t => t.role === 'user').map(t => t.content).join('\n');
+    if (draft.length > 2000) { this.error = 'Deze ronde is lang. Rond af en begin een kortere poging.'; this.notify(); return; }
+    this.mutate(() => ({ ...s, supportUsed: s.supportUsed || helped, pending: null,
+      rounds: s.rounds.map((r, i) => i === s.round ? { ...r, draft, turns } : r) }));
   }
   hint(): void {
     const s = this.session;
