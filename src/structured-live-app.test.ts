@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { liveFixture } from './structured-live-fixture.ts';
-import { answer, scenario } from './structured-fixtures.ts';
+import { answer, goodFeedback, scenario } from './structured-fixtures.ts';
+import { advanceSession } from './structured-session.ts';
+import { saveSession, sessionStorageKey } from './structured-store.ts';
 
 test('spoken hints feedback and the one retry run in one live connection and persist separately', async t => {
   const f = await liveFixture(t);
@@ -110,4 +112,30 @@ test('an unexpected server close saves received speech and allows immediate reco
   assert.equal(f.session().rounds[0].draft, answer);
   f.click('#voiceStartBtn'); await f.wait(() => f.sent.filter(e => e.event_id === 'encounter-opening').length === 2);
   assert.equal(f.attempts().length, 0);
+});
+test('another tab starting a retry disconnects old speech before it can enter the new round', async t => {
+  const f = await liveFixture(t);
+  f.click('[data-action="start-practice-word"]'); await f.wait(() => f.session()?.phase === 'answer');
+  f.click('#voiceStartBtn'); await f.wait(() => f.sent.some(e => e.event_id === 'encounter-opening'));
+  f.caption('user', answer); await f.wait(() => f.session()?.rounds[0].draft === answer);
+  // A pending caption must also be discarded when the other tab owns the new state.
+  f.caption('user', 'Oude woorden.');
+  const old = f.session();
+  const completed = saveSession({ ...old, phase: 'feedback', rounds: [{ ...old.rounds[0],
+    submitted: answer, submittedAt: Date.now(), voiceSettled: true,
+    feedback: goodFeedback(scenario.situation, answer) }] });
+  const retry = saveSession(advanceSession(completed, 'retry'));
+  const refresh = new Event('storage'); Object.assign(refresh, { key: sessionStorageKey() });
+  f.events.dispatchEvent(refresh);
+  assert.ok(f.sent.some(e => e.type === 'session.close'));
+  assert.equal(f.document.getElementById('voiceTranscript')!.textContent, '');
+  assert.equal(f.session().rounds[1].draft, '');
+  assert.equal(f.session().revision, retry.revision);
+  f.caption('user', 'Late oude woorden.');
+  f.click('#voiceStartBtn'); await f.wait(() => f.sent.filter(e => e.event_id === 'encounter-opening').length === 2);
+  const newAnswer = 'Vrijdag kan ik wel. Dan maak ik een afspraak.';
+  f.caption('user', newAnswer); await f.wait(() => f.session()?.rounds[1].draft === newAnswer);
+  f.click('#voiceStartBtn'); await f.wait(() => f.session()?.phase === 'feedback');
+  assert.equal(f.session().rounds[1].submitted, newAnswer);
+  assert.equal(f.session().rounds[0].submitted, answer);
 });
