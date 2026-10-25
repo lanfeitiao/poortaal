@@ -318,8 +318,8 @@ async function finishRealtimeEncounter(): Promise<void> {
   stopRealtimeEncounter();
   void finishPracticeFeedback(snapshot);
 }
-export function stopRealtimeEncounter(resetStatus = true): void {
-  if (voiceTurnTimer && spokenSession()?.owner === learningOwner()) captureSpokenTurns();
+export function stopRealtimeEncounter(resetStatus = true, flushPending = true): void {
+  if (flushPending && voiceTurnTimer && spokenSession()?.owner === learningOwner()) captureSpokenTurns();
   feedbackAudio?.pause(); feedbackAudio = null;
   if (voiceTurnTimer) clearTimeout(voiceTurnTimer); voiceTurnTimer = null;
   generationId += 1; generating = false; finishing = false;
@@ -432,3 +432,9 @@ async function handleVoiceAction(action: string): Promise<void> {
   } catch { structuredPractice.showError('Deze stap kon niet worden uitgevoerd. Je bewaarde oefening blijft beschikbaar.'); }
 }
 window.addEventListener('poortaal:voice-action', event => { void handleVoiceAction((event as CustomEvent<string>).detail); });
+window.addEventListener('poortaal:practice-refreshed', () => {
+  // The saved session already belongs to the other tab. Never flush old speech into it.
+  stopRealtimeEncounter(false, false);
+  resetRealtimeEncounterUi();
+  setStatus('Je oefening is in een ander tabblad gewijzigd. Start opnieuw om verder te gaan.');
+});

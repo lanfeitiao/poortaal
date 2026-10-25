@@ -14,7 +14,10 @@ export const structuredPractice = new StructuredPractice(() => {
   if (start) start.hidden = s?.delivery === 'voice' && s.phase !== 'answer';
 });
 window.addEventListener('storage', event => {
-  if ((event as StorageEvent).key === sessionStorageKey()) structuredPractice.refresh();
+  if ((event as StorageEvent).key !== sessionStorageKey()) return;
+  const previous = structuredPractice.session;
+  structuredPractice.refresh();
+  if (previous !== structuredPractice.session) window.dispatchEvent(new CustomEvent('poortaal:practice-refreshed'));
 });
 export function connectStructuredPractice(done: () => void): void {
   document.getElementById('voicePracticeSteps')?.addEventListener('click', event => {
