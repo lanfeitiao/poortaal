@@ -771,6 +771,11 @@ function renderWordCard(data: WordExplanation) {
 function goToPractice(word: string, usage?: number) { navigateTo('#practice'); setTimeout(() => { void startPracticeForWord(word, usage, true); }, 50); }
 function renderPracticeHistoryList() { const list = document.getElementById('practiceHistoryList'); const wordsWithData = searchHistory.filter(h => h.wordData); if (wordsWithData.length === 0) { list.innerHTML = '<div class="history-empty" style="padding:2rem 0;">Zoek eerst een woord op om mee te oefenen</div>'; return; } list.innerHTML = wordsWithData.map(entry => { const safe = escapeHtml(entry.word); const safeAttr = safe.replace(/"/g, '&quot;'); const plant = getPlantStage(entry.word); const status = escapeHtml(plant.hint || plant.label); return `<li data-action="start-practice-word" data-word="${safeAttr}"><span class="word-label">${safe}</span><span class="word-type-hint">${plant.emoji} ${status}</span></li>`; }).join(''); }
 function startPracticeWithInput() { const input = document.getElementById('practiceWordInput') as HTMLInputElement; const word = input.value.trim(); if (!word) return; input.value = ''; startPracticeForWord(word); }
+function setPracticePreparing(disabled: boolean): void {
+  for (const id of ['voiceStartBtn', 'textModeBtn', 'voiceModeBtn']) {
+    (document.getElementById(id) as HTMLButtonElement).disabled = disabled;
+  }
+}
 function showPracticePicker(recordCompletion = true) {
   practiceGeneration++; resetPracticeFeedback();
   const word = document.getElementById('practiceChatWord').textContent?.toLowerCase().trim();
@@ -779,6 +784,7 @@ function showPracticePicker(recordCompletion = true) {
   document.getElementById('practicePickerSection').style.display = '';
   document.getElementById('practiceChatSection').style.display = 'none';
   structuredPractice.stop(true); clearPracticeContext();
+  setPracticePreparing(false);
   resetRealtimeEncounterUi(); switchPracticeMode('voice');
 }
 window.addEventListener('poortaal:learning-owner', () => {
@@ -799,6 +805,7 @@ function restoreStructuredPractice(): void {
   document.getElementById('practiceChatSection').style.display = '';
   document.getElementById('practiceChatWord').textContent = s.word;
   document.getElementById('practiceUsage').innerHTML = renderPracticeUsage(getPracticeContext());
+  setPracticePreparing(false);
   switchPracticeMode('text');
 }
 
@@ -812,9 +819,7 @@ async function startPracticeForWord(word: string, usage?: number, helped = false
   document.getElementById('practiceChatWord').textContent = data?.word || word;
   document.getElementById('practiceUsage')!.innerHTML = '';
   structuredPractice.stop(); resetRealtimeEncounterUi(); switchPracticeMode('text');
-  const start = document.getElementById('voiceStartBtn') as HTMLButtonElement;
-  const textMode = document.getElementById('textModeBtn') as HTMLButtonElement;
-  start.disabled = true; textMode.disabled = true;
+  setPracticePreparing(true);
   document.getElementById('voiceStatus').textContent = 'Een toepassing voorbereiden…';
   try {
     if (!data) {
@@ -829,7 +834,7 @@ async function startPracticeForWord(word: string, usage?: number, helped = false
       setPracticeContext(data || { word }, getWordStats()[key]?.practices || 0, usage);
       if (helped) markPracticeHelp();
       document.getElementById('practiceUsage')!.innerHTML = renderPracticeUsage(getPracticeContext());
-      start.disabled = false; textMode.disabled = false;
+      setPracticePreparing(false);
       document.getElementById('voiceStatus').textContent = 'Druk op de knop om te beginnen';
       const context = getPracticeContext()!;
       await structuredPractice.start(context.word, context.usage, context.helpUsed);
