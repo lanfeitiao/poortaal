@@ -1,10 +1,14 @@
 import { StructuredPractice } from './structured-controller.ts';
 import { renderStructured } from './structured-view.ts';
+import { sessionStorageKey } from './structured-store.ts';
 
 const root = () => document.getElementById('structuredPractice');
 export const structuredPractice = new StructuredPractice(() => {
   const panel = root();
   if (panel) panel.innerHTML = renderStructured(structuredPractice.session, structuredPractice.busy, structuredPractice.error);
+});
+window.addEventListener('storage', event => {
+  if ((event as StorageEvent).key === sessionStorageKey()) structuredPractice.refresh();
 });
 export function connectStructuredPractice(done: () => void): void {
   root()?.addEventListener('input', event => {

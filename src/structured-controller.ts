@@ -27,6 +27,13 @@ export class StructuredPractice {
     this.syncProgress(); this.notify();
     return true;
   }
+  refresh(): void {
+    const current = this.session;
+    if (!current || current.owner !== learningOwner()) return;
+    const saved = readSessions().sessions.find(s => s.id === current.id);
+    if (saved?.revision === current.revision) return;
+    this.stop(); this.session = saved || null; this.syncProgress(); this.notify();
+  }
   async start(word: string, usage?: WordUsage, helped = false): Promise<void> {
     this.stop();
     const saved = readSessions().sessions.reverse().find(s => samePractice(s, word, usage?.chunk) && s.phase !== 'complete');

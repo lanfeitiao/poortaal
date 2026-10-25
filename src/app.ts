@@ -768,7 +768,7 @@ function renderWordCard(data: WordExplanation) {
 }
 
 // --- Practice ---
-function goToPractice(word: string, usage?: number) { navigateTo('#practice'); setTimeout(() => { void startPracticeForWord(word, usage); }, 50); }
+function goToPractice(word: string, usage?: number) { navigateTo('#practice'); setTimeout(() => { void startPracticeForWord(word, usage, true); }, 50); }
 function renderPracticeHistoryList() { const list = document.getElementById('practiceHistoryList'); const wordsWithData = searchHistory.filter(h => h.wordData); if (wordsWithData.length === 0) { list.innerHTML = '<div class="history-empty" style="padding:2rem 0;">Zoek eerst een woord op om mee te oefenen</div>'; return; } list.innerHTML = wordsWithData.map(entry => { const safe = escapeHtml(entry.word); const safeAttr = safe.replace(/"/g, '&quot;'); const plant = getPlantStage(entry.word); const status = escapeHtml(plant.hint || plant.label); return `<li data-action="start-practice-word" data-word="${safeAttr}"><span class="word-label">${safe}</span><span class="word-type-hint">${plant.emoji} ${status}</span></li>`; }).join(''); }
 function startPracticeWithInput() { const input = document.getElementById('practiceWordInput') as HTMLInputElement; const word = input.value.trim(); if (!word) return; input.value = ''; startPracticeForWord(word); }
 function showPracticePicker(recordCompletion = true) {
@@ -802,7 +802,7 @@ function restoreStructuredPractice(): void {
   switchPracticeMode('text');
 }
 
-async function startPracticeForWord(word: string, usage?: number) {
+async function startPracticeForWord(word: string, usage?: number, helped = false) {
   const ticket = ++practiceGeneration;
   stopRealtimeEncounter(); resetPracticeFeedback(); clearPracticeContext();
   const key = word.toLowerCase().trim();
@@ -827,6 +827,7 @@ async function startPracticeForWord(word: string, usage?: number) {
   finally {
     if (ticket === practiceGeneration) {
       setPracticeContext(data || { word }, getWordStats()[key]?.practices || 0, usage);
+      if (helped) markPracticeHelp();
       document.getElementById('practiceUsage')!.innerHTML = renderPracticeUsage(getPracticeContext());
       start.disabled = false; textMode.disabled = false;
       document.getElementById('voiceStatus').textContent = 'Druk op de knop om te beginnen';
