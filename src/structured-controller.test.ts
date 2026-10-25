@@ -103,3 +103,23 @@ test('deleting a word removes its sessions while preserving other words', async 
   clearStructuredWord('afspraak');
   assert.deepEqual(readSessions().sessions.map(s => s.word), ['bellen']);
 });
+test('spoken rounds try first, retain transcripts across refresh, and require settled speech for feedback', async () => {
+  const p = new StructuredPractice(noop, chat);
+  await p.start('afspraak', practiceUsage, false, { voice: true, meaning: 'appointment' });
+  assert.equal(p.session?.phase, 'answer'); assert.equal(p.session?.supportUsed, false);
+  const turns = [{ role: 'user' as const, content: answer }]; p.captureVoice(turns);
+  await p.request(); assert.equal(getWordAttempts('afspraak').length, 0);
+  const resumed = new StructuredPractice(noop, chat); resumed.restore();
+  assert.deepEqual(resumed.session?.rounds[0].turns, turns);
+  resumed.captureVoice(turns, false, true); await resumed.request();
+  assert.equal(getWordAttempts('afspraak')[0]?.outcome, 'independent');
+  resumed.advance('retry'); resumed.captureVoice(turns, false, true); await resumed.request();
+  assert.equal(getWordAttempts('afspraak')[1]?.outcome, 'supported');
+});
+test('a spoken task continues a studied scenario without mistaking exposure for independent mastery', async () => {
+  const p = new StructuredPractice(noop, chat);
+  await p.start('afspraak', practiceUsage, true, { voice: true, studiedScenario: scenario });
+  assert.equal(p.session?.phase, 'answer'); assert.deepEqual(p.session?.studiedScenario, scenario);
+  p.captureVoice([{ role: 'user', content: answer }], false, true); await p.request();
+  assert.equal(getWordAttempts('afspraak')[0]?.outcome, 'supported');
+});
