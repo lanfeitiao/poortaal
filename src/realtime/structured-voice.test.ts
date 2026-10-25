@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { spokenEncounter, spokenFeedback, voiceAction, voiceFlowPolicy, voiceControl, answerFragments } from './structured-voice.ts';
+import { spokenEncounter, spokenFeedback, voiceAction, voiceFlowPolicy, voiceControl, answerFragments, heardTargetModel } from './structured-voice.ts';
 import { createSession } from '../structured-session.ts';
 import { answer, goodFeedback, practiceUsage, scenario } from '../structured-fixtures.ts';
 
@@ -53,4 +53,15 @@ test('feedback acceptance is scoped to the offer and cannot remove earlier rolep
   assert.deepEqual(answer.filter(f => f.role === 'user').map(f => f.sequence), [1]);
   const lateCaption = { ...fragments[1], sequence: 4 };
   assert.equal(answerFragments([lateCaption], { sequence: 2, endMs: 1500 }).length, 1);
+});
+test('an earlier incorrect attempt does not hide tutor modelling before a later learner correction', () => {
+  assert.equal(heardTargetModel('afspraak', [
+    { role: 'user', content: 'Ik wil een afspraak doen.' },
+    { role: 'assistant', content: 'Je kunt een afspraak maken.' },
+    { role: 'user', content: 'Ik wil een afspraak maken.' },
+  ]), true);
+  assert.equal(heardTargetModel('afspraak', [
+    { role: 'user', content: 'Ik wil een afspraak maken.' },
+    { role: 'assistant', content: 'De afspraak is morgen.' },
+  ]), false);
 });

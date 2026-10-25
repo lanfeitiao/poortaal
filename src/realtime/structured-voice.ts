@@ -1,8 +1,14 @@
 import { currentRound, currentTask, type StructuredSession } from '../structured-session.ts';
 import type { Encounter } from './types.ts';
 import type { TranscriptFragment } from './transcript-grouping.ts';
+import { detectsTargetProduction } from './production-evaluator.ts';
 
 export type VoiceAction = 'hint' | 'feedback' | 'retry' | 'finish' | null;
+export function heardTargetModel(word: string, turns: { role: 'user' | 'assistant'; content: string }[]): boolean {
+  let lastUse = -1;
+  turns.forEach((t, i) => { if (t.role === 'user' && detectsTargetProduction(word, t.content)) lastUse = i; });
+  return turns.some((t, i) => i < lastUse && t.role === 'assistant' && detectsTargetProduction(word, t.content));
+}
 export function voiceAction(text: string, feedback: boolean, offered = false): VoiceAction {
   const s = text.toLowerCase().replace(/[.!?,。？！]/g, '').trim();
   if (s.length > 120) return null;

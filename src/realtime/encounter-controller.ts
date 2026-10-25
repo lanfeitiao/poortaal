@@ -12,8 +12,7 @@ import { resetPracticeFeedback, finishPracticeFeedback } from '../practice-feedb
 import { waitForTranscriptIdle } from './transcript-settle';
 import { structuredPractice } from '../structured-ui';
 import { currentRound, currentTask } from '../structured-session';
-import { spokenEncounter, spokenFeedback, voiceControl, answerFragments, acceptsFeedbackReply, voiceFlowPolicy, type FeedbackOffer } from './structured-voice';
-import { detectsTargetProduction } from './production-evaluator';
+import { spokenEncounter, spokenFeedback, voiceControl, answerFragments, acceptsFeedbackReply, heardTargetModel, voiceFlowPolicy, type FeedbackOffer } from './structured-voice';
 
 const API_BASE = 'https://poortaal-api.weilin1990.workers.dev';
 
@@ -354,12 +353,7 @@ function spokenTurns() {
 function captureSpokenTurns(settled = false): void {
   const s = spokenSession(); if (!s || s.phase !== 'answer') return;
   const turns = [...voicePrefix, ...spokenTurns()].slice(-40);
-  let helped = false, produced = false;
-  for (const t of turns) {
-    if (t.role === 'user' && detectsTargetProduction(s.word, t.content)) produced = true;
-    if (t.role === 'assistant' && !produced && detectsTargetProduction(s.word, t.content)) helped = true;
-  }
-  structuredPractice.captureVoice(turns, helped, settled);
+  structuredPractice.captureVoice(turns, heardTargetModel(s.word, turns), settled);
 }
 function scheduleVoiceTurn(): void {
   if (!spokenSession() || finishing) return;
