@@ -32,7 +32,7 @@ export function restoreSession(value: unknown, owner: string): StructuredSession
     if (r.feedback !== undefined) {
       const situation = index === 0 ? scenario?.situation : rounds[0]?.feedback?.retry.situation;
       if (!round.submitted || !situation) throw new Error('Feedback without response');
-      round.feedback = validateStructuredFeedback(r.feedback, round.submitted, situation);
+      round.feedback = validateStructuredFeedback(r.feedback, round.submitted, situation, round.turns);
     }
     rounds.push(round);
   }

@@ -12,6 +12,7 @@ export type StructuredFeedback = {
   strength: { text: string; quote: string };
   improvement: { kind: 'error' | 'naturalness'; quote: string; better: string; explanation: string } | null;
   retry: PracticeTask & { change: string };
+  supportEvidence?: { tutorQuote: string; learnerQuote: string } | null;
 };
 
 export class InvalidStructuredOutput extends Error {}
@@ -47,7 +48,8 @@ export function validateScenario(value: unknown): PracticeScenario {
       return { speaker: text(line.speaker, 80), line: text(line.line, 300) };
     }), tip: v.tip === null ? null : text(v.tip, 300) };
 }
-export function validateStructuredFeedback(value: unknown, answer: string, situation: string): StructuredFeedback {
+export function validateStructuredFeedback(value: unknown, answer: string, situation: string,
+  turns?: { role: 'user' | 'assistant'; content: string }[], requireSupport = false): StructuredFeedback {
   const v = object(value), strength = object(v.strength), retry = object(v.retry);
   const quote = (value: unknown, optional = false) => {
     const result = text(value, 2000, optional);
@@ -63,9 +65,21 @@ export function validateStructuredFeedback(value: unknown, answer: string, situa
       better: text(fix.better), explanation: text(fix.explanation) };
   }
   const next = { ...validateTask(retry), change: text(retry.change, 300) };
+  let supportEvidence: StructuredFeedback['supportEvidence'];
+  if (requireSupport && !Object.hasOwn(v, 'supportEvidence')) throw new InvalidStructuredOutput('Missing modelling assessment');
+  if (v.supportEvidence === null) supportEvidence = null;
+  else if (v.supportEvidence !== undefined) {
+    const model = object(v.supportEvidence);
+    const tutorQuote = text(model.tutorQuote, 2000), learnerQuote = quote(model.learnerQuote);
+    const ordered = turns?.some((t, i) => t.role === 'assistant' && t.content.includes(tutorQuote)
+      && turns.slice(i + 1).some(l => l.role === 'user' && l.content.includes(learnerQuote)));
+    if (!ordered) throw new InvalidStructuredOutput('Unsupported modelling evidence');
+    supportEvidence = { tutorQuote, learnerQuote };
+  }
   if (target === 'incorrect' && improvement?.kind === 'naturalness') throw new InvalidStructuredOutput('Naturalness alone is not a usage error');
   if (next.situation === situation) throw new InvalidStructuredOutput('Retry must change the situation');
   return { task: choice(v.task, ['completed', 'partial', 'not-yet']), target,
     naturalness: choice(v.naturalness, ['natural', 'understandable', 'unclear']), evidence,
-    strength: { text: text(strength.text), quote: quote(strength.quote, true) }, improvement, retry: next };
+    strength: { text: text(strength.text), quote: quote(strength.quote, true) }, improvement, retry: next,
+    ...(supportEvidence === undefined ? {} : { supportEvidence }) };
 }

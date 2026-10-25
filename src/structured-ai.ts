@@ -51,20 +51,22 @@ At most ONE highest-value improvement, or null. Distinguish a real error from an
 An optional naturalness improvement must not turn valid target usage into incorrect. Use uncertain for insufficient evidence.
 Copy evidence and all quotes EXACTLY from the learner answer, never from scenario material. correct/incorrect require nonempty evidence.
 For spoken input, transcript recognition can be imperfect. Do not diagnose pronunciation; use uncertain and no correction for doubtful fragments. Do not treat control requests (hints, feedback, stop) as the communication task.
+For spoken input explicitly assess whether the tutor modelled the target use BEFORE the learner's correct use, including inflections, irregular forms and separable verbs (regelen -> ik regel; opbellen -> ik bel ... op). A literal lemma match is NOT sufficient. An earlier incorrect attempt does not make the later corrected use independent.
+Return supportEvidence as {"tutorQuote":"exact earlier tutor quote","learnerQuote":"exact later learner quote"} when the later answer follows such modelling. Return null only when no prior modelling supported the answer. Do not count tutor acknowledgments made after the learner's last relevant answer as help.
 Independence is computed by the app; do not infer mastery from copied or prompted text.
 For retry change exactly ONE condition of the current situation (e.g. day, person, availability), informed by this answer.
 Keep the same sense and communication goal. State the changed condition in change, with no reference answer in situation/task.
 Return {"task":"completed|partial|not-yet", "target":"correct|incorrect|not-used|uncertain",
 "naturalness":"natural|understandable|unclear", "evidence":"exact quote or empty if uncertain/not-used",
 "strength":{"text":"brief positive observation","quote":"exact learner quote or empty"},
-"improvement":null, "retry":{${TASK}, "change":"one changed condition"}}.
+"improvement":null, "supportEvidence":null, "retry":{${TASK}, "change":"one changed condition"}}.
 If improvement is needed, use {"kind":"error|naturalness","quote":"exact learner quote","better":"Dutch alternative","explanation":"brief reason"}.` },
     { role: 'user', content: JSON.stringify({ word: session.word, meaning: session.meaning, usage: session.usage,
       situation: task.situation, task: task.task, answer: round.submitted, hintsUsed: round.hintsUsed,
       transcript: round.turns,
       supportUsed: session.supportUsed || session.round === 1, previousFeedback: session.round === 1 ? session.rounds[0]?.feedback : undefined }) },
   ], value => {
-    const result = validateStructuredFeedback(value, round.submitted!, task.situation);
+    const result = validateStructuredFeedback(value, round.submitted!, task.situation, round.turns, session.delivery === 'voice');
     if (session.delivery === 'voice' && !result.retry.openingLine) throw new InvalidStructuredOutput('Missing retry opening');
     return result;
   }, chat);

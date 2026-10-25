@@ -15,7 +15,7 @@ export const scenario: PracticeScenario = {
 export const answer = 'Ik wil een afspraak maken. Kan ik morgen komen?';
 export function goodFeedback(situation = scenario.situation, quote = answer): StructuredFeedback {
   return { task: 'completed', target: 'correct', naturalness: 'natural', evidence: quote,
-    strength: { text: 'Je vraagt duidelijk om een afspraak.', quote }, improvement: null,
+    strength: { text: 'Je vraagt duidelijk om een afspraak.', quote }, improvement: null, supportEvidence: null,
     retry: { situation: situation + ' Je kunt nu alleen vrijdag.', task: 'Vraag om een ander tijdstip.',
       openingLine: 'Morgen kan niet. Wanneer kun je wel?',
       change: 'Je kunt alleen vrijdag.', hints: ['Welke dag kun je?', 'Kan ik…', 'Kan ik vrijdag komen? Ik wil een afspraak maken.'] } };

@@ -29,7 +29,7 @@ export function practiceOutcome(session: StructuredSession, index: number = sess
   if (!feedback || feedback.target !== 'correct' || feedback.task !== 'completed' || feedback.naturalness === 'unclear') {
     return 'needs-practice';
   }
-  return session.supportUsed || round.hintsUsed > 0 || index > 0 ? 'supported' : 'independent';
+  return session.supportUsed || round.hintsUsed > 0 || index > 0 || !!feedback.supportEvidence ? 'supported' : 'independent';
 }
 export function structuredAttempts(session: StructuredSession): UsageAttempt[] {
   return session.rounds.flatMap((round, index) => !round.feedback ? [] : [{
