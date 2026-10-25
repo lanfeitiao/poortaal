@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { generateLearningScene, readLearningScene } from './learning-scene.ts';
+import { generateLearningScene, readLearningScene, rememberSceneExposure, recentlyViewedScene } from './learning-scene.ts';
 import { renderLearningScene } from './learning-scene-view.ts';
 import { validateWordExplanation } from './word-explanation.ts';
 import { practiceUsage, scenario } from './structured-fixtures.ts';
@@ -31,4 +31,15 @@ test('lesson text stays escaped and an ordinary expression is not labelled as a 
     scenario: { ...scenario, situation: '<img src=x onerror=alert(1)>' } } };
   const html = renderLearningScene(data);
   assert.ok(!html.includes('<img')); assert.ok(html.includes('&lt;img')); assert.ok(!html.includes('Vaste combinatie'));
+});
+test('recent example exposure follows this owner and sense but expires for later independent recall', () => {
+  const storage = new Map<string, string>();
+  Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: {
+    getItem: (k: string) => storage.get(k) || null, setItem: (k: string, v: string) => storage.set(k, v) } });
+  const data = { ...word, scene: { sense: word.meaning_en, usage: practiceUsage.chunk, scenario } };
+  rememberSceneExposure(data, 'one', 100);
+  assert.equal(recentlyViewedScene(data, 'one', 200), true);
+  assert.equal(recentlyViewedScene(data, 'two', 200), false);
+  assert.equal(recentlyViewedScene(data, 'one', 100 + 30 * 60_000), false);
+  assert.equal(recentlyViewedScene({ ...data, meaning_en: 'another sense' }, 'one', 200), false);
 });

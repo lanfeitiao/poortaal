@@ -5,13 +5,13 @@ import {
 import { consumeRealtimePracticeCompletion, resetRealtimeEncounterUi, stopRealtimeEncounter } from './realtime/encounter-controller';
 import { enrichWordUsage, mergeUsageEnrichment } from './usage-generation';
 import { escapeText, renderPracticeUsage } from './word-usage-ui';
-import { renderWordExamples, renderWordTips, type UsageLoadState } from './word-card';
+import { renderWordTips, type UsageLoadState } from './word-card';
 import { cloudWordLearning, getWordAttempts, learningOwner, setLearningOwner, clearWordLearning, recordWordAttempt } from './learning-store';
 import { setPracticeContext, getPracticeContext, clearPracticeContext, markPracticeHelp } from './practice-context';
 import { resetPracticeFeedback } from './practice-feedback';
 import { structuredPractice } from './structured-ui';
 import { clearStructuredWord } from './structured-store';
-import { generateLearningScene, readLearningScene, sceneUsage } from './learning-scene';
+import { generateLearningScene, readLearningScene, sceneUsage, rememberSceneExposure, recentlyViewedScene } from './learning-scene';
 import { renderLearningScene } from './learning-scene-view';
 import { needsUsageReview, wordReview } from './word-learning';
 import { createWordWriteQueue } from './word-write-queue';
@@ -768,6 +768,7 @@ function renderWordCard(data: WordExplanation) {
     ${renderLearningScene(data, sceneStates.get(usageKey))}${renderWordTips(data)}
     <button class="practice-btn" data-action="practice-word" data-word="${word}">🎙️ Probeer het in een gesprek</button>`;
   if (!readLearningScene(data.scene, data)) void loadLearningScene(data);
+  else if (document.getElementById('view-home').classList.contains('active')) rememberSceneExposure(data, learningOwner());
 }
 
 const sceneStates = new Map<string, 'loading' | 'error'>();
@@ -783,7 +784,7 @@ async function loadLearningScene(data: WordExplanation, retry = false): Promise<
       if (enriched.usage === undefined) throw new Error('Usage still unavailable');
       const scene = await generateLearningScene(enriched, callOpenAI);
       const latest = getCachedWord(key);
-      if (owner !== learningOwner() || !latest || latest.meaning_en !== scene.sense || sceneUsage(latest) !== scene.usage) return;
+      if (owner !== learningOwner() || !latest || latest.meaning_en !== scene.sense || sceneUsage(latest) !== scene.usage) { sceneStates.delete(token); return; }
       const saved = { ...latest, scene }; setWordCache(key, saved);
       const entry = searchHistory.find(h => h.word === key);
       if (entry) { entry.wordData = saved; localStorage.setItem('poortaal_history', JSON.stringify(searchHistory)); }
@@ -792,8 +793,9 @@ async function loadLearningScene(data: WordExplanation, retry = false): Promise<
     } catch { sceneStates.set(token, 'error'); }
     finally {
       sceneRequests.delete(token);
-      if (owner === learningOwner() && currentWord?.toLowerCase().trim() === key) {
-        currentWordData = getCachedWord(key) || data; renderWordCard(currentWordData);
+      const cached = getCachedWord(key);
+      if (cached && owner === learningOwner() && currentWord?.toLowerCase().trim() === key) {
+        currentWordData = cached; renderWordCard(currentWordData);
       }
     }
   })();
@@ -869,7 +871,7 @@ async function startPracticeForWord(word: string, usage?: number, helped = false
   finally {
     if (ticket === practiceGeneration) {
       setPracticeContext(data || { word }, getWordStats()[key]?.practices || 0, usage);
-      if (helped) markPracticeHelp();
+      if (helped || (data && recentlyViewedScene(data, learningOwner()))) markPracticeHelp();
       document.getElementById('practiceUsage')!.innerHTML = renderPracticeUsage(getPracticeContext());
       setPracticePreparing(false);
       document.getElementById('voiceStatus').textContent = 'Druk op de knop om te beginnen';

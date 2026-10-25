@@ -19,3 +19,21 @@ export async function generateLearningScene(data: WordExplanation, chat: Complet
   const session = { ...createSession('lesson', data.word, data.usage?.[0], true, true), meaning: data.meaning_en };
   return { sense: data.meaning_en, usage: sceneUsage(data), scenario: await generateScenario(session, [], chat) };
 }
+type Exposure = { word: string; sense: string; usage: string; at: number };
+function exposures(owner: string): Exposure[] {
+  try {
+    const value = JSON.parse(localStorage.getItem(`poortaal_scene_exposure:${owner}`) || '[]');
+    return Array.isArray(value) ? value.filter(v => v && typeof v.word === 'string' && typeof v.sense === 'string'
+      && typeof v.usage === 'string' && Number.isFinite(v.at)) : [];
+  } catch { return []; }
+}
+export function rememberSceneExposure(data: WordExplanation, owner: string, now = Date.now()): void {
+  if (!readLearningScene(data.scene, data)) return;
+  const word = usageKey(data.word), seen = exposures(owner).filter(v => v.word !== word).slice(-29);
+  try { localStorage.setItem(`poortaal_scene_exposure:${owner}`, JSON.stringify([...seen,
+    { word, sense: data.meaning_en, usage: sceneUsage(data), at: now }])); } catch { /* Word learning remains available. */ }
+}
+export function recentlyViewedScene(data: WordExplanation, owner: string, now = Date.now()): boolean {
+  return !!readLearningScene(data.scene, data) && exposures(owner).some(v => v.word === usageKey(data.word)
+    && v.sense === data.meaning_en && v.usage === sceneUsage(data) && now >= v.at && now - v.at < 30 * 60_000);
+}
