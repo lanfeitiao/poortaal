@@ -8,7 +8,6 @@ import {
   exitReviewSession,
   exploreDailyWord,
   finishReview,
-  finishTextPractice,
   goToPractice,
   gradeAndAdvance,
   lookupWord,
@@ -18,7 +17,6 @@ import {
   playTTS,
   revealAnswer,
   retryWordUsage,
-  sendChat,
   showPracticePicker,
   signInWithGoogle,
   startMicroReview,
@@ -125,8 +123,6 @@ document.addEventListener('DOMContentLoaded', () => {
     switchPracticeMode('text');
   });
   onClick('voiceModeBtn', () => switchPracticeMode('voice'));
-  onClick('chatSendBtn', sendChat);
-  onClick('textFeedbackBtn', finishTextPractice);
   onClick('voiceStartBtn', toggleRealtimeEncounter);
   onClick('overlay', toggleHistory);
   onClick('historyCloseBtn', toggleHistory);
@@ -139,12 +135,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const suggestion = element.dataset.suggestion;
       if (suggestion) trySuggestion(suggestion);
     });
-  });
-
-  document.getElementById('chatInput')?.addEventListener('keydown', event => {
-    if (event.key === 'Enter') {
-      void sendChat();
-    }
   });
 
   document.addEventListener('click', handleActionClick);

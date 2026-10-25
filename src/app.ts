@@ -7,8 +7,8 @@ import { enrichWordUsage, mergeUsageEnrichment } from './usage-generation';
 import { escapeText, renderPracticeUsage } from './word-usage-ui';
 import { renderWordExamples, renderWordTips, type UsageLoadState } from './word-card';
 import { cloudWordLearning, getWordAttempts, learningOwner, setLearningOwner, clearWordLearning, recordWordAttempt } from './learning-store';
-import { setPracticeContext, getPracticeContext, clearPracticeContext, markPracticeHelp, practiceUsageInstructions } from './practice-context';
-import { resetPracticeFeedback, finishPracticeFeedback } from './practice-feedback';
+import { setPracticeContext, getPracticeContext, clearPracticeContext, markPracticeHelp } from './practice-context';
+import { resetPracticeFeedback } from './practice-feedback';
 import { needsUsageReview, wordReview } from './word-learning';
 import { createWordWriteQueue } from './word-write-queue';
 import { mergeCloudWordStats, saveWordWithVersion, supabaseWordStore } from './word-cloud-save';
@@ -257,14 +257,12 @@ if (storedHistory.some(item => typeof item === 'string')) {
 }
 let currentWord: string | null = null;
 let currentWordData: WordExplanation | null = null;
-let practiceMessages: ChatMessage[] = [];
 let reviewQueue: ReviewItem[] = [];
 let reviewIndex = 0;
 let reviewResults = { know: 0, again: 0 };
 let reviewRevealed = false;
 let reviewSessionActive = false;
 let currentReviewPrompt: ReturnType<typeof wordReview> | null = null;
-let practiceLoading = false;
 let practiceGeneration = 0;
 let microReviewTimer: ReturnType<typeof setTimeout> | null = null;
 let microReviewInterval: ReturnType<typeof setInterval> | null = null;
@@ -814,60 +812,7 @@ async function startPracticeForWord(word: string, usage?: number) {
     }
   }
 }
-async function startTextPracticeScenario() {
-  if (practiceMessages.length > 0 || practiceLoading) return;
-  const word = document.getElementById('practiceChatWord').textContent || ''; if (!word) return;
-  const ticket = practiceGeneration;
-  practiceLoading = true;
-  const entry = searchHistory.find(h => h.word === word.toLowerCase()); const meaningHint = entry?.wordData?.meaning_en ? ` (${entry.wordData.meaning_en})` : ''; const msgs = document.getElementById('chatMessages'); msgs.innerHTML = '<div class="chat-msg system">Scenario wordt voorbereid...</div>';
-  practiceMessages = [{ role: 'system', content: `You are a friendly Dutch language tutor running a role-play practice session. The student is learning the word "${word}"${meaningHint}.
-
-Your job:
-1. First message: Set up a short, fun real-life scenario in Dutch (with English hint in parentheses) where the student must use "${word}" naturally. Keep it conversational and simple.
-2. In subsequent messages: Stay in character for the scenario. Respond naturally in Dutch.
-3. Keep the role-play flowing after the student uses the word. Save minor corrections for feedback after the session; clarify immediately only if meaning is blocked.
-4. Keep messages short (2-3 sentences max).
-5. Mix Dutch and English — primarily Dutch with English support (parentheses) when needed.
-6. Use common A2-B1 Dutch. Be warm and give the learner time to answer.
-${practiceUsageInstructions()}` }];
-  try {
-    const response = await callOpenAI([...practiceMessages]);
-    if (ticket !== practiceGeneration) return;
-    msgs.innerHTML = `<div class="chat-msg tutor">${formatChat(response)}</div>`;
-    practiceMessages.push({ role: 'assistant', content: response }); document.getElementById('chatInput').focus();
-  } catch {
-    if (ticket !== practiceGeneration) return;
-    msgs.innerHTML = '<div class="chat-msg system">Kon het scenario niet starten. Probeer opnieuw.</div>'; practiceMessages = [];
-  } finally { if (ticket === practiceGeneration) practiceLoading = false; }
-}
-async function sendChat() {
-  const input = document.getElementById('chatInput') as HTMLInputElement;
-  const text = input.value.trim(); if (!text || practiceLoading) return;
-  const ticket = practiceGeneration; const msgs = document.getElementById('chatMessages');
-  resetPracticeFeedback(); practiceMessages.push({ role: 'user', content: text });
-  msgs.innerHTML += `<div class="chat-msg user">${escapeHtml(text)}</div>`; input.value = ''; practiceLoading = true;
-  (document.getElementById('chatSendBtn') as HTMLButtonElement).disabled = true;
-  msgs.innerHTML += '<div class="chat-msg system" id="chatLoading">💭 Even denken...</div>';
-  try {
-    const response = await callOpenAI([...practiceMessages]);
-    if (ticket !== practiceGeneration) return;
-    practiceMessages.push({ role: 'assistant', content: response }); document.getElementById('chatLoading')?.remove();
-    msgs.innerHTML += `<div class="chat-msg tutor">${formatChat(response)}</div>`;
-  } catch {
-    if (ticket === practiceGeneration) { document.getElementById('chatLoading')?.remove(); msgs.innerHTML += '<div class="chat-msg system">Fout bij het versturen. Probeer opnieuw.</div>'; }
-  } finally {
-    if (ticket === practiceGeneration) { practiceLoading = false; (document.getElementById('chatSendBtn') as HTMLButtonElement).disabled = false; msgs.scrollTop = msgs.scrollHeight; }
-  }
-}
-function finishTextPractice(): void {
-  const context = getPracticeContext();
-  if (!context || practiceLoading) return;
-  const turns = practiceMessages.filter(m => m.role !== 'system').map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
-  void finishPracticeFeedback({ ...context, id: `${context.id}:text`, owner: learningOwner(), turns,
-    supportUsed: context.helpUsed, settled: true });
-}
 function escapeHtml(s: string) { return escapeText(s); }
-function formatChat(text: string) { return escapeHtml(text).replace(/\n/g, '<br>'); }
 
 // --- Micro review ---
 function startMicroReview(word: string) {
@@ -912,7 +857,6 @@ export {
   exitReviewSession,
   exploreDailyWord,
   finishReview,
-  finishTextPractice,
   goToPractice,
   gradeAndAdvance,
   lookupWord,
@@ -921,7 +865,6 @@ export {
   playExTTS,
   playTTS,
   revealAnswer,
-  sendChat,
   showPracticePicker,
   signInWithGoogle,
   startMicroReview,
