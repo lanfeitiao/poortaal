@@ -928,9 +928,11 @@ async function switchPracticeMode(mode: 'text' | 'voice') {
   }
   const c = getPracticeContext();
   if (c && structuredPractice.session && (structuredPractice.session.delivery === 'voice') !== (mode === 'voice')) {
+    const previous = structuredPractice.session;
+    if (previous.supportUsed || previous.rounds.some(r => r.hintsUsed > 0 || r.feedback)) markPracticeHelp();
     stopRealtimeEncounter();
     await structuredPractice.start(c.word, c.usage, c.helpUsed, { voice: mode === 'voice', meaning: c.meaning,
-      studiedScenario: c.helpUsed ? c.studiedScenario : undefined });
+      studiedScenario: c.helpUsed ? c.studiedScenario || (previous.mode === 'guided' ? previous.scenario : undefined) : undefined });
   }
 }
 

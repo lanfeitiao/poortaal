@@ -10,6 +10,8 @@ export const structuredPractice = new StructuredPractice(() => {
   if (panel && s?.delivery !== 'voice') panel.innerHTML = renderStructured(s, structuredPractice.busy, structuredPractice.error);
   const voice = document.getElementById('voicePracticeSteps');
   if (voice) voice.innerHTML = s?.delivery === 'voice' ? renderVoicePractice(s, structuredPractice.busy, structuredPractice.error) : '';
+  const start = document.getElementById('voiceStartBtn');
+  if (start) start.hidden = s?.delivery === 'voice' && s.phase !== 'answer';
 });
 window.addEventListener('storage', event => {
   if ((event as StorageEvent).key === sessionStorageKey()) structuredPractice.refresh();

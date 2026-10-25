@@ -42,3 +42,10 @@ test('the study page presents a scene and passes its exposure into the spoken ta
   assert.equal(f.session()?.studiedScenario.situation, scenario.situation);
   assert.equal(f.document.getElementById('voicePracticePanel')!.style.display, '');
 });
+test('switching from guided text examples into speech keeps the assistance provenance', async t => {
+  const f = await liveFixture(t);
+  f.click('[data-action="start-practice-word"]'); await f.wait(() => f.session()?.phase === 'answer');
+  f.click('#textModeBtn'); await f.wait(() => f.session()?.phase === 'guide');
+  f.click('#voiceModeBtn'); await f.wait(() => f.session()?.delivery === 'voice');
+  assert.equal(f.session()?.supportUsed, true);
+});
