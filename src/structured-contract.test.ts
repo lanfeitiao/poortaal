@@ -20,7 +20,8 @@ test('feedback refuses invented evidence, multiple corrections and an unchanged 
   const f = goodFeedback();
   for (const bad of [{ ...f, evidence: 'tutor words' }, { ...f, strength: { text: 'Good!', quote: 'imaginary' } },
     { ...f, improvement: [{ kind: 'error' }] }, { ...f, retry: { ...f.retry, situation: scenario.situation } },
-    { ...f, task: 'excellent' }, { ...f, evidence: '' }]) {
+    { ...f, task: 'excellent' }, { ...f, evidence: '' }, { ...f, target: 'incorrect', improvement: {
+      kind: 'naturalness', quote: answer, better: answer, explanation: 'Also natural.' } }]) {
     assert.throws(() => validateStructuredFeedback(bad, answer, scenario.situation));
   }
 });

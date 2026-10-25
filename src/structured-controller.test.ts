@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { StructuredPractice } from './structured-controller.ts';
 import { getWordAttempts, setLearningOwner } from './learning-store.ts';
-import { activeSession, readSessions } from './structured-store.ts';
+import { activeSession, clearStructuredWord, readSessions } from './structured-store.ts';
 import { answer, goodFeedback, practiceUsage, scenario } from './structured-fixtures.ts';
 import type { ChatMessage } from './word-explanation.ts';
 
@@ -88,4 +88,18 @@ test('a stale tab cannot submit over a newer draft or hint record', async () => 
   assert.equal(calls, 0); assert.ok(second.error);
   second.refresh(); assert.equal(second.session?.rounds[0].hintsUsed, 1);
   await second.request(); assert.equal(calls, 1);
+});
+test('reopening assessed recall from Explore does not rewrite the first attempt as assisted', async () => {
+  const p = new StructuredPractice(noop, chat);
+  await p.start('afspraak', practiceUsage); p.advance('continue'); p.draft(answer); await p.request(); p.advance('skip');
+  await p.start('afspraak', practiceUsage); p.draft(answer); await p.request(); p.stop();
+  await p.start('afspraak', practiceUsage, true);
+  assert.equal(p.session?.supportUsed, false);
+  assert.equal(getWordAttempts('afspraak').at(-1)?.outcome, 'independent');
+});
+test('deleting a word removes its sessions while preserving other words', async () => {
+  const p = new StructuredPractice(noop, chat);
+  await p.start('afspraak', practiceUsage); await p.start('bellen');
+  clearStructuredWord('afspraak');
+  assert.deepEqual(readSessions().sessions.map(s => s.word), ['bellen']);
 });

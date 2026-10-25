@@ -38,7 +38,7 @@ export class StructuredPractice {
     this.stop();
     const saved = readSessions().sessions.reverse().find(s => samePractice(s, word, usage?.chunk) && s.phase !== 'complete');
     try {
-      this.write(saved ? { ...saved, supportUsed: saved.supportUsed || helped }
+      this.write(saved ? { ...saved, supportUsed: saved.supportUsed || (helped && !saved.rounds[0]?.feedback) }
         : createSession(learningOwner(), word, usage, !hasPractised(word, usage?.chunk), helped));
       this.syncProgress(); this.notify();
       if (this.session?.phase === 'prepare' && !this.session.pending) await this.request();
