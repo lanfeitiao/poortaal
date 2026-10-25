@@ -27,7 +27,7 @@ export class StructuredPractice {
   }
   async start(word: string, usage?: WordUsage, helped = false): Promise<void> {
     this.stop();
-    const saved = readSessions().sessions.findLast(s => samePractice(s, word, usage?.chunk) && s.phase !== 'complete');
+    const saved = readSessions().sessions.reverse().find(s => samePractice(s, word, usage?.chunk) && s.phase !== 'complete');
     try {
       this.write(saved ? { ...saved, supportUsed: saved.supportUsed || helped }
         : createSession(learningOwner(), word, usage, !hasPractised(word, usage?.chunk), helped));
@@ -54,7 +54,7 @@ export class StructuredPractice {
     this.mutate(() => ({ ...s, rounds: s.rounds.map((r, i) => i === s.round ? { ...r, hintsUsed: r.hintsUsed + 1 } : r) }));
   }
   support(): void {
-    if (this.session && !this.session.supportUsed && this.session.phase !== 'complete') {
+    if (this.session && !this.session.supportUsed && this.session.round === 0 && ['prepare', 'guide', 'answer'].includes(this.session.phase)) {
       this.mutate(() => ({ ...this.session!, supportUsed: true }));
     }
   }

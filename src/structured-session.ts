@@ -21,7 +21,7 @@ export function currentRound(session: StructuredSession): PracticeRound { return
 export function currentTask(session: StructuredSession): PracticeTask | undefined {
   return session.round === 0 ? session.scenario : session.rounds[0]?.feedback?.retry;
 }
-export function practiceOutcome(session: StructuredSession, index = session.round): UsageOutcome {
+export function practiceOutcome(session: StructuredSession, index: number = session.round): UsageOutcome {
   const round = session.rounds[index], feedback = round?.feedback;
   if (!feedback || feedback.target !== 'correct' || feedback.task !== 'completed' || feedback.naturalness === 'unclear') {
     return 'needs-practice';

@@ -521,7 +521,7 @@ function handleRoute() {
   document.getElementById('nav-home').classList.toggle('active', isHome);
   document.getElementById('nav-practice').classList.toggle('active', isPractice);
   document.getElementById('nav-review').classList.toggle('active', isReview);
-  if (isPractice) renderPracticeHistoryList();
+  if (isPractice) { renderPracticeHistoryList(); if (!structuredPractice.session) restoreStructuredPractice(); }
   else { stopRealtimeEncounter(); showPracticePicker(); }
   if (isReview) renderReviewHome(); else resetReviewSessionIfActive();
 }
@@ -779,7 +779,20 @@ window.addEventListener('poortaal:learning-owner', () => {
   updateReviewBadge();
   closeMicroReview(); resetReviewSessionIfActive();
   if (window.location.hash.split('?')[0] === '#review') renderReviewHome();
+  if (window.location.hash.split('?')[0] === '#practice') restoreStructuredPractice();
 });
+
+function restoreStructuredPractice(): void {
+  if (!structuredPractice.restore()) return;
+  const s = structuredPractice.session!;
+  setPracticeContext({ word: s.word, usage: s.usage ? [s.usage] : [] });
+  if (s.supportUsed) markPracticeHelp();
+  document.getElementById('practicePickerSection').style.display = 'none';
+  document.getElementById('practiceChatSection').style.display = '';
+  document.getElementById('practiceChatWord').textContent = s.word;
+  document.getElementById('practiceUsage').innerHTML = renderPracticeUsage(getPracticeContext());
+  switchPracticeMode('text');
+}
 
 async function startPracticeForWord(word: string, usage?: number) {
   const ticket = ++practiceGeneration;
