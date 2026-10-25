@@ -44,6 +44,15 @@ export function hasPractised(word: string, chunk?: string): boolean {
 export function saveStructuredProgress(session: StructuredSession): void {
   if (session.owner !== learningOwner()) throw new Error('Practice owner changed');
   for (const attempt of structuredAttempts(session)) {
-    if (!getWordAttempts(session.word).some(a => a.id === attempt.id)) recordWordAttempt(attempt);
+    if (!getWordAttempts(session.word).some(a => a.id === attempt.id)) {
+      recordWordAttempt(attempt);
+      if (attempt.id === `${session.id}:0`) {
+        window.dispatchEvent(new CustomEvent('poortaal:structured-result', { detail: { word: session.word, owner: session.owner } }));
+      }
+    }
   }
+}
+export function clearStructuredWord(word: string): void {
+  const data = readSessions(), sessions = data.sessions.filter(s => usageKey(s.word) !== usageKey(word));
+  localStorage.setItem(sessionStorageKey(), JSON.stringify({ active: sessions.some(s => s.id === data.active) ? data.active : null, sessions }));
 }

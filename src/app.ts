@@ -10,6 +10,7 @@ import { cloudWordLearning, getWordAttempts, learningOwner, setLearningOwner, cl
 import { setPracticeContext, getPracticeContext, clearPracticeContext, markPracticeHelp } from './practice-context';
 import { resetPracticeFeedback } from './practice-feedback';
 import { structuredPractice } from './structured-ui';
+import { clearStructuredWord } from './structured-store';
 import { needsUsageReview, wordReview } from './word-learning';
 import { createWordWriteQueue } from './word-write-queue';
 import { mergeCloudWordStats, saveWordWithVersion, supabaseWordStore } from './word-cloud-save';
@@ -615,6 +616,8 @@ function renderHistory() {
   list.innerHTML = rows.join(''); initSwipeHandlers(list); const parts: string[] = []; if (counts.strong) parts.push(`🌳 ${counts.strong} sterk`); if (counts.growing) parts.push(`🪴 ${counts.growing} groeiend`); if (counts.sprout) parts.push(`🌿 ${counts.sprout} kiempjes`); if (counts.seed) parts.push(`🌱 ${counts.seed} zaaisel`); if (counts.wilting) parts.push(`🥀 ${counts.wilting} verwelkt`); summaryEl.innerHTML = parts.join(' · ');
 }
 function deleteHistoryItem(word: string) {
+  if (structuredPractice.session?.word.toLowerCase().trim() === word.toLowerCase().trim()) structuredPractice.stop(true);
+  clearStructuredWord(word);
   const w = word.toLowerCase().trim(); clearWordLearning(w);
   searchHistory = searchHistory.filter(h => h.word !== w);
   localStorage.setItem('poortaal_history', JSON.stringify(searchHistory));
@@ -722,6 +725,11 @@ window.addEventListener('poortaal:word-learning', event => {
   if (currentUser?.id === owner) void saveWordStatsToCloud(word);
   if (currentWordData?.word.toLowerCase().trim() === word) renderWordCard(currentWordData);
   updateReviewBadge();
+});
+window.addEventListener('poortaal:structured-result', event => {
+  const { word, owner } = (event as CustomEvent<{ word: string; owner: string }>).detail;
+  if (owner !== learningOwner()) return;
+  updateWordStats(word, 'practice'); renderHistory(); updateReviewBadge();
 });
 document.addEventListener('toggle', event => {
   const details = event.target as HTMLDetailsElement;
