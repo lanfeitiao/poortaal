@@ -58,3 +58,26 @@ test('cancel during microphone setup neither releases the opening guard early no
   assert.equal(f.session()?.phase, 'answer');
   assert.equal(f.sent.filter(e => e.event_id === 'encounter-opening').length, 0);
 });
+test('continuing after reconnect retains the old answer and adds only the new connection speech', async t => {
+  const f = await liveFixture(t);
+  f.click('[data-action="start-practice-word"]'); await f.wait(() => f.session()?.phase === 'answer');
+  f.click('#voiceStartBtn'); await f.wait(() => f.sent.some(e => e.event_id === 'encounter-opening'));
+  f.caption('user', answer); await f.wait(() => f.session()?.rounds[0].draft === answer);
+  const id = f.session().id;
+  f.click('#practiceBackBtn'); f.click('[data-action="start-practice-word"]');
+  await f.wait(() => f.session()?.id === id); f.click('#voiceStartBtn');
+  await f.wait(() => f.sent.filter(e => e.event_id === 'encounter-opening').length === 2);
+  f.caption('user', 'Dat komt goed.');
+  await f.wait(() => f.session()?.rounds[0].draft.includes('Dat komt goed.'));
+  assert.ok(f.session().rounds[0].draft.includes(answer));
+  assert.equal(f.session().rounds[0].turns.filter(t => t.role === 'user' && t.content === answer).length, 1);
+});
+test('asking for a hint while stuck mid-answer works without a tutor caption between the utterances', async t => {
+  const f = await liveFixture(t);
+  f.click('[data-action="start-practice-word"]'); await f.wait(() => f.session()?.phase === 'answer');
+  f.click('#voiceStartBtn'); await f.wait(() => f.sent.some(e => e.event_id === 'encounter-opening'));
+  f.caption('user', 'Ik wil graag… '); f.caption('user', 'Hint graag.');
+  await f.wait(() => f.session()?.rounds[0].hintsUsed === 1);
+  assert.ok(f.session().rounds[0].draft.includes('Ik wil graag'));
+  assert.ok(!f.session().rounds[0].draft.includes('Hint'));
+});
