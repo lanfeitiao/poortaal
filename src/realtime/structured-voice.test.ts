@@ -42,3 +42,15 @@ test('one caption can contain answer text followed by a control without losing t
   assert.equal(fragments[0].text, 'Ik wil een afspraak maken. Feedback graag.');
   assert.equal(voiceControl([{ ...fragments[0], text: 'Ik heb een hint voor mijn vriend.' }], false), null);
 });
+test('feedback acceptance is scoped to the offer and cannot remove earlier roleplay affirmatives', () => {
+  const fragments = [
+    { role: 'tutor' as const, text: 'Wil je morgen komen?', startMs: 0, endMs: 500, sequence: 0 },
+    { role: 'user' as const, text: 'Ja graag.', startMs: 600, endMs: 900, sequence: 1 },
+    { role: 'tutor' as const, text: 'Wil je kort feedback?', startMs: 1000, endMs: 1500, sequence: 2 },
+    { role: 'user' as const, text: 'Ja graag.', startMs: 1600, endMs: 1900, sequence: 3 },
+  ];
+  const answer = answerFragments(fragments, { sequence: 2, endMs: 1500 });
+  assert.deepEqual(answer.filter(f => f.role === 'user').map(f => f.sequence), [1]);
+  const lateCaption = { ...fragments[1], sequence: 4 };
+  assert.equal(answerFragments([lateCaption], { sequence: 2, endMs: 1500 }).length, 1);
+});

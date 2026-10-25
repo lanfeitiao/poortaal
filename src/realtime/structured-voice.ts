@@ -67,11 +67,15 @@ export function voiceControl(fragments: TranscriptFragment[], feedback: boolean,
   }
   return null;
 }
-export function answerFragments(fragments: TranscriptFragment[], offered = false): TranscriptFragment[] {
+export type FeedbackOffer = { sequence: number; endMs: number };
+export function acceptsFeedbackReply(part: TranscriptFragment | undefined, offer: FeedbackOffer | null): boolean {
+  return !!part && !!offer && part.sequence > offer.sequence && part.startMs >= offer.endMs;
+}
+export function answerFragments(fragments: TranscriptFragment[], offer: FeedbackOffer | null = null): TranscriptFragment[] {
   const removed = new Set<number>(), prefixes = new Map<number, string>();
   fragments.forEach((part, index) => {
     if (part.role !== 'user' || (fragments[index + 1] && !controlBoundary(part, fragments[index + 1]))) return;
-    const command = voiceControl(fragments.slice(0, index + 1), false, offered);
+    const command = voiceControl(fragments.slice(0, index + 1), false, acceptsFeedbackReply(part, offer));
     if (!command) return;
     command.sequences.forEach(s => removed.add(s)); prefixes.set(command.sequences[0], command.prefix);
   });
