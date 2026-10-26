@@ -2,9 +2,18 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { saveWordWithVersion, supabaseWordStore, type WordCloudStore } from './word-cloud-save.ts';
 import type { WordExplanation } from './word-explanation.ts';
+import { practiceUsage, scenario } from './structured-fixtures.ts';
 
 const attempt = (id: string, discarded = false) => ({ id, at: 1, word: 'afspraak', chunk: 'een afspraak maken',
   outcome: 'needs-practice', source: 'conversation', discarded });
+test('a new contextual lesson survives a save over an older cloud word without a lesson', async () => {
+  const word = { word: 'afspraak', type: 'zelfstandig naamwoord', meaning_nl: 'Een plan.', meaning_en: 'appointment',
+    examples: [{ nl: practiceUsage.example_nl, en: practiceUsage.example_en }], usage: [practiceUsage], tips: '', fun_fact: null };
+  const scene = { sense: word.meaning_en, usage: practiceUsage.chunk, scenario };
+  const db = memory({ ...row(), word_data: word } as ReturnType<typeof row>);
+  await saveWordWithVersion(db.store, () => ({ ...row(), word_data: { ...word, scene } }), () => true);
+  assert.deepEqual(db.get().word_data.scene, scene);
+});
 const row = (progress: unknown[] = [], version: string | null = null) => ({ user_id: 'learner', word: 'afspraak',
   word_data: { usage_progress: progress }, updated_at: version });
 function memory(initial: ReturnType<typeof row> | null) {

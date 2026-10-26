@@ -168,6 +168,10 @@ export class RealtimeClient {
     this.localStream?.getAudioTracks().forEach(track => { track.enabled = false; });
     if (this.remoteAudio) this.remoteAudio.muted = true;
   }
+  resumeInput(): void {
+    this.localStream?.getAudioTracks().forEach(track => { track.enabled = true; });
+    if (this.remoteAudio) this.remoteAudio.muted = false;
+  }
 
   private waitForIceGatheringComplete(pc: RTCPeerConnection): Promise<void> {
     if (pc.iceGatheringState === 'complete' || pc.connectionState === 'closed') return Promise.resolve();

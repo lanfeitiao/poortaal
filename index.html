@@ -229,6 +229,23 @@ main { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
 .practice-mode-btn { flex: 1; padding: 0.5rem; border: 1px solid var(--blue-200); background: white; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-family: inherit; font-weight: 500; color: var(--gray-600); transition: all 0.2s; }
 .practice-mode-btn.active { background: var(--blue-600); color: white; border-color: var(--blue-600); }
 .practice-mode-btn:hover:not(.active) { background: var(--blue-50); border-color: var(--blue-300); }
+.structured-practice { line-height: 1.65; overflow-wrap: anywhere; }
+.structured-practice h2 { font-size: 1.3rem; margin-bottom: 1rem; }
+.structured-practice h3 { font-size: 1rem; margin: 1.1rem 0 0.4rem; }
+.structured-practice p, .structured-practice blockquote { margin: 0.6rem 0; }
+.structured-practice ul { padding-left: 1.25rem; }
+.structured-practice textarea { display: block; width: 100%; padding: 0.8rem; border: 1px solid var(--blue-200); border-radius: 10px; font: inherit; resize: vertical; margin-top: 0.5rem; }
+.structured-practice textarea:focus { outline: 2px solid var(--blue-400); outline-offset: 2px; }
+.structured-step, .structured-status { font-size: 0.85rem; color: var(--gray-500); }
+.structured-dialogue, .structured-tip, .structured-hints p { padding: 0.6rem 0.8rem; background: var(--blue-50); border-radius: 8px; }
+.structured-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1rem; }
+.structured-practice button { min-height: 44px; }
+.structured-practice button:disabled { opacity: 0.55; cursor: wait; }
+.structured-feedback dl { display: grid; grid-template-columns: 7rem 1fr; gap: 0.4rem; margin: 1rem 0; }
+.structured-feedback dt, .structured-result { font-weight: 600; }
+.structured-practice blockquote { border-left: 3px solid var(--blue-200); padding-left: 0.75rem; white-space: pre-wrap; }
+.structured-error { color: #b42318; }
+.structured-error:empty { display: none; }
 .voice-status { text-align: center; padding: 0.75rem; color: var(--gray-500); font-size: 0.9rem; }
 .voice-visualizer { display: flex; justify-content: center; padding: 1.5rem; }
 .voice-dots { display: flex; gap: 0.5rem; align-items: center; }
@@ -241,6 +258,7 @@ main { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
 .voice-transcript { max-height: 300px; min-height: 100px; }
 .voice-btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.8rem 2rem; border: none; border-radius: 2rem; background: var(--blue-600); color: white; font-size: 1rem; font-family: inherit; font-weight: 600; cursor: pointer; transition: all 0.2s; }
 .voice-btn:hover { background: var(--blue-700); }
+#voiceStartBtn[hidden] { display: none; }
 .voice-btn.recording { background: #DC2626; animation: recordPulse 1.5s ease-in-out infinite; }
 @keyframes recordPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); } 50% { box-shadow: 0 0 0 12px rgba(220, 38, 38, 0); } }
 .auth-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 500; align-items: center; justify-content: center; padding: 1rem; }
@@ -368,23 +386,17 @@ main { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
     </div>
     <div id="practiceChatSection" style="display:none;">
       <button class="practice-back-btn" id="practiceBackBtn">← Terug naar woordkeuze</button>
+      <h3>Oefenen: <span id="practiceChatWord"></span></h3>
       <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;">
-        <button class="practice-mode-btn active" id="voiceModeBtn">🎙️ Stem</button>
-        <button class="practice-mode-btn" id="textModeBtn">💬 Tekst</button>
+        <button class="practice-mode-btn active" id="voiceModeBtn">🎙️ Gesprek oefenen</button>
+        <button class="practice-mode-btn" id="textModeBtn">💬 Liever typen</button>
       </div>
       <div id="practiceUsage"></div>
-      <div id="textPracticePanel" style="display:none;">
-        <div class="card">
-          <div class="chat-header"><h3>🗣️ Oefen: <span id="practiceChatWord"></span></h3></div>
-          <div class="chat-messages" id="chatMessages"></div>
-          <div class="chat-input-row">
-            <input type="text" id="chatInput" placeholder="Typ je antwoord...">
-            <button id="chatSendBtn">Stuur</button>
-          </div>
-          <button type="button" class="use-button secondary" id="textFeedbackBtn">Afronden & terugkijken</button>
-        </div>
+      <div id="textPracticePanel">
+        <section id="structuredPractice" class="card structured-practice" aria-label="Stap voor stap oefenen"></section>
       </div>
       <div id="voicePracticePanel">
+        <div id="voicePracticeSteps" class="card" aria-live="polite"></div>
         <div class="card">
           <div class="chat-header"><h3>🎙️ Spreek: <span id="voicePracticeWord"></span></h3></div>
           <div class="voice-status" id="voiceStatus">Druk op de knop om te beginnen</div>

@@ -5,10 +5,14 @@ import {
 import { consumeRealtimePracticeCompletion, resetRealtimeEncounterUi, stopRealtimeEncounter } from './realtime/encounter-controller';
 import { enrichWordUsage, mergeUsageEnrichment } from './usage-generation';
 import { escapeText, renderPracticeUsage } from './word-usage-ui';
-import { renderWordExamples, renderWordTips, type UsageLoadState } from './word-card';
+import { renderWordTips, type UsageLoadState } from './word-card';
 import { cloudWordLearning, getWordAttempts, learningOwner, setLearningOwner, clearWordLearning, recordWordAttempt } from './learning-store';
-import { setPracticeContext, getPracticeContext, clearPracticeContext, markPracticeHelp, practiceUsageInstructions } from './practice-context';
-import { resetPracticeFeedback, finishPracticeFeedback } from './practice-feedback';
+import { setPracticeContext, getPracticeContext, clearPracticeContext, markPracticeHelp } from './practice-context';
+import { resetPracticeFeedback } from './practice-feedback';
+import { structuredPractice } from './structured-ui';
+import { clearStructuredWord } from './structured-store';
+import { generateLearningScene, readLearningScene, sceneUsage, rememberSceneExposure, recentlyViewedScene } from './learning-scene';
+import { renderLearningScene } from './learning-scene-view';
 import { needsUsageReview, wordReview } from './word-learning';
 import { createWordWriteQueue } from './word-write-queue';
 import { mergeCloudWordStats, saveWordWithVersion, supabaseWordStore } from './word-cloud-save';
@@ -257,14 +261,12 @@ if (storedHistory.some(item => typeof item === 'string')) {
 }
 let currentWord: string | null = null;
 let currentWordData: WordExplanation | null = null;
-let practiceMessages: ChatMessage[] = [];
 let reviewQueue: ReviewItem[] = [];
 let reviewIndex = 0;
 let reviewResults = { know: 0, again: 0 };
 let reviewRevealed = false;
 let reviewSessionActive = false;
 let currentReviewPrompt: ReturnType<typeof wordReview> | null = null;
-let practiceLoading = false;
 let practiceGeneration = 0;
 let microReviewTimer: ReturnType<typeof setTimeout> | null = null;
 let microReviewInterval: ReturnType<typeof setInterval> | null = null;
@@ -522,7 +524,7 @@ function handleRoute() {
   document.getElementById('nav-home').classList.toggle('active', isHome);
   document.getElementById('nav-practice').classList.toggle('active', isPractice);
   document.getElementById('nav-review').classList.toggle('active', isReview);
-  if (isPractice) renderPracticeHistoryList();
+  if (isPractice) { renderPracticeHistoryList(); if (!structuredPractice.session) restoreStructuredPractice(); }
   else { stopRealtimeEncounter(); showPracticePicker(); }
   if (isReview) renderReviewHome(); else resetReviewSessionIfActive();
 }
@@ -616,6 +618,10 @@ function renderHistory() {
   list.innerHTML = rows.join(''); initSwipeHandlers(list); const parts: string[] = []; if (counts.strong) parts.push(`🌳 ${counts.strong} sterk`); if (counts.growing) parts.push(`🪴 ${counts.growing} groeiend`); if (counts.sprout) parts.push(`🌿 ${counts.sprout} kiempjes`); if (counts.seed) parts.push(`🌱 ${counts.seed} zaaisel`); if (counts.wilting) parts.push(`🥀 ${counts.wilting} verwelkt`); summaryEl.innerHTML = parts.join(' · ');
 }
 function deleteHistoryItem(word: string) {
+  if (structuredPractice.session?.word.toLowerCase().trim() === word.toLowerCase().trim()) {
+    stopRealtimeEncounter(); structuredPractice.stop(true);
+  }
+  clearStructuredWord(word);
   const w = word.toLowerCase().trim(); clearWordLearning(w);
   searchHistory = searchHistory.filter(h => h.word !== w);
   localStorage.setItem('poortaal_history', JSON.stringify(searchHistory));
@@ -724,6 +730,11 @@ window.addEventListener('poortaal:word-learning', event => {
   if (currentWordData?.word.toLowerCase().trim() === word) renderWordCard(currentWordData);
   updateReviewBadge();
 });
+window.addEventListener('poortaal:structured-result', event => {
+  const { word, owner } = (event as CustomEvent<{ word: string; owner: string }>).detail;
+  if (owner !== learningOwner()) return;
+  updateWordStats(word, 'practice'); renderHistory(); updateReviewBadge();
+});
 document.addEventListener('toggle', event => {
   const details = event.target as HTMLDetailsElement;
   if (details.matches?.('.practice-use') && details.open) markPracticeHelp();
@@ -756,23 +767,65 @@ function renderWordCard(data: WordExplanation) {
     <div class="word-header"><h1>${word}</h1><span class="word-type">${escapeHtml(data.type)}</span>
     <button class="tts-btn" id="ttsBtn" data-action="play-word-tts" data-word="${word}" title="Uitspraak beluisteren">🔊</button></div>
     <div class="meaning"><div class="meaning-nl">${escapeHtml(data.meaning_nl)}</div><div class="meaning-en">${escapeHtml(data.meaning_en)}</div></div></div>
-    ${renderWordExamples(data, usageStates.get(usageKey))}${renderWordTips(data)}
-    <button class="practice-btn" data-action="practice-word" data-word="${word}">🎭 Oefenen met “${word}”</button>`;
+    ${renderLearningScene(data, sceneStates.get(usageKey))}${renderWordTips(data)}
+    <button class="practice-btn" data-action="practice-word" data-word="${word}">🎙️ Probeer het in een gesprek</button>`;
+  if (!readLearningScene(data.scene, data)) void loadLearningScene(data);
+  else if (document.getElementById('view-home').classList.contains('active')) rememberSceneExposure(data, learningOwner());
+}
+
+const sceneStates = new Map<string, 'loading' | 'error'>();
+const sceneRequests = new Map<string, Promise<void>>();
+async function loadLearningScene(data: WordExplanation, retry = false): Promise<void> {
+  const owner = learningOwner(), key = data.word.toLowerCase().trim(), token = `${owner}:${key}`;
+  if (readLearningScene(data.scene, data) || (!retry && sceneStates.has(token))) return;
+  if (sceneRequests.has(token)) return sceneRequests.get(token);
+  sceneStates.set(token, 'loading');
+  const request = (async () => {
+    try {
+      const enriched = await loadWordUsage(data);
+      if (enriched.usage === undefined) throw new Error('Usage still unavailable');
+      const scene = await generateLearningScene(enriched, callOpenAI);
+      const latest = getCachedWord(key);
+      if (owner !== learningOwner() || !latest || latest.meaning_en !== scene.sense || sceneUsage(latest) !== scene.usage) { sceneStates.delete(token); return; }
+      const saved = { ...latest, scene }; setWordCache(key, saved);
+      const entry = searchHistory.find(h => h.word === key);
+      if (entry) { entry.wordData = saved; localStorage.setItem('poortaal_history', JSON.stringify(searchHistory)); }
+      void saveHistoryToCloud(key, saved); void saveWordStatsToCloud(key);
+      sceneStates.delete(token);
+    } catch { sceneStates.set(token, 'error'); }
+    finally {
+      sceneRequests.delete(token);
+      const cached = getCachedWord(key);
+      if (cached && owner === learningOwner() && currentWord?.toLowerCase().trim() === key) {
+        currentWordData = cached; renderWordCard(currentWordData);
+      }
+    }
+  })();
+  sceneRequests.set(token, request); return request;
+}
+export async function retryLearningScene(word: string): Promise<void> {
+  const data = getCachedWord(word);
+  if (data) await loadLearningScene(data, true);
 }
 
 // --- Practice ---
-function goToPractice(word: string, usage?: number) { navigateTo('#practice'); setTimeout(() => { void startPracticeForWord(word, usage); }, 50); }
+function goToPractice(word: string, usage?: number) { navigateTo('#practice'); setTimeout(() => { void startPracticeForWord(word, usage, true); }, 50); }
 function renderPracticeHistoryList() { const list = document.getElementById('practiceHistoryList'); const wordsWithData = searchHistory.filter(h => h.wordData); if (wordsWithData.length === 0) { list.innerHTML = '<div class="history-empty" style="padding:2rem 0;">Zoek eerst een woord op om mee te oefenen</div>'; return; } list.innerHTML = wordsWithData.map(entry => { const safe = escapeHtml(entry.word); const safeAttr = safe.replace(/"/g, '&quot;'); const plant = getPlantStage(entry.word); const status = escapeHtml(plant.hint || plant.label); return `<li data-action="start-practice-word" data-word="${safeAttr}"><span class="word-label">${safe}</span><span class="word-type-hint">${plant.emoji} ${status}</span></li>`; }).join(''); }
 function startPracticeWithInput() { const input = document.getElementById('practiceWordInput') as HTMLInputElement; const word = input.value.trim(); if (!word) return; input.value = ''; startPracticeForWord(word); }
+function setPracticePreparing(disabled: boolean): void {
+  for (const id of ['voiceStartBtn', 'textModeBtn', 'voiceModeBtn']) {
+    (document.getElementById(id) as HTMLButtonElement).disabled = disabled;
+  }
+}
 function showPracticePicker(recordCompletion = true) {
   practiceGeneration++; resetPracticeFeedback();
   const word = document.getElementById('practiceChatWord').textContent?.toLowerCase().trim();
-  const completed = consumeRealtimePracticeCompletion() || practiceMessages.some(m => m.role === 'user');
+  const completed = consumeRealtimePracticeCompletion();
   if (recordCompletion && word && completed) { updateWordStats(word, 'practice'); renderHistory(); }
   document.getElementById('practicePickerSection').style.display = '';
   document.getElementById('practiceChatSection').style.display = 'none';
-  practiceMessages = []; practiceLoading = false; clearPracticeContext();
-  (document.getElementById('chatSendBtn') as HTMLButtonElement).disabled = false;
+  structuredPractice.stop(true); clearPracticeContext();
+  setPracticePreparing(false);
   resetRealtimeEncounterUi(); switchPracticeMode('voice');
 }
 window.addEventListener('poortaal:learning-owner', () => {
@@ -781,9 +834,23 @@ window.addEventListener('poortaal:learning-owner', () => {
   updateReviewBadge();
   closeMicroReview(); resetReviewSessionIfActive();
   if (window.location.hash.split('?')[0] === '#review') renderReviewHome();
+  if (window.location.hash.split('?')[0] === '#practice') restoreStructuredPractice();
 });
 
-async function startPracticeForWord(word: string, usage?: number) {
+function restoreStructuredPractice(): void {
+  if (!structuredPractice.restore()) return;
+  const s = structuredPractice.session!;
+  setPracticeContext({ word: s.word, usage: s.usage ? [s.usage] : [] });
+  if (s.supportUsed) markPracticeHelp();
+  document.getElementById('practicePickerSection').style.display = 'none';
+  document.getElementById('practiceChatSection').style.display = '';
+  document.getElementById('practiceChatWord').textContent = s.word;
+  document.getElementById('practiceUsage').innerHTML = renderPracticeUsage(getPracticeContext());
+  setPracticePreparing(false);
+  void switchPracticeMode(s.delivery === 'voice' ? 'voice' : 'text');
+}
+
+async function startPracticeForWord(word: string, usage?: number, helped = false) {
   const ticket = ++practiceGeneration;
   stopRealtimeEncounter(); resetPracticeFeedback(); clearPracticeContext();
   const key = word.toLowerCase().trim();
@@ -792,10 +859,8 @@ async function startPracticeForWord(word: string, usage?: number) {
   document.getElementById('practiceChatSection').style.display = '';
   document.getElementById('practiceChatWord').textContent = data?.word || word;
   document.getElementById('practiceUsage')!.innerHTML = '';
-  practiceMessages = []; practiceLoading = false; resetRealtimeEncounterUi(); switchPracticeMode('voice');
-  const start = document.getElementById('voiceStartBtn') as HTMLButtonElement;
-  const textMode = document.getElementById('textModeBtn') as HTMLButtonElement;
-  start.disabled = true; textMode.disabled = true;
+  structuredPractice.stop(); resetRealtimeEncounterUi(); void switchPracticeMode('voice');
+  setPracticePreparing(true);
   document.getElementById('voiceStatus').textContent = 'Een toepassing voorbereiden…';
   try {
     if (!data) {
@@ -808,66 +873,18 @@ async function startPracticeForWord(word: string, usage?: number) {
   finally {
     if (ticket === practiceGeneration) {
       setPracticeContext(data || { word }, getWordStats()[key]?.practices || 0, usage);
+      if (helped || (data && recentlyViewedScene(data, learningOwner()))) markPracticeHelp();
       document.getElementById('practiceUsage')!.innerHTML = renderPracticeUsage(getPracticeContext());
-      start.disabled = false; textMode.disabled = false;
+      setPracticePreparing(false);
       document.getElementById('voiceStatus').textContent = 'Druk op de knop om te beginnen';
+      const context = getPracticeContext()!;
+      await structuredPractice.start(context.word, context.usage, context.helpUsed, {
+        voice: true, meaning: context.meaning, studiedScenario: context.helpUsed ? context.studiedScenario : undefined,
+      });
     }
   }
 }
-async function startTextPracticeScenario() {
-  if (practiceMessages.length > 0 || practiceLoading) return;
-  const word = document.getElementById('practiceChatWord').textContent || ''; if (!word) return;
-  const ticket = practiceGeneration;
-  practiceLoading = true;
-  const entry = searchHistory.find(h => h.word === word.toLowerCase()); const meaningHint = entry?.wordData?.meaning_en ? ` (${entry.wordData.meaning_en})` : ''; const msgs = document.getElementById('chatMessages'); msgs.innerHTML = '<div class="chat-msg system">Scenario wordt voorbereid...</div>';
-  practiceMessages = [{ role: 'system', content: `You are a friendly Dutch language tutor running a role-play practice session. The student is learning the word "${word}"${meaningHint}.
-
-Your job:
-1. First message: Set up a short, fun real-life scenario in Dutch (with English hint in parentheses) where the student must use "${word}" naturally. Keep it conversational and simple.
-2. In subsequent messages: Stay in character for the scenario. Respond naturally in Dutch.
-3. Keep the role-play flowing after the student uses the word. Save minor corrections for feedback after the session; clarify immediately only if meaning is blocked.
-4. Keep messages short (2-3 sentences max).
-5. Mix Dutch and English — primarily Dutch with English support (parentheses) when needed.
-6. Use common A2-B1 Dutch. Be warm and give the learner time to answer.
-${practiceUsageInstructions()}` }];
-  try {
-    const response = await callOpenAI([...practiceMessages]);
-    if (ticket !== practiceGeneration) return;
-    msgs.innerHTML = `<div class="chat-msg tutor">${formatChat(response)}</div>`;
-    practiceMessages.push({ role: 'assistant', content: response }); document.getElementById('chatInput').focus();
-  } catch {
-    if (ticket !== practiceGeneration) return;
-    msgs.innerHTML = '<div class="chat-msg system">Kon het scenario niet starten. Probeer opnieuw.</div>'; practiceMessages = [];
-  } finally { if (ticket === practiceGeneration) practiceLoading = false; }
-}
-async function sendChat() {
-  const input = document.getElementById('chatInput') as HTMLInputElement;
-  const text = input.value.trim(); if (!text || practiceLoading) return;
-  const ticket = practiceGeneration; const msgs = document.getElementById('chatMessages');
-  resetPracticeFeedback(); practiceMessages.push({ role: 'user', content: text });
-  msgs.innerHTML += `<div class="chat-msg user">${escapeHtml(text)}</div>`; input.value = ''; practiceLoading = true;
-  (document.getElementById('chatSendBtn') as HTMLButtonElement).disabled = true;
-  msgs.innerHTML += '<div class="chat-msg system" id="chatLoading">💭 Even denken...</div>';
-  try {
-    const response = await callOpenAI([...practiceMessages]);
-    if (ticket !== practiceGeneration) return;
-    practiceMessages.push({ role: 'assistant', content: response }); document.getElementById('chatLoading')?.remove();
-    msgs.innerHTML += `<div class="chat-msg tutor">${formatChat(response)}</div>`;
-  } catch {
-    if (ticket === practiceGeneration) { document.getElementById('chatLoading')?.remove(); msgs.innerHTML += '<div class="chat-msg system">Fout bij het versturen. Probeer opnieuw.</div>'; }
-  } finally {
-    if (ticket === practiceGeneration) { practiceLoading = false; (document.getElementById('chatSendBtn') as HTMLButtonElement).disabled = false; msgs.scrollTop = msgs.scrollHeight; }
-  }
-}
-function finishTextPractice(): void {
-  const context = getPracticeContext();
-  if (!context || practiceLoading) return;
-  const turns = practiceMessages.filter(m => m.role !== 'system').map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
-  void finishPracticeFeedback({ ...context, id: `${context.id}:text`, owner: learningOwner(), turns,
-    supportUsed: context.helpUsed, settled: true });
-}
 function escapeHtml(s: string) { return escapeText(s); }
-function formatChat(text: string) { return escapeHtml(text).replace(/\n/g, '<br>'); }
 
 // --- Micro review ---
 function startMicroReview(word: string) {
@@ -901,7 +918,25 @@ function finishReview(knew: boolean) {
 }
 function closeMicroReview() { if (microReviewInterval) { clearInterval(microReviewInterval); microReviewInterval = null; } microReviewPrompt = null; document.getElementById('microReviewOverlay').classList.remove('open'); }
 
-function switchPracticeMode(mode: 'text' | 'voice') { document.getElementById('textModeBtn').classList.toggle('active', mode === 'text'); document.getElementById('voiceModeBtn').classList.toggle('active', mode === 'voice'); document.getElementById('textPracticePanel').style.display = mode === 'text' ? '' : 'none'; document.getElementById('voicePracticePanel').style.display = mode === 'voice' ? '' : 'none'; if (mode === 'voice') { const word = document.getElementById('practiceChatWord').textContent || ''; document.getElementById('voicePracticeWord').textContent = word; } else { void startTextPracticeScenario(); } }
+async function switchPracticeMode(mode: 'text' | 'voice') {
+  document.getElementById('textModeBtn').classList.toggle('active', mode === 'text');
+  document.getElementById('voiceModeBtn').classList.toggle('active', mode === 'voice');
+  document.getElementById('textPracticePanel').style.display = mode === 'text' ? '' : 'none';
+  document.getElementById('voicePracticePanel').style.display = mode === 'voice' ? '' : 'none';
+  document.getElementById('practiceUsage').style.display = 'none';
+  document.getElementById('practiceFeedback').hidden = true;
+  if (mode === 'voice') {
+    document.getElementById('voicePracticeWord').textContent = document.getElementById('practiceChatWord').textContent || '';
+  }
+  const c = getPracticeContext();
+  if (c && structuredPractice.session && (structuredPractice.session.delivery === 'voice') !== (mode === 'voice')) {
+    const previous = structuredPractice.session;
+    if (previous.supportUsed || previous.rounds.some(r => r.hintsUsed > 0 || r.feedback)) markPracticeHelp();
+    stopRealtimeEncounter();
+    await structuredPractice.start(c.word, c.usage, c.helpUsed, { voice: mode === 'voice', meaning: c.meaning,
+      studiedScenario: c.helpUsed ? c.studiedScenario || (previous.mode === 'guided' ? previous.scenario : undefined) : undefined });
+  }
+}
 
 export {
   closeAuthModal,
@@ -912,7 +947,6 @@ export {
   exitReviewSession,
   exploreDailyWord,
   finishReview,
-  finishTextPractice,
   goToPractice,
   gradeAndAdvance,
   lookupWord,
@@ -921,7 +955,6 @@ export {
   playExTTS,
   playTTS,
   revealAnswer,
-  sendChat,
   showPracticePicker,
   signInWithGoogle,
   startMicroReview,

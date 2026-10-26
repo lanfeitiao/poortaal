@@ -76,6 +76,9 @@ test('finishing mutes capture but preserves the data channel for delayed caption
   assert.equal(fixture.track.enabled, false);
   assert.equal(fixture.channel.readyState, 'open');
   assert.equal(fixture.stopped(), 0);
+  fixture.client.resumeInput();
+  assert.equal(fixture.track.enabled, true);
+  assert.equal(fixture.channel.readyState, 'open');
   fixture.client.disconnect();
   assert.equal(fixture.stopped(), 1);
 });

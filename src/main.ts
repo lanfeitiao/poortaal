@@ -8,7 +8,6 @@ import {
   exitReviewSession,
   exploreDailyWord,
   finishReview,
-  finishTextPractice,
   goToPractice,
   gradeAndAdvance,
   lookupWord,
@@ -18,7 +17,7 @@ import {
   playTTS,
   revealAnswer,
   retryWordUsage,
-  sendChat,
+  retryLearningScene,
   showPracticePicker,
   signInWithGoogle,
   startMicroReview,
@@ -30,6 +29,7 @@ import {
   trySuggestion,
 } from './app';
 import { stopRealtimeEncounter, toggleRealtimeEncounter } from './realtime/encounter-controller';
+import { connectStructuredPractice } from './structured-ui';
 
 assertRequiredDom();
 
@@ -50,6 +50,9 @@ function handleActionClick(event: MouseEvent) {
   const word = target.dataset.word;
 
   switch (target.dataset.action) {
+    case 'retry-learning-scene':
+      if (word) void retryLearningScene(word);
+      break;
     case 'start-review':
       startReviewSession();
       break;
@@ -111,6 +114,7 @@ function handleActionClick(event: MouseEvent) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  connectStructuredPractice(showPracticePicker);
   onClick('logoutBtn', doLogout);
   onClick('loginBtn', openAuthModal);
   onClick('historyBtn', toggleHistory);
@@ -125,8 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
     switchPracticeMode('text');
   });
   onClick('voiceModeBtn', () => switchPracticeMode('voice'));
-  onClick('chatSendBtn', sendChat);
-  onClick('textFeedbackBtn', finishTextPractice);
   onClick('voiceStartBtn', toggleRealtimeEncounter);
   onClick('overlay', toggleHistory);
   onClick('historyCloseBtn', toggleHistory);
@@ -139,12 +141,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const suggestion = element.dataset.suggestion;
       if (suggestion) trySuggestion(suggestion);
     });
-  });
-
-  document.getElementById('chatInput')?.addEventListener('keydown', event => {
-    if (event.key === 'Enter') {
-      void sendChat();
-    }
   });
 
   document.addEventListener('click', handleActionClick);
