@@ -17,8 +17,25 @@ test('a lesson ties one sense and verified use to a situation, spoken expression
   const html = renderLearningScene(saved);
   assert.ok(html.includes(scenario.situation)); assert.ok(html.includes('Een kort gesprek'));
   assert.ok(html.includes('play-example-tts')); assert.ok(html.includes(practiceUsage.chunk));
+  assert.ok(html.includes('Zinnen met afspraak')); assert.ok(html.includes('Betekenis:'));
   assert.equal(readLearningScene(scene, { ...word, meaning_en: 'a different sense' }), undefined);
   assert.equal(readLearningScene(scene, { ...word, usage: [] }), undefined);
+});
+test('scene-only expressions are repaired before a lesson is displayed', async () => {
+  let calls = 0;
+  const unrelated = { ...scenario, expressions: ['Mijn laptop is kapot.', 'Kun je mij helpen?'] };
+  const scene = await generateLearningScene(word, async messages => {
+    assert.ok(messages[0].content.includes('EVERY expression'));
+    return JSON.stringify(++calls === 1 ? unrelated : scenario);
+  });
+  assert.equal(calls, 2); assert.deepEqual(scene.scenario, scenario);
+  assert.equal(readLearningScene({ ...scene, scenario: unrelated }, word), undefined);
+});
+test('a target substring or target only in the dialogue cannot validate unrelated examples', async () => {
+  const invalid = { ...scenario, expressions: ['De afspraakjes zijn leuk.', 'Mijn laptop werkt weer.'] };
+  await assert.rejects(generateLearningScene(word, async () => JSON.stringify(invalid)));
+  await assert.rejects(generateLearningScene(word, async () => JSON.stringify({ ...scenario,
+    dialogue: [{ speaker: 'Jij', line: 'Hallo.' }, { speaker: 'Ander', line: 'Dag.' }] })));
 });
 test('legacy words and malformed lessons retain definitions without inventing a scenario or collocation', () => {
   const saved = validateWordExplanation({ ...word, usage: [], scene: { scenario: 'broken' } });
