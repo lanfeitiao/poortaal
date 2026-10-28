@@ -1,5 +1,5 @@
 import { validateScenario, type PracticeScenario } from './structured-contract.ts';
-import { generateScenario, type CompleteChat } from './structured-ai.ts';
+import { generateScenario, validateLessonGrounding, type CompleteChat } from './structured-ai.ts';
 import { createSession } from './structured-session.ts';
 import { usageKey } from './word-usage.ts';
 import type { WordExplanation } from './word-explanation.ts';
@@ -12,12 +12,14 @@ export function readLearningScene(value: unknown, data: Pick<WordExplanation, 'w
   try {
     const v = value as LearningScene;
     if (!v || v.sense !== data.meaning_en || v.usage !== sceneUsage(data)) return;
-    return { sense: v.sense, usage: v.usage, scenario: validateScenario(v.scenario) };
+    const scenario = validateScenario(v.scenario);
+    validateLessonGrounding(scenario, data.word);
+    return { sense: v.sense, usage: v.usage, scenario };
   } catch { return; }
 }
 export async function generateLearningScene(data: WordExplanation, chat: CompleteChat): Promise<LearningScene> {
   const session = { ...createSession('lesson', data.word, data.usage?.[0], true, true), meaning: data.meaning_en };
-  return { sense: data.meaning_en, usage: sceneUsage(data), scenario: await generateScenario(session, [], chat) };
+  return { sense: data.meaning_en, usage: sceneUsage(data), scenario: await generateScenario(session, [], chat, true) };
 }
 type Exposure = { word: string; sense: string; usage: string; at: number };
 function exposures(owner: string): Exposure[] {
