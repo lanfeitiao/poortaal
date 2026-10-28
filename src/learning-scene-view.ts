@@ -8,11 +8,13 @@ export function renderLearningScene(data: WordExplanation, state?: 'loading' | '
     <p role="status">${state === 'error' ? 'De situatie kon niet worden geladen. Je woord blijft bewaard.' : 'Een herkenbare situatie voorbereiden…'}</p>
     ${state === 'error' ? `<button type="button" class="use-button" data-action="retry-learning-scene" data-word="${e(data.word)}">Opnieuw laden</button>` : ''}</section>`;
   const s = lesson.scenario;
-  return `<section class="card structured-practice"><div class="card-label">Wanneer zeg je dit?</div>
-    <p>${e(s.situation)}</p><p><strong>Je wilt:</strong> ${e(s.task)}</p>
-    <h3>Zo kun je het zeggen</h3>${s.expressions.map(line => `<div class="example-nl"><span>${e(line)}</span>
+  return `<section class="card structured-practice"><div class="card-label">${e(data.word)} in een situatie</div>
+    <p><strong>Betekenis:</strong> ${e(lesson.sense)}</p>
+    <h3>Wanneer gebruik je dit woord?</h3><p>${e(s.situation)}</p>
+    <h3>Zinnen met ${e(data.word)}</h3>${s.expressions.map(line => `<div class="example-nl"><span>${e(line)}</span>
       <button type="button" class="ex-tts-btn" data-action="play-example-tts" data-text="${e(line)}" title="Beluisteren">🔊</button></div>`).join('')}
-    <h3>Een kort gesprek</h3><div class="structured-dialogue">${s.dialogue.map(d => `<p><strong>${e(d.speaker)}:</strong> ${e(d.line)}</p>`).join('')}</div>
+    <h3>Een kort gesprek</h3><p>Zo past het woord in een gesprek. De andere zinnen geven context.</p>
+    <div class="structured-dialogue">${s.dialogue.map(d => `<p><strong>${e(d.speaker)}:</strong> ${e(d.line)}</p>`).join('')}</div>
     ${use ? `<p class="example-pattern"><span class="pattern-label">${use.kind === 'collocation' ? 'Vaste combinatie' : 'Zinsbouw'}</span>
       <strong>${e(use.chunk)}</strong>${use.note ? `<span class="use-note">${e(use.note)}</span>` : ''}</p>` : ''}
     ${s.tip ? `<p class="structured-tip">Let op: ${e(s.tip)}</p>` : ''}

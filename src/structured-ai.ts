@@ -25,21 +25,31 @@ async function validated<T>(messages: ChatMessage[], validate: (value: unknown) 
   }
   throw new InvalidStructuredOutput('Invalid practice response');
 }
-export function generateScenario(session: StructuredSession, previous: string[], chat = complete) {
+export function generateScenario(session: StructuredSession, previous: string[], chat = complete, lesson = false) {
   return validated([
     { role: 'system', content: `${RULES}
 Create a NEW situation differing from previous practice, naturally inviting the selected use.
 When a studiedScenario is supplied, keep that sense and communication purpose, change one concrete condition, and do not repeat its teaching dialogue or expressions.
 The task must not contain the Dutch reference answer; the UI hides learning material in recall mode.
 Provide 2-4 useful conversational expressions, a 2-4-line mini dialogue, and at most one necessary usage warning (tip null otherwise).
+${lesson ? `This is a word-learning lesson. EVERY expression must demonstrate the target word in the supplied sense, not just fit the scene. Include the exact supplied word as a standalone word/phrase in each expression so the learner can identify it (for verbs a natural infinitive construction is fine). Do not force awkward grammar. At least one dialogue line must also use that word. Other dialogue lines may be natural replies. Make the situation explain WHY someone would use this word.` : ''}
 Return {${TASK}, "expressions":["...","..."], "dialogue":[{"speaker":"...","line":"..."},{"speaker":"...","line":"..."}], "tip":null}.` },
     { role: 'user', content: JSON.stringify({ word: session.word, meaning: session.meaning, usage: session.usage,
       studiedScenario: session.studiedScenario, previous: previous.slice(-5) }) },
   ], value => {
     const scenario = validateScenario(value);
+    if (lesson) validateLessonGrounding(scenario, session.word);
     if (session.delivery === 'voice' && !scenario.openingLine) throw new InvalidStructuredOutput('Missing spoken opening');
     return scenario;
   }, chat);
+}
+export function validateLessonGrounding(scenario: import('./structured-contract.ts').PracticeScenario, word: string): void {
+  const tokens = (text: string) => text.normalize('NFC').toLocaleLowerCase('nl-NL').match(/[\p{L}\p{M}\p{N}]+/gu) || [];
+  const target = tokens(word).join(' ');
+  const contains = (text: string) => !!target && ` ${tokens(text).join(' ')} `.includes(` ${target} `);
+  if (!scenario.expressions.every(contains) || !scenario.dialogue.some(d => contains(d.line))) {
+    throw new InvalidStructuredOutput('Lesson examples must demonstrate the target word');
+  }
 }
 export function evaluateResponse(session: StructuredSession, chat = complete) {
   const task = currentTask(session)!, round = currentRound(session);
