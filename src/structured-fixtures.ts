@@ -8,7 +8,7 @@ export const practiceUsage: WordUsage = { kind: 'collocation', note: 'Use maken 
 export const scenario: PracticeScenario = {
   openingLine: 'Goedemorgen, waarmee kan ik je helpen?',
   situation: 'Je belt de huisarts. Je hebt morgen tijd.', task: 'Vraag of je morgen kunt komen. Vertel wanneer je tijd hebt.',
-  expressions: ['Ik wil een afspraak maken.', 'Kan ik morgen komen?'],
+  expressions: ['Ik wil een afspraak maken.', 'Kan ik morgen een afspraak maken?'],
   dialogue: [{ speaker: 'Jij', line: 'Ik wil een afspraak maken.' }, { speaker: 'Assistent', line: 'Wanneer kun je komen?' }],
   tip: null, hints: ['Welke dag heb je tijd?', 'Ik wil een…', 'Ik wil een afspraak maken. Kan ik morgen komen?'],
 };
