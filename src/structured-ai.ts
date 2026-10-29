@@ -13,7 +13,7 @@ Never invent or label an ordinary free combination as a fixed collocation. A wor
 No scores, no pronunciation judgments from text. Return ONLY JSON matching the requested shape.`;
 const TASK = `"situation":"one short English sentence describing a concrete everyday problem", "task":"one short English sentence saying what to achieve, no answer or sentence frame",
 "openingLine":"one short natural Dutch question by the conversation partner, inviting the goal without modelling the target",
-"hints":["a content question without Dutch answer words", "a partial sentence starter", "one possible full response"]`;
+"hints":["one short Dutch content question without the target word or reference answer", "a partial Dutch sentence starter", "one possible full Dutch response"]`;
 
 async function validated<T>(messages: ChatMessage[], validate: (value: unknown) => T, chat: CompleteChat): Promise<T> {
   for (let attempt = 0; attempt < 2; attempt++) {
@@ -32,7 +32,9 @@ Create a NEW situation differing from previous practice, naturally inviting the 
 Prefer everyday life in the Netherlands: school or BSO pickup, talking to a teacher, arranging a playdate, shopping or returns, booking appointments, and household repairs.
 Choose whichever context fits this word and sense naturally. Use another everyday context if none fits; never force a school setting or default to a job interview or office example.
 Give the learner a concrete reason to contact someone and something to resolve, not a generic topic. Use generic roles, never invent personal names or events about the learner.
-Make the situation, goal and example agree on what has happened and what needs to happen next. A missing-confirmation example needs a scene about waiting for confirmation, not confirming attendance. If the goal asks for a reason, supply a concrete reason in the situation and express it in the example.
+Respect the word's register: administrative wording belongs naturally in booking, registration or email tasks, rather than forced formalities between friends.
+Build every field around ONE action by the learner. The situation describes the learner's starting problem; task says what the learner needs to tell or ask the partner. Never swap their roles.
+The expression must perform that exact task and be a natural first learner reply to openingLine. If the goal asks for a reason, supply a concrete reason in the situation and express it in the example.
 Use English for situation, task and tip. Use A2-B1 Dutch for openingLine, expressions and hints.
 When a studiedScenario is supplied, keep that sense and communication purpose, change one concrete condition, and do not repeat its teaching dialogue or expressions.
 The task must not contain the Dutch reference answer; the UI hides learning material in recall mode.
