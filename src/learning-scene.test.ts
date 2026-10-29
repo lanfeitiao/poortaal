@@ -4,6 +4,7 @@ import { generateLearningScene, readLearningScene, rememberSceneExposure, recent
 import { renderLearningScene } from './learning-scene-view.ts';
 import { validateWordExplanation } from './word-explanation.ts';
 import { practiceUsage, scenario } from './structured-fixtures.ts';
+import { parseHTML } from 'linkedom';
 
 const word = { word: 'afspraak', type: 'zelfstandig naamwoord', meaning_nl: 'Een plan.', meaning_en: 'appointment',
   examples: [{ nl: practiceUsage.example_nl, en: practiceUsage.example_en }], usage: [practiceUsage], tips: '', fun_fact: null };
@@ -15,9 +16,13 @@ test('a lesson ties one sense and verified use to a situation, spoken expression
   const saved = validateWordExplanation({ ...word, scene });
   assert.deepEqual(saved.scene, scene);
   const html = renderLearningScene(saved);
-  assert.ok(html.includes(scenario.situation)); assert.ok(html.includes('Een kort gesprek'));
-  assert.ok(html.includes('play-example-tts')); assert.ok(html.includes(practiceUsage.chunk));
-  assert.ok(html.includes('Zinnen met afspraak')); assert.ok(html.includes('Betekenis:'));
+  const { document } = parseHTML(html);
+  assert.ok(html.includes(scenario.situation)); assert.ok(html.includes(scenario.task));
+  assert.equal(document.querySelectorAll('.learning-scene > .example-nl').length, 1);
+  assert.equal(document.querySelectorAll('details[open]').length, 0);
+  assert.ok(document.querySelector('details')!.textContent!.includes(scenario.expressions[1]));
+  assert.equal(document.querySelector('.structured-dialogue'), null);
+  assert.equal(document.querySelector('[data-action="practice-word"]')!.textContent, 'Start conversation');
   assert.equal(readLearningScene(scene, { ...word, meaning_en: 'a different sense' }), undefined);
   assert.equal(readLearningScene(scene, { ...word, usage: [] }), undefined);
 });
