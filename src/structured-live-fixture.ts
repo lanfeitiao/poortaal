@@ -12,7 +12,7 @@ export async function liveFixture(t: TestContext) {
   events.supabase = { createClient: () => ({ auth: { getUser: async () => ({ data: { user: null } }), onAuthStateChange: () => {} } }) };
   const word = { word: 'afspraak', type: 'zelfstandig naamwoord', meaning_nl: 'Een plan om iemand te zien.', meaning_en: 'appointment',
     examples: [{ nl: practiceUsage.example_nl, en: practiceUsage.example_en }], tips: '', fun_fact: null, usage: [practiceUsage],
-    scene: { version: 2, sense: 'appointment', usage: practiceUsage.chunk, scenario } };
+    scene: { version: 2, generatedAt: 1, sense: 'appointment', usage: practiceUsage.chunk, scenario } };
   const storage = new Map<string, string>([['poortaal_word_cache_v4', JSON.stringify({ afspraak: word })],
     ['poortaal_history', JSON.stringify([{ word: 'afspraak', timestamp: 1, wordData: word }])]]);
   const track = { enabled: true, stop() {} };

@@ -4,7 +4,7 @@ import { createSession } from './structured-session.ts';
 import { usageKey } from './word-usage.ts';
 import type { WordExplanation } from './word-explanation.ts';
 
-export type LearningScene = { version: 2; sense: string; usage: string; scenario: PracticeScenario };
+export type LearningScene = { version: 2; generatedAt: number; sense: string; usage: string; scenario: PracticeScenario };
 export function sceneUsage(data: Pick<WordExplanation, 'word' | 'usage'>): string {
   return usageKey(data.usage?.[0]?.chunk || data.word);
 }
@@ -12,14 +12,16 @@ export function readLearningScene(value: unknown, data: Pick<WordExplanation, 'w
   try {
     const v = value as LearningScene;
     if (!v || v.version !== 2 || v.sense !== data.meaning_en || v.usage !== sceneUsage(data)) return;
+    if (!Number.isSafeInteger(v.generatedAt) || v.generatedAt < 0) return;
     const scenario = validateScenario(v.scenario);
     validateLessonGrounding(scenario, data.word);
-    return { version: 2, sense: v.sense, usage: v.usage, scenario };
+    return { version: 2, generatedAt: v.generatedAt, sense: v.sense, usage: v.usage, scenario };
   } catch { return; }
 }
 export async function generateLearningScene(data: WordExplanation, chat: CompleteChat, previous: string[] = []): Promise<LearningScene> {
   const session = { ...createSession('lesson', data.word, data.usage?.[0], true, true), meaning: data.meaning_en };
-  return { version: 2, sense: data.meaning_en, usage: sceneUsage(data), scenario: await generateScenario(session, previous, chat, true) };
+  const scenario = await generateScenario(session, previous, chat, true);
+  return { version: 2, generatedAt: Date.now(), sense: data.meaning_en, usage: sceneUsage(data), scenario };
 }
 type Exposure = { word: string; sense: string; usage: string; at: number };
 function exposures(owner: string): Exposure[] {

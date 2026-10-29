@@ -19,7 +19,9 @@ function mergeWordData(word: string, local: unknown, remote: unknown, retried?: 
     .filter(a => usageKey(a.word) === usageKey(word));
   const base = saved ? mergeUsageEnrichment(saved, { usage: current?.usage }, retried) : current;
   const progress = mergeAttempts(attempts(local), attempts(remote));
-  const scene = base && (readLearningScene(base.scene, base) || readLearningScene(current?.scene, base));
+  const scenes = base ? [readLearningScene(base.scene, base), readLearningScene(current?.scene, base)]
+    .filter((s): s is NonNullable<typeof s> => !!s).sort((a, b) => b.generatedAt - a.generatedAt) : [];
+  const scene = scenes[0];
   return base || progress.length ? { ...base, ...(scene ? { scene } : {}), usage_progress: progress } : null;
 }
 
