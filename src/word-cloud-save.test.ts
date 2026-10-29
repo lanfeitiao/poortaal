@@ -9,7 +9,7 @@ const attempt = (id: string, discarded = false) => ({ id, at: 1, word: 'afspraak
 test('a new contextual lesson survives a save over an older cloud word without a lesson', async () => {
   const word = { word: 'afspraak', type: 'zelfstandig naamwoord', meaning_nl: 'Een plan.', meaning_en: 'appointment',
     examples: [{ nl: practiceUsage.example_nl, en: practiceUsage.example_en }], usage: [practiceUsage], tips: '', fun_fact: null };
-  const scene = { sense: word.meaning_en, usage: practiceUsage.chunk, scenario };
+  const scene = { version: 2, sense: word.meaning_en, usage: practiceUsage.chunk, scenario };
   const db = memory({ ...row(), word_data: word } as ReturnType<typeof row>);
   await saveWordWithVersion(db.store, () => ({ ...row(), word_data: { ...word, scene } }), () => true);
   assert.deepEqual(db.get().word_data.scene, scene);

@@ -44,7 +44,7 @@ test('legacy words and malformed lessons retain definitions without inventing a 
   assert.ok(html.includes('retry-learning-scene')); assert.ok(!html.includes('Vaste combinatie'));
 });
 test('lesson text stays escaped and an ordinary expression is not labelled as a fixed combination', () => {
-  const data = { ...word, usage: [], scene: { sense: word.meaning_en, usage: 'afspraak',
+  const data = { ...word, usage: [], scene: { version: 2 as const, sense: word.meaning_en, usage: 'afspraak',
     scenario: { ...scenario, situation: '<img src=x onerror=alert(1)>' } } };
   const html = renderLearningScene(data);
   assert.ok(!html.includes('<img')); assert.ok(html.includes('&lt;img')); assert.ok(!html.includes('Vaste combinatie'));
@@ -53,10 +53,22 @@ test('recent example exposure follows this owner and sense but expires for later
   const storage = new Map<string, string>();
   Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: {
     getItem: (k: string) => storage.get(k) || null, setItem: (k: string, v: string) => storage.set(k, v) } });
-  const data = { ...word, scene: { sense: word.meaning_en, usage: practiceUsage.chunk, scenario } };
+  const data = { ...word, scene: { version: 2 as const, sense: word.meaning_en, usage: practiceUsage.chunk, scenario } };
   rememberSceneExposure(data, 'one', 100);
   assert.equal(recentlyViewedScene(data, 'one', 200), true);
   assert.equal(recentlyViewedScene(data, 'two', 200), false);
   assert.equal(recentlyViewedScene(data, 'one', 100 + 30 * 60_000), false);
   assert.equal(recentlyViewedScene({ ...data, meaning_en: 'another sense' }, 'one', 200), false);
+});
+test('old lessons are regenerated and compact lessons retain the previous situation when changing scenes', async () => {
+  const compact = { ...scenario, expressions: scenario.expressions.slice(0, 1), dialogue: [] };
+  const scene = await generateLearningScene(word, async messages => {
+    assert.deepEqual(JSON.parse(messages[1].content).previous, ['A school appointment.']);
+    return JSON.stringify(compact);
+  }, ['A school appointment.']);
+  assert.equal(scene.version, 2);
+  assert.deepEqual(readLearningScene(scene, word)?.scenario, compact);
+  const { version: _legacy, ...old } = scene;
+  assert.equal(readLearningScene(old, word), undefined);
+  assert.deepEqual(validateWordExplanation({ ...word, scene: old }).examples, word.examples);
 });
