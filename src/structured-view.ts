@@ -19,28 +19,27 @@ export function feedbackView(f: StructuredFeedback): string {
 }
 export function renderStructured(session: StructuredSession | null, busy: boolean, error: string): string {
   const notice = `<p class="structured-error" role="alert">${e(error)}</p>`;
-  if (!session) return `${notice}<p>Kies een woord om te oefenen.</p>`;
+  if (!session) return `${notice}<p>Choose a word to practise.</p>`;
   const s = session, round = currentRound(s), task = currentTask(s);
-  const heading = `<p class="structured-step">${s.mode === 'guided' ? 'Met voorbeelden' : 'Zelf proberen'} · ${s.round === 0 ? 'Eerste poging' : 'Nog één keer'}</p>
-    <h2>Oefen met “${e(s.word)}”</h2>`;
-  const state = `<p class="structured-status" role="status">${busy ? 'Even geduld…' : s.pending ? 'Je vorige aanvraag is onderbroken. Je kunt die hieronder opnieuw proberen.' : 'Je oefening wordt op dit apparaat bewaard.'}</p>`;
+  const heading = `<p class="structured-step">${s.mode === 'guided' ? 'With an example' : 'Try it yourself'} · ${s.round === 0 ? 'First try' : 'One more try'}</p>
+    <h2>Practise “${e(s.word)}”</h2>`;
+  const state = busy || s.pending ? `<p class="structured-status" role="status">${busy ? 'One moment…' : 'Your request was interrupted. Try it again below.'}</p>` : '';
   let body = '';
-  if (s.phase === 'prepare') body = `<p>We maken een korte oefening voor dit woord.</p>${button('request', 'Oefening laden', busy)}`;
+  if (s.phase === 'prepare') body = `<p>Preparing a short task…</p>${button('request', 'Load task', busy)}`;
   if (s.phase === 'guide' && s.scenario) {
-    body = `<h3>Een situatie uit het dagelijks leven</h3><p>${e(s.scenario.situation)}</p><h3>Zo kun je het zeggen</h3>
-      <ul>${s.scenario.expressions.map(line => `<li>${e(line)}</li>`).join('')}</ul>
-      <h3>Een kort gesprek</h3><div class="structured-dialogue">${s.scenario.dialogue.map(d => `<p><strong>${e(d.speaker)}:</strong> ${e(d.line)}</p>`).join('')}</div>
-      ${s.scenario.tip ? `<p class="structured-tip">Let op: ${e(s.scenario.tip)}</p>` : ''}
-      ${button('continue', 'Nu jij')}`;
+    body = `<p>${e(s.scenario.situation)}</p><p><strong>Your goal:</strong> ${e(s.scenario.task)}</p>
+      <h3>One useful line</h3><p>${e(s.scenario.expressions[0])}</p>
+      ${s.scenario.tip ? `<details><summary>Usage note</summary><p>${e(s.scenario.tip)}</p></details>` : ''}
+      ${button('continue', 'Your turn')}`;
   }
   if (s.phase === 'answer' && task) {
-    body = `${s.round === 1 ? `<p class="structured-tip">Wat is anders? ${e(s.rounds[0]!.feedback!.retry.change)}</p>` : ''}
-      <h3>Jouw situatie</h3><p>${e(task.situation)}</p><p>${e(task.task)}</p>
-      <label for="structuredAnswer">Schrijf 2–3 zinnen in het Nederlands</label>
-      <textarea id="structuredAnswer" rows="4" maxlength="2000" placeholder="Typ je antwoord…" ${busy ? 'disabled' : ''}>${e(round.draft)}</textarea>
+    body = `${s.round === 1 ? `<p class="structured-tip">What changed? ${e(s.rounds[0]!.feedback!.retry.change)}</p>` : ''}
+      <p>${e(task.situation)}</p><p><strong>Your goal:</strong> ${e(task.task)}</p>
+      <label for="structuredAnswer">Reply in Dutch</label>
+      <textarea id="structuredAnswer" rows="3" maxlength="2000" placeholder="Type your reply…" ${busy ? 'disabled' : ''}>${e(round.draft)}</textarea>
       <div class="structured-hints">${task.hints.slice(0, round.hintsUsed).map((hint, i) => `<p><strong>Hint ${i + 1}:</strong> ${e(hint)}</p>`).join('')}</div>
-      <div class="structured-actions">${button('hint', round.hintsUsed >= 3 ? 'Alle hints bekeken' : `Hint ${round.hintsUsed + 1}`, busy || round.hintsUsed >= 3)}
-      ${button('request', s.pending === 'feedback' ? 'Feedback opnieuw ophalen' : 'Bekijk feedback', busy)}</div>`;
+      <div class="structured-actions">${button('hint', round.hintsUsed >= 3 ? 'All hints shown' : 'Give me a hint', busy || round.hintsUsed >= 3)}
+      ${button('request', s.pending === 'feedback' ? 'Retry feedback' : 'Get feedback', busy)}</div>`;
   }
   if (s.phase === 'feedback' && round.feedback) {
     body = `<h3>Jouw antwoord</h3><blockquote>${e(round.submitted!)}</blockquote>${feedbackView(round.feedback)}

@@ -30,12 +30,14 @@ test.beforeEach(t => {
 });
 test('real DOM buttons move from teaching to answer feedback one retry and completion', async () => {
   await p.start('afspraak', practiceUsage);
-  assert.ok(panel.textContent!.includes('Een kort gesprek'));
+  assert.ok(panel.textContent!.includes('One useful line'));
+  assert.ok(!panel.textContent!.includes(scenario.expressions[1]));
+  assert.equal(panel.querySelector('.structured-dialogue'), null);
   click('continue'); assert.ok(!panel.textContent!.includes(scenario.expressions[0]));
   type(answer); click('request'); click('request'); await settled();
   assert.equal(panel.querySelectorAll('dl dt').length, 3);
   assert.ok(panel.textContent!.includes('Gelukt met hulp'));
-  click('retry'); assert.ok(panel.textContent!.includes('Wat is anders?'));
+  click('retry'); assert.ok(panel.textContent!.includes('What changed?'));
   assert.equal(panel.querySelector('[data-structured="skip"]'), null);
   type(answer.replace('morgen', 'vrijdag')); click('request'); await settled();
   click('finish'); assert.ok(panel.textContent!.includes('Goed geoefend'));
