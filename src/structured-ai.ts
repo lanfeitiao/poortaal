@@ -32,6 +32,7 @@ Create a NEW situation differing from previous practice, naturally inviting the 
 Prefer everyday life in the Netherlands: school or BSO pickup, talking to a teacher, arranging a playdate, shopping or returns, booking appointments, and household repairs.
 Choose whichever context fits this word and sense naturally. Use another everyday context if none fits; never force a school setting or default to a job interview or office example.
 Give the learner a concrete reason to contact someone and something to resolve, not a generic topic. Use generic roles, never invent personal names or events about the learner.
+Make the situation, goal and example agree on what has happened and what needs to happen next. A missing-confirmation example needs a scene about waiting for confirmation, not confirming attendance. If the goal asks for a reason, supply a concrete reason in the situation and express it in the example.
 Use English for situation, task and tip. Use A2-B1 Dutch for openingLine, expressions and hints.
 When a studiedScenario is supplied, keep that sense and communication purpose, change one concrete condition, and do not repeat its teaching dialogue or expressions.
 The task must not contain the Dutch reference answer; the UI hides learning material in recall mode.
