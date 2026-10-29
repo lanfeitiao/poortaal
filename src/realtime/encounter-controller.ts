@@ -60,6 +60,7 @@ function resetTranscriptState(): void { timelineTranscriptFragments.length = 0; 
 function renderEncounterIntro(): void {
   if (!session) return; const root = transcriptRoot(); if (!root) return; const encounter = session.encounter;
   microphoneReady = false; resetTranscriptState(); root.style.display = 'flex';
+  if (spokenSession()) { root.innerHTML = ''; return; }
   root.innerHTML = `<div style="align-self:stretch;background:#fff;border:1px solid #DBEAFE;border-radius:14px;padding:14px 16px;margin-bottom:4px;"><div style="font-size:1.35rem;margin-bottom:4px;">${escapeHtml(encounter.emoji)} <strong>${escapeHtml(encounter.title)}</strong></div><div style="font-size:.9rem;color:#4B5563;margin-bottom:8px;">${escapeHtml(encounter.setup)}</div><div style="font-size:.82rem;color:#6B7280;">Try to use <strong>${escapeHtml(encounter.targetWord)}</strong> naturally.</div></div><div id="encounterSupport" style="align-self:stretch;"></div><div id="encounterActions" style="align-self:stretch;display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 8px;"></div>`;
   renderSupport();
 }
