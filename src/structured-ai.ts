@@ -11,9 +11,10 @@ Keep the target word and selected sense at the centre of a useful everyday commu
 Reuse the supplied verified Word Usage when present. Accept inflections, separable forms, and valid alternatives.
 Never invent or label an ordinary free combination as a fixed collocation. A word without a special pattern is valid.
 No scores, no pronunciation judgments from text. Return ONLY JSON matching the requested shape.`;
-const TASK = `"situation":"one short English sentence describing a concrete everyday problem", "task":"one short English sentence saying what to achieve, no answer or sentence frame",
-"openingLine":"one short natural Dutch question by the conversation partner, inviting the goal without modelling the target",
+const CONTEXT = `"situation":"one short English sentence describing a concrete everyday problem", "task":"one short English sentence saying what to achieve, no answer or sentence frame"`;
+const INTERACTION = `"openingLine":"one short natural Dutch question FROM the partner TO the learner, inviting the goal without modelling the target",
 "hints":["one short Dutch content question without the target word or reference answer", "a partial Dutch sentence starter", "one possible full Dutch response"]`;
+const TASK = `${CONTEXT}, ${INTERACTION}`;
 
 async function validated<T>(messages: ChatMessage[], validate: (value: unknown) => T, chat: CompleteChat): Promise<T> {
   for (let attempt = 0; attempt < 2; attempt++) {
@@ -35,12 +36,13 @@ Give the learner a concrete reason to contact someone and something to resolve, 
 Respect the word's register: administrative wording belongs naturally in booking, registration or email tasks, rather than forced formalities between friends.
 Build every field around ONE action by the learner. The situation describes the learner's starting problem; task says what the learner needs to tell or ask the partner. Never swap their roles.
 The expression must perform that exact task and be a natural first learner reply to openingLine. If the goal asks for a reason, supply a concrete reason in the situation and express it in the example.
+Write the learner's expression before choosing the partner's opening question, using the field order below. The partner must invite that reply, not say what the learner needs to ask. For a learner chasing missing confirmation, the partner can greet them and offer help; the partner must not ask whether the learner sent the confirmation.
 Use English for situation, task and tip. Use A2-B1 Dutch for openingLine, expressions and hints.
 When a studiedScenario is supplied, keep that sense and communication purpose, change one concrete condition, and do not repeat its teaching dialogue or expressions.
 The task must not contain the Dutch reference answer; the UI hides learning material in recall mode.
 Provide ONE useful, complete spoken sentence that helps resolve the problem. Do not generate a teaching dialogue: return dialogue as []. Give at most one essential English usage warning (tip null otherwise).
 ${lesson ? `This is a word-learning lesson. EVERY expression must demonstrate the target word in the supplied sense, not just fit the scene. Include the exact supplied word as a standalone word/phrase in the expression so the learner can identify it (for verbs a natural infinitive construction is fine). Do not force awkward grammar. Make the situation explain WHY someone would use this word.` : ''}
-Return {${TASK}, "expressions":["one complete Dutch sentence"], "dialogue":[], "tip":null}.` },
+Return {${CONTEXT}, "expressions":["one complete Dutch sentence"], ${INTERACTION}, "dialogue":[], "tip":null}.` },
     { role: 'user', content: JSON.stringify({ word: session.word, meaning: session.meaning, usage: session.usage,
       studiedScenario: session.studiedScenario, previous: previous.slice(-5) }) },
   ], value => {
