@@ -763,7 +763,7 @@ function renderWordCard(data: WordExplanation) {
   const word = escapeHtml(data.word);
   const usageKey = `${learningOwner()}:${data.word.toLowerCase().trim()}`;
   if (data.usage !== undefined) usageStates.delete(usageKey);
-  content.innerHTML = `<div class="card" id="wordCard"><div class="card-label">Woord</div>
+  content.innerHTML = `<div class="card" id="wordCard"><div class="card-label">Word</div>
     <div class="word-header"><h1>${word}</h1><span class="word-type">${escapeHtml(data.type)}</span>
     <button class="tts-btn" id="ttsBtn" data-action="play-word-tts" data-word="${word}" title="Uitspraak beluisteren">🔊</button></div>
     <div class="meaning"><div class="meaning-nl">${escapeHtml(data.meaning_nl)}</div><div class="meaning-en">${escapeHtml(data.meaning_en)}</div></div></div>
@@ -816,7 +816,7 @@ export async function changeLearningScene(word: string): Promise<void> {
 
 // --- Practice ---
 function goToPractice(word: string, usage?: number) { navigateTo('#practice'); setTimeout(() => { void startPracticeForWord(word, usage, true); }, 50); }
-function renderPracticeHistoryList() { const list = document.getElementById('practiceHistoryList'); const wordsWithData = searchHistory.filter(h => h.wordData); if (wordsWithData.length === 0) { list.innerHTML = '<div class="history-empty" style="padding:2rem 0;">Zoek eerst een woord op om mee te oefenen</div>'; return; } list.innerHTML = wordsWithData.map(entry => { const safe = escapeHtml(entry.word); const safeAttr = safe.replace(/"/g, '&quot;'); const plant = getPlantStage(entry.word); const status = escapeHtml(plant.hint || plant.label); return `<li data-action="start-practice-word" data-word="${safeAttr}"><span class="word-label">${safe}</span><span class="word-type-hint">${plant.emoji} ${status}</span></li>`; }).join(''); }
+function renderPracticeHistoryList() { const list = document.getElementById('practiceHistoryList'); const wordsWithData = searchHistory.filter(h => h.wordData); if (wordsWithData.length === 0) { list.innerHTML = '<div class="history-empty" style="padding:2rem 0;">Look up a word to start practising</div>'; return; } list.innerHTML = wordsWithData.map(entry => { const safe = escapeHtml(entry.word); const safeAttr = safe.replace(/"/g, '&quot;'); const plant = getPlantStage(entry.word); const status = escapeHtml(plant.hint || plant.label); return `<li data-action="start-practice-word" data-word="${safeAttr}"><span class="word-label">${safe}</span><span class="word-type-hint">${plant.emoji} ${status}</span></li>`; }).join(''); }
 function startPracticeWithInput() { const input = document.getElementById('practiceWordInput') as HTMLInputElement; const word = input.value.trim(); if (!word) return; input.value = ''; startPracticeForWord(word); }
 function setPracticePreparing(disabled: boolean): void {
   for (const id of ['voiceStartBtn', 'textModeBtn', 'voiceModeBtn']) {
@@ -867,7 +867,7 @@ async function startPracticeForWord(word: string, usage?: number, helped = false
   document.getElementById('practiceUsage')!.innerHTML = '';
   structuredPractice.stop(); resetRealtimeEncounterUi(); void switchPracticeMode('voice');
   setPracticePreparing(true);
-  document.getElementById('voiceStatus').textContent = 'Een toepassing voorbereiden…';
+  document.getElementById('voiceStatus').textContent = 'Preparing your task…';
   try {
     if (!data) {
       data = await generateWordExplanation(word, callOpenAI);
@@ -882,7 +882,7 @@ async function startPracticeForWord(word: string, usage?: number, helped = false
       if (helped || (data && recentlyViewedScene(data, learningOwner()))) markPracticeHelp();
       document.getElementById('practiceUsage')!.innerHTML = renderPracticeUsage(getPracticeContext());
       setPracticePreparing(false);
-      document.getElementById('voiceStatus').textContent = 'Druk op de knop om te beginnen';
+      document.getElementById('voiceStatus').textContent = 'Start when you are ready';
       const context = getPracticeContext()!;
       await structuredPractice.start(context.word, context.usage, context.helpUsed, {
         voice: true, meaning: context.meaning, studiedScenario: context.helpUsed ? context.studiedScenario : undefined,
