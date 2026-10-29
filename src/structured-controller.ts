@@ -38,7 +38,10 @@ export class StructuredPractice {
   }
   async start(word: string, usage?: WordUsage, helped = false, options?: { voice: boolean; meaning?: string; studiedScenario?: PracticeScenario }): Promise<void> {
     this.stop();
-    const saved = readSessions().sessions.reverse().find(s => samePractice(s, word, usage?.chunk) && s.phase !== 'complete' && (s.delivery === 'voice') === !!options?.voice);
+    const saved = readSessions().sessions.reverse().find(s => samePractice(s, word, usage?.chunk) && s.phase !== 'complete'
+      && (s.delivery === 'voice') === !!options?.voice && (!options?.meaning || s.meaning === options.meaning)
+      && (!options?.studiedScenario || (s.studiedScenario?.situation === options.studiedScenario.situation
+        && s.studiedScenario?.task === options.studiedScenario.task)));
     try {
       this.write(saved ? { ...saved, supportUsed: saved.supportUsed || (helped && !saved.rounds[0]?.feedback) }
         : { ...createSession(learningOwner(), word, usage, !options?.voice && !hasPractised(word, usage?.chunk), helped),

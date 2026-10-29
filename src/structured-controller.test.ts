@@ -123,6 +123,25 @@ test('a spoken task continues a studied scenario without mistaking exposure for 
   p.captureVoice([{ role: 'user', content: answer }], false, true); await p.request();
   assert.equal(getWordAttempts('afspraak')[0]?.outcome, 'supported');
 });
+test('a different studied situation starts a fresh round while the same situation resumes its saved answer', async () => {
+  const p = new StructuredPractice(noop, chat);
+  const options = { voice: true, meaning: 'appointment', studiedScenario: scenario };
+  await p.start('afspraak', practiceUsage, true, options);
+  const first = p.session!.id;
+  p.captureVoice([{ role: 'user', content: answer }]);
+  await p.start('afspraak', practiceUsage, true, options);
+  assert.equal(p.session!.id, first);
+  assert.equal(p.session!.rounds[0].draft, answer);
+  const changed = { ...scenario, situation: 'Arrange a meeting at school.' };
+  await p.start('afspraak', practiceUsage, true, { ...options, studiedScenario: changed });
+  assert.notEqual(p.session!.id, first);
+  assert.deepEqual(p.session!.studiedScenario, changed);
+  assert.equal(p.session!.rounds[0].draft, '');
+  assert.equal(p.session!.round, 0);
+  assert.equal(p.session!.supportUsed, true);
+  assert.equal(getWordAttempts('afspraak').length, 0);
+  assert.equal(readSessions().sessions.find(s => s.id === first)!.rounds[0].draft, answer);
+});
 test('verified tutor models of inflected and separable verbs cannot become independent mastery', async () => {
   for (const [word, line] of [['regelen', 'Ik regel het morgen.'], ['opbellen', 'Ik bel je morgen op.'], ['vervangen', 'Ik vervang de lamp.']]) {
     const p = new StructuredPractice(noop, async messages => {
