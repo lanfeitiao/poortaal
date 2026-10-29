@@ -46,7 +46,7 @@ function booleanData(value: string | undefined) {
 
 function handleActionClick(event: MouseEvent) {
   const target = (event.target as HTMLElement | null)?.closest<HTMLElement>('[data-action]');
-  if (!target) return;
+  if (!target || target.hasAttribute('disabled')) return;
 
   const word = target.dataset.word;
 

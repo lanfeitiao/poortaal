@@ -43,6 +43,7 @@ Return {${TASK}, "expressions":["one complete Dutch sentence"], "dialogue":[], "
   ], value => {
     const scenario = validateScenario(value);
     if (lesson) validateLessonGrounding(scenario, session.word);
+    if (lesson && previous.includes(scenario.situation)) throw new InvalidStructuredOutput('Choose a different situation');
     if (session.delivery === 'voice' && !scenario.openingLine) throw new InvalidStructuredOutput('Missing spoken opening');
     return scenario;
   }, chat);
