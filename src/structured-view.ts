@@ -42,8 +42,9 @@ export function renderStructured(session: StructuredSession | null, busy: boolea
       ${button('request', s.pending === 'feedback' ? 'Retry feedback' : 'Get feedback', busy)}</div>`;
   }
   if (s.phase === 'feedback' && round.feedback) {
-    body = `<h3>Your reply</h3><blockquote>${e(round.submitted!)}</blockquote>${feedbackView(round.feedback)}
-      <p class="structured-result">${outcomeLabels[practiceOutcome(s)]}</p>
+    body = `<p class="structured-result">${outcomeLabels[practiceOutcome(s)]}</p><p>${e(round.feedback.strength.text)}</p>
+      ${round.feedback.improvement ? `<p>Try: ${e(round.feedback.improvement.better)}</p>` : ''}
+      <details><summary>More feedback</summary><h3>Your reply</h3><blockquote>${e(round.submitted!)}</blockquote>${feedbackView(round.feedback)}</details>
       <div class="structured-actions">${s.round === 0 ? `${button('retry', 'Try a variation')}${button('skip', 'Finish here')}` : button('finish', 'Finish')}</div>`;
   }
   if (s.phase === 'complete') {
