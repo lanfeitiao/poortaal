@@ -18,6 +18,7 @@ import {
   revealAnswer,
   retryWordUsage,
   retryLearningScene,
+  changeLearningScene,
   showPracticePicker,
   signInWithGoogle,
   startMicroReview,
@@ -52,6 +53,9 @@ function handleActionClick(event: MouseEvent) {
   switch (target.dataset.action) {
     case 'retry-learning-scene':
       if (word) void retryLearningScene(word);
+      break;
+    case 'change-learning-scene':
+      if (word) void changeLearningScene(word);
       break;
     case 'start-review':
       startReviewSession();

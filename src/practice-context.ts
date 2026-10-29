@@ -3,6 +3,7 @@ import { getWordAttempts } from './learning-store.ts';
 import type { WordExplanation } from './word-explanation.ts';
 import { usageKey, type WordUsage } from './word-usage.ts';
 import type { PracticeScenario } from './structured-contract.ts';
+import { readLearningScene } from './learning-scene.ts';
 
 export type PracticeContext = { id: string; word: string; usage?: WordUsage; recent: UsageAttempt[]; helpUsed: boolean; meaning?: string; studiedScenario?: PracticeScenario };
 let context: PracticeContext | null = null;
@@ -10,7 +11,8 @@ export function setPracticeContext(data: Pick<WordExplanation, 'word' | 'usage'>
   const recent = getWordAttempts(data.word);
   context = { id: crypto.randomUUID(), word: data.word, usage: data.usage?.[selected ?? -1] || chooseWordUsage(data, recent, count), recent, helpUsed: selected !== undefined };
   if (data.meaning_en) context.meaning = data.meaning_en;
-  if (data.scene?.usage === usageKey(context.usage?.chunk || context.word)) context.studiedScenario = data.scene.scenario;
+  const scene = data.meaning_en && readLearningScene(data.scene, { ...data, meaning_en: data.meaning_en });
+  if (scene && scene.usage === usageKey(context.usage?.chunk || context.word)) context.studiedScenario = scene.scenario;
 }
 export function markPracticeHelp(): void { if (context) context.helpUsed = true; }
 export function getPracticeContext(): PracticeContext | null { return context; }

@@ -17,7 +17,7 @@ export function renderLearningScene(data: WordExplanation, state?: 'loading' | '
     <p>${e(s.situation)}</p><p><strong>Your goal:</strong> ${e(s.task)}</p>
     <h3>One useful line</h3>${line(s.expressions[0])}
     ${extra ? `<details class="scene-help"><summary>More help</summary>${extra}</details>` : ''}
-    <div class="structured-actions"><button type="button" class="use-button" data-action="practice-word" data-word="${e(data.word)}">Start conversation</button>
+    <div class="structured-actions"><button type="button" class="use-button" data-action="practice-word" data-word="${e(data.word)}" ${state === 'loading' ? 'disabled' : ''}>Start conversation</button>
     <button type="button" class="use-button secondary" data-action="change-learning-scene" data-word="${e(data.word)}" ${state === 'loading' ? 'disabled' : ''}>${state === 'loading' ? 'Changing situation…' : 'Different situation'}</button></div>
     ${state === 'error' ? '<p role="status">Could not change the situation. Try again.</p>' : ''}</section>`;
 }

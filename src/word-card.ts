@@ -42,7 +42,7 @@ export function renderWordTips(data: WordExplanation): string {
   const warning = data.usage?.some(use => use.note?.trim().toLowerCase() === data.tips.trim().toLowerCase()) ? '' : data.tips.trim();
   const memory = data.fun_fact?.trim();
   if (!warning && !memory) return '';
-  return `<div class="card word-tips"><div class="card-label">Tips</div>
-    ${memory ? `<div class="word-tip"><div class="tip-label">💡 Onthouden</div><div>${escapeText(memory)}</div></div>` : ''}
-    ${warning ? `<div class="word-tip"><div class="tip-label">Let op</div><div>${escapeText(warning)}</div></div>` : ''}</div>`;
+  return `<details class="card word-tips"><summary>Word notes</summary>
+    ${memory ? `<div class="word-tip"><div class="tip-label">💡 Remember</div><div>${escapeText(memory)}</div></div>` : ''}
+    ${warning ? `<div class="word-tip"><div class="tip-label">Usage note</div><div>${escapeText(warning)}</div></div>` : ''}</details>`;
 }
