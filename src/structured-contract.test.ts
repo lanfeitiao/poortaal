@@ -5,6 +5,8 @@ import { answer, goodFeedback, scenario } from './structured-fixtures.ts';
 
 test('scenario contract bounds teaching material and progressive hints', () => {
   assert.deepEqual(validateScenario(scenario), scenario);
+  const compact = { ...scenario, expressions: scenario.expressions.slice(0, 1), dialogue: [] };
+  assert.deepEqual(validateScenario(compact), compact);
   for (const bad of [{ ...scenario, expressions: [] }, { ...scenario, dialogue: ['wrong'] },
     { ...scenario, tip: ['two reminders'] }, { ...scenario, hints: ['answer'] }, { ...scenario, task: ' '.repeat(3) }]) {
     assert.throws(() => validateScenario(bad));
