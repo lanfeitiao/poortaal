@@ -15,6 +15,17 @@ const CONTEXT = `"situation":"one short English sentence describing a concrete e
 const INTERACTION = `"openingLine":"one short natural Dutch question FROM the partner TO the learner, inviting the goal without modelling the target",
 "hints":["one short Dutch content question without the target word or reference answer", "a partial Dutch sentence starter", "one possible full Dutch response"]`;
 const TASK = `${CONTEXT}, ${INTERACTION}`;
+function containsTarget(text: string, word: string): boolean {
+  const tokens = (value: string) => value.normalize('NFC').toLocaleLowerCase('nl-NL').match(/[\p{L}\p{M}\p{N}]+/gu) || [];
+  const target = tokens(word).join(' ');
+  return !!target && ` ${tokens(text).join(' ')} `.includes(` ${target} `);
+}
+function keepOpeningNeutral(task: import('./structured-contract.ts').PracticeTask, word: string): void {
+  if (task.openingLine && containsTarget(task.openingLine, word)) {
+    task.openingLine = ['Hoi, waarmee kan ik je helpen?', 'Wat wil je bespreken?', 'Vertel maar.']
+      .find(line => !containsTarget(line, word))!;
+  }
+}
 
 async function validated<T>(messages: ChatMessage[], validate: (value: unknown) => T, chat: CompleteChat): Promise<T> {
   for (let attempt = 0; attempt < 2; attempt++) {
@@ -50,13 +61,12 @@ Return {${CONTEXT}, "expressions":["one complete Dutch sentence"], ${INTERACTION
     if (lesson) validateLessonGrounding(scenario, session.word);
     if (lesson && previous.includes(scenario.situation)) throw new InvalidStructuredOutput('Choose a different situation');
     if (session.delivery === 'voice' && !scenario.openingLine) throw new InvalidStructuredOutput('Missing spoken opening');
+    keepOpeningNeutral(scenario, session.word);
     return scenario;
   }, chat);
 }
 export function validateLessonGrounding(scenario: import('./structured-contract.ts').PracticeScenario, word: string): void {
-  const tokens = (text: string) => text.normalize('NFC').toLocaleLowerCase('nl-NL').match(/[\p{L}\p{M}\p{N}]+/gu) || [];
-  const target = tokens(word).join(' ');
-  const contains = (text: string) => !!target && ` ${tokens(text).join(' ')} `.includes(` ${target} `);
+  const contains = (text: string) => containsTarget(text, word);
   if (!scenario.expressions.every(contains) || (scenario.dialogue.length > 0 && !scenario.dialogue.some(d => contains(d.line)))) {
     throw new InvalidStructuredOutput('Lesson examples must demonstrate the target word');
   }
@@ -90,6 +100,7 @@ If improvement is needed, use {"kind":"error|naturalness","quote":"exact learner
   ], value => {
     const result = validateStructuredFeedback(value, round.submitted!, task.situation, round.turns, session.delivery === 'voice');
     if (session.delivery === 'voice' && !result.retry.openingLine) throw new InvalidStructuredOutput('Missing retry opening');
+    keepOpeningNeutral(result.retry, session.word);
     return result;
   }, chat);
 }

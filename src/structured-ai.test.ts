@@ -29,6 +29,23 @@ test('request failures do not cause another format-repair request', async () => 
   }));
   assert.equal(calls, 1);
 });
+test('a modelled target in the opening is replaced before initial or retry speech can prime the answer', async () => {
+  const s = { ...createSession('guest', 'afspraak', practiceUsage, false, false), delivery: 'voice' as const };
+  const result = await generateScenario(s, [], async () => JSON.stringify({ ...scenario,
+    openingLine: 'Wilt u een afspraak maken?' }));
+  assert.ok(!result.openingLine!.includes('afspraak'));
+  assert.equal(result.task, scenario.task);
+  for (const word of ['helpen', 'hoi']) {
+    const common = await generateScenario({ ...s, word }, [], async () => JSON.stringify({ ...scenario,
+      openingLine: 'Hoi, waarmee kan ik je helpen?' }));
+    assert.ok(!common.openingLine!.toLowerCase().includes(word));
+  }
+  const ready = { ...s, scenario: result, rounds: [{ draft: answer, submitted: answer, hintsUsed: 0 }] };
+  const feedback = await evaluateResponse(ready, async () => JSON.stringify({ ...goodFeedback(),
+    retry: { ...goodFeedback().retry, openingLine: 'Wanneer wilt u een afspraak maken?' } }));
+  assert.ok(!feedback.retry.openingLine!.includes('afspraak'));
+  assert.equal(feedback.retry.task, goodFeedback().retry.task);
+});
 test('feedback retains the learner answer as data and refuses unsupported positive evidence', async () => {
   const s = { ...createSession('guest', 'afspraak', practiceUsage, false, false), scenario,
     rounds: [{ draft: answer, submitted: answer, submittedAt: 1, hintsUsed: 0 }] };
