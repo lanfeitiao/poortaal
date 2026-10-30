@@ -17,12 +17,28 @@ test('familiar words move from collocation recall to a situation without separat
   const review = wordReview(word, 2, 2, []);
   assert.equal(review.kind, 'output');
   assert.equal(review.usage?.chunk, make.chunk);
-  assert.equal(review.prompt, make.review_prompt);
+  assert.ok(review.prompt.includes(make.example_en));
 });
 test('a weak use takes priority over a use already produced independently', () => {
   const history = [attempt('one', make.chunk, 'independent', 10), attempt('two', move.chunk, 'needs-practice', 20)];
   assert.equal(chooseWordUsage(word, history)?.chunk, move.chunk);
-  assert.equal(wordReview(word, 0, 0, history).prompt, move.review_prompt);
+  assert.ok(wordReview(word, 0, 0, history).prompt.includes(move.example_en));
+});
+test('review questions use the answer translation rather than a mismatched generated scenario', () => {
+  const use = { ...make, chunk: 'hoewel [onderwerp] ... [werkwoord]',
+    example_nl: 'Ik ga naar buiten, hoewel het koud is.',
+    example_en: 'I am going outside, although it is cold.',
+    review_prompt: "You want to say you're going to the park, although it's snowing. How would you say that in Dutch?" };
+  const data = { ...word, word: 'hoewel', usage: [use] };
+  const original = structuredClone(data);
+  const review = wordReview(data, 2, 2, []);
+  assert.equal(review.kind, 'output');
+  assert.ok(review.prompt.includes(use.example_en));
+  assert.ok(!review.prompt.includes('park') && !review.prompt.includes('snowing'));
+  assert.ok(!review.prompt.includes(use.example_nl));
+  assert.equal(review.nl, use.example_nl);
+  assert.equal(review.en, use.example_en);
+  assert.deepEqual(data, original);
 });
 test('self-graded review is not evidence of independent production', () => {
   const history = [attempt('one', move.chunk, 'needs-practice', 10), attempt('review', move.chunk, 'self-reviewed', 20, 'review')];
