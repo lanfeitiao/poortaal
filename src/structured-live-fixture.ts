@@ -5,14 +5,14 @@ import { build } from 'vite';
 import { parseHTML } from 'linkedom';
 import { goodFeedback, practiceUsage, scenario } from './structured-fixtures.ts';
 
-export async function liveFixture(t: TestContext) {
+export async function liveFixture(t: TestContext, scenarioReply?: (input: Record<string, unknown>) => unknown | Promise<unknown>) {
   const { document, window: dom } = parseHTML(await readFile(new URL('../index.html', import.meta.url), 'utf8'));
   const events = new EventTarget() as EventTarget & Record<string, unknown>;
   events.location = { hash: '#practice', href: 'http://localhost/#practice' };
   events.supabase = { createClient: () => ({ auth: { getUser: async () => ({ data: { user: null } }), onAuthStateChange: () => {} } }) };
   const word = { word: 'afspraak', type: 'zelfstandig naamwoord', meaning_nl: 'Een plan om iemand te zien.', meaning_en: 'appointment',
     examples: [{ nl: practiceUsage.example_nl, en: practiceUsage.example_en }], tips: '', fun_fact: null, usage: [practiceUsage],
-    scene: { sense: 'appointment', usage: practiceUsage.chunk, scenario } };
+    scene: { version: 2, generatedAt: 1, sense: 'appointment', usage: practiceUsage.chunk, scenario } };
   const storage = new Map<string, string>([['poortaal_word_cache_v4', JSON.stringify({ afspraak: word })],
     ['poortaal_history', JSON.stringify([{ word: 'afspraak', timestamp: 1, wordData: word }])]]);
   const track = { enabled: true, stop() {} };
@@ -45,7 +45,8 @@ export async function liveFixture(t: TestContext) {
     if (String(url).endsWith('/live-session')) return Response.json({ transport: { type: 'webrtc', sdp: 'answer' } });
     assert.ok(String(url).endsWith('/openai'));
     const input = JSON.parse(JSON.parse(init!.body as string).messages[1].content);
-    return Response.json({ choices: [{ message: { content: JSON.stringify(input.answer ? goodFeedback(input.situation, input.answer) : scenario) } }] });
+    const reply = input.answer ? goodFeedback(input.situation, input.answer) : scenarioReply ? await scenarioReply(input) : scenario;
+    return Response.json({ choices: [{ message: { content: JSON.stringify(reply) } }] });
   });
   const result = await build({ configFile: false, logLevel: 'silent', build: { write: false } });
   const output = Array.isArray(result) ? result[0].output : 'output' in result ? result.output : [];

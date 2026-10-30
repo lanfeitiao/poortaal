@@ -241,6 +241,11 @@ main { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
 .structured-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1rem; }
 .structured-practice button { min-height: 44px; }
 .structured-practice button:disabled { opacity: 0.55; cursor: wait; }
+.learning-scene .example-nl { align-items: center; justify-content: space-between; gap: 0.75rem; }
+.learning-scene .example-nl span { min-width: 0; overflow-wrap: anywhere; }
+.learning-scene .ex-tts-btn { width: 44px; height: 44px; }
+.scene-help, .structured-practice details { margin-top: 0.75rem; }
+.scene-help summary, .structured-practice summary, .word-tips summary { cursor: pointer; color: var(--gray-500); font-size: 0.85rem; }
 .structured-feedback dl { display: grid; grid-template-columns: 7rem 1fr; gap: 0.4rem; margin: 1rem 0; }
 .structured-feedback dt, .structured-result { font-weight: 600; }
 .structured-practice blockquote { border-left: 3px solid var(--blue-200); padding-left: 0.75rem; white-space: pre-wrap; }
@@ -376,33 +381,33 @@ main { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
   <div id="view-practice" class="view">
     <div id="practicePickerSection">
       <div class="practice-word-picker">
-        <h2>Kies een woord om te oefenen</h2>
+        <h2>Choose a word to practise</h2>
         <div class="search-box">
-          <input type="text" id="practiceWordInput" placeholder="Typ een woord..." autocomplete="off">
-          <button id="practiceStartBtn">Oefenen</button>
+          <input type="text" id="practiceWordInput" placeholder="Type a word…" autocomplete="off">
+          <button id="practiceStartBtn">Practise</button>
         </div>
       </div>
       <ul class="practice-history-list" id="practiceHistoryList"></ul>
     </div>
     <div id="practiceChatSection" style="display:none;">
-      <button class="practice-back-btn" id="practiceBackBtn">← Terug naar woordkeuze</button>
-      <h3>Oefenen: <span id="practiceChatWord"></span></h3>
+      <button class="practice-back-btn" id="practiceBackBtn">← Back to your words</button>
+      <h3>Practise: <span id="practiceChatWord"></span></h3>
       <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;">
-        <button class="practice-mode-btn active" id="voiceModeBtn">🎙️ Gesprek oefenen</button>
-        <button class="practice-mode-btn" id="textModeBtn">💬 Liever typen</button>
+        <button class="practice-mode-btn active" id="voiceModeBtn">🎙️ Conversation</button>
+        <button class="practice-mode-btn" id="textModeBtn">💬 Prefer typing?</button>
       </div>
       <div id="practiceUsage"></div>
       <div id="textPracticePanel">
-        <section id="structuredPractice" class="card structured-practice" aria-label="Stap voor stap oefenen"></section>
+        <section id="structuredPractice" class="card structured-practice" aria-label="Guided practice"></section>
       </div>
       <div id="voicePracticePanel">
         <div id="voicePracticeSteps" class="card" aria-live="polite"></div>
         <div class="card">
-          <div class="chat-header"><h3>🎙️ Spreek: <span id="voicePracticeWord"></span></h3></div>
-          <div class="voice-status" id="voiceStatus">Druk op de knop om te beginnen</div>
+          <div class="chat-header"><h3>🎙️ Speak: <span id="voicePracticeWord"></span></h3></div>
+          <div class="voice-status" id="voiceStatus">Start when you are ready</div>
           <div class="voice-visualizer" id="voiceVisualizer" style="display:none;"><div class="voice-dots"><span class="voice-dot"></span><span class="voice-dot"></span><span class="voice-dot"></span><span class="voice-dot"></span></div></div>
           <div class="chat-messages voice-transcript" id="voiceTranscript"></div>
-          <div style="text-align:center;padding:1rem;"><button class="voice-btn" id="voiceStartBtn"><span id="voiceBtnIcon">🎙️</span><span id="voiceBtnText">Start gesprek</span></button></div>
+          <div style="text-align:center;padding:1rem;"><button class="voice-btn" id="voiceStartBtn"><span id="voiceBtnIcon">🎙️</span><span id="voiceBtnText">Start conversation</span></button></div>
         </div>
       </div>
       <div id="practiceFeedback" class="card" aria-live="polite" hidden></div>

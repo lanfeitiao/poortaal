@@ -42,8 +42,8 @@ export function validateTask(value: unknown): PracticeTask {
 }
 export function validateScenario(value: unknown): PracticeScenario {
   const v = object(value);
-  return { ...validateTask(v), expressions: list(v.expressions, 2, 4).map(e => text(e, 300)),
-    dialogue: list(v.dialogue, 2, 4).map(d => {
+  return { ...validateTask(v), expressions: list(v.expressions, 1, 4).map(e => text(e, 300)),
+    dialogue: list(v.dialogue, 0, 4).map(d => {
       const line = object(d);
       return { speaker: text(line.speaker, 80), line: text(line.line, 300) };
     }), tip: v.tip === null ? null : text(v.tip, 300) };

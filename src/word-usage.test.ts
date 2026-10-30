@@ -73,15 +73,16 @@ test('examples integrate usages without duplicating their sentences', () => {
   assert.ok(!html.includes('Mijn afspraak is morgen.'));
   assert.equal((html.match(/class="word-example/g) || []).length, 1);
 });
-test('optional tips share one card with distinct labels and escaped contents', () => {
+test('optional tips stay folded in one card with distinct English labels and escaped contents', () => {
   assert.equal(renderWordTips({ ...legacy, tips: '', fun_fact: null }), '');
   const memory = renderWordTips({ ...legacy, tips: '', fun_fact: '<memory>' });
-  assert.ok(memory.includes('Onthouden'));
+  assert.ok(memory.includes('Remember'));
   assert.ok(memory.includes('&lt;memory&gt;'));
-  assert.ok(!memory.includes('Let op'));
+  assert.ok(!memory.includes('Usage note'));
   const both = renderWordTips({ ...legacy, fun_fact: 'Remember it.' });
-  assert.equal((both.match(/card-label/g) || []).length, 1);
-  assert.ok(both.includes('Let op'));
+  assert.equal((both.match(/<summary>/g) || []).length, 1);
+  assert.ok(both.includes('Usage note'));
+  assert.ok(!both.includes(' open'));
   assert.equal(renderWordTips({ ...legacy, tips: use.note, usage: [use] }), '');
 });
 test('missing, empty and failed usage results show a retry, loading does not', () => {

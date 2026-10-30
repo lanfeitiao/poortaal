@@ -9,10 +9,21 @@ const attempt = (id: string, discarded = false) => ({ id, at: 1, word: 'afspraak
 test('a new contextual lesson survives a save over an older cloud word without a lesson', async () => {
   const word = { word: 'afspraak', type: 'zelfstandig naamwoord', meaning_nl: 'Een plan.', meaning_en: 'appointment',
     examples: [{ nl: practiceUsage.example_nl, en: practiceUsage.example_en }], usage: [practiceUsage], tips: '', fun_fact: null };
-  const scene = { sense: word.meaning_en, usage: practiceUsage.chunk, scenario };
+  const scene = { version: 2, generatedAt: 1, sense: word.meaning_en, usage: practiceUsage.chunk, scenario };
   const db = memory({ ...row(), word_data: word } as ReturnType<typeof row>);
   await saveWordWithVersion(db.store, () => ({ ...row(), word_data: { ...word, scene } }), () => true);
   assert.deepEqual(db.get().word_data.scene, scene);
+});
+test('a changed situation survives cloud sync and stale evidence saves cannot restore the old scene', async () => {
+  const word = { word: 'afspraak', type: 'zelfstandig naamwoord', meaning_nl: 'Een plan.', meaning_en: 'appointment',
+    examples: [{ nl: practiceUsage.example_nl, en: practiceUsage.example_en }], usage: [practiceUsage], tips: '', fun_fact: null };
+  const old = { version: 2, generatedAt: 1, sense: word.meaning_en, usage: practiceUsage.chunk, scenario };
+  const changed = { ...old, generatedAt: 2, scenario: { ...scenario, situation: 'Arrange a meeting at school.' } };
+  const db = memory({ ...row(), word_data: { ...word, scene: old } } as ReturnType<typeof row>);
+  await saveWordWithVersion(db.store, () => ({ ...row(), word_data: { ...word, scene: changed } }), () => true);
+  assert.deepEqual(db.get().word_data.scene, changed);
+  await saveWordWithVersion(db.store, () => ({ ...row(), word_data: { ...word, scene: old } }), () => true);
+  assert.deepEqual(db.get().word_data.scene, changed);
 });
 const row = (progress: unknown[] = [], version: string | null = null) => ({ user_id: 'learner', word: 'afspraak',
   word_data: { usage_progress: progress }, updated_at: version });

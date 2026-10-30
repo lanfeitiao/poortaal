@@ -4,19 +4,20 @@ import type { WordExplanation } from './word-explanation.ts';
 
 export function renderLearningScene(data: WordExplanation, state?: 'loading' | 'error'): string {
   const lesson = readLearningScene(data.scene, data), use = data.usage?.[0];
-  if (!lesson) return `<section class="card structured-practice"><div class="card-label">Leren in een situatie</div>
-    <p role="status">${state === 'error' ? 'De situatie kon niet worden geladen. Je woord blijft bewaard.' : 'Een herkenbare situatie voorbereiden…'}</p>
-    ${state === 'error' ? `<button type="button" class="use-button" data-action="retry-learning-scene" data-word="${e(data.word)}">Opnieuw laden</button>` : ''}</section>`;
+  if (!lesson) return `<section class="card structured-practice"><div class="card-label">Try it in real life</div>
+    <p role="status">${state === 'error' ? 'Could not load a situation. Your word is saved.' : 'Preparing a familiar situation…'}</p>
+    ${state === 'error' ? `<button type="button" class="use-button" data-action="retry-learning-scene" data-word="${e(data.word)}">Try again</button>` : ''}</section>`;
   const s = lesson.scenario;
-  return `<section class="card structured-practice"><div class="card-label">${e(data.word)} in een situatie</div>
-    <p><strong>Betekenis:</strong> ${e(lesson.sense)}</p>
-    <h3>Wanneer gebruik je dit woord?</h3><p>${e(s.situation)}</p>
-    <h3>Zinnen met ${e(data.word)}</h3>${s.expressions.map(line => `<div class="example-nl"><span>${e(line)}</span>
-      <button type="button" class="ex-tts-btn" data-action="play-example-tts" data-text="${e(line)}" title="Beluisteren">🔊</button></div>`).join('')}
-    <h3>Een kort gesprek</h3><p>Zo past het woord in een gesprek. De andere zinnen geven context.</p>
-    <div class="structured-dialogue">${s.dialogue.map(d => `<p><strong>${e(d.speaker)}:</strong> ${e(d.line)}</p>`).join('')}</div>
-    ${use ? `<p class="example-pattern"><span class="pattern-label">${use.kind === 'collocation' ? 'Vaste combinatie' : 'Zinsbouw'}</span>
-      <strong>${e(use.chunk)}</strong>${use.note ? `<span class="use-note">${e(use.note)}</span>` : ''}</p>` : ''}
-    ${s.tip ? `<p class="structured-tip">Let op: ${e(s.tip)}</p>` : ''}
-    <p>Probeer hierna een andere variant in een gesprek.</p></section>`;
+  const line = (text: string) => `<div class="example-nl"><span>${e(text)}</span>
+    <button type="button" class="ex-tts-btn" data-action="play-example-tts" data-text="${e(text)}" title="Listen">🔊</button></div>`;
+  const extra = s.expressions.slice(1).map(line).join('')
+    + (use?.note ? `<p class="use-note">${e(use.note)}</p>` : '')
+    + (s.tip ? `<p class="structured-tip">${e(s.tip)}</p>` : '');
+  return `<section class="card structured-practice learning-scene"><div class="card-label">Try it in real life</div>
+    <p>${e(s.situation)}</p><p><strong>Your goal:</strong> ${e(s.task)}</p>
+    <h3>One useful line</h3>${line(s.expressions[0])}
+    ${extra ? `<details class="scene-help"><summary>More help</summary>${extra}</details>` : ''}
+    <div class="structured-actions"><button type="button" class="use-button" data-action="practice-word" data-word="${e(data.word)}" ${state === 'loading' ? 'disabled' : ''}>Start conversation</button>
+    <button type="button" class="use-button secondary" data-action="change-learning-scene" data-word="${e(data.word)}" ${state === 'loading' ? 'disabled' : ''}>${state === 'loading' ? 'Changing situation…' : 'Different situation'}</button></div>
+    ${state === 'error' ? '<p role="status">Could not change the situation. Try again.</p>' : ''}</section>`;
 }

@@ -763,28 +763,30 @@ function renderWordCard(data: WordExplanation) {
   const word = escapeHtml(data.word);
   const usageKey = `${learningOwner()}:${data.word.toLowerCase().trim()}`;
   if (data.usage !== undefined) usageStates.delete(usageKey);
-  content.innerHTML = `<div class="card" id="wordCard"><div class="card-label">Woord</div>
+  content.innerHTML = `<div class="card" id="wordCard"><div class="card-label">Word</div>
     <div class="word-header"><h1>${word}</h1><span class="word-type">${escapeHtml(data.type)}</span>
     <button class="tts-btn" id="ttsBtn" data-action="play-word-tts" data-word="${word}" title="Uitspraak beluisteren">🔊</button></div>
     <div class="meaning"><div class="meaning-nl">${escapeHtml(data.meaning_nl)}</div><div class="meaning-en">${escapeHtml(data.meaning_en)}</div></div></div>
     ${renderLearningScene(data, sceneStates.get(usageKey))}${renderWordTips(data)}
-    <button class="practice-btn" data-action="practice-word" data-word="${word}">🎙️ Probeer het in een gesprek</button>`;
+    ${readLearningScene(data.scene, data) ? '' : `<button class="practice-btn" data-action="practice-word" data-word="${word}">Start conversation</button>`}`;
   if (!readLearningScene(data.scene, data)) void loadLearningScene(data);
   else if (document.getElementById('view-home').classList.contains('active')) rememberSceneExposure(data, learningOwner());
 }
 
 const sceneStates = new Map<string, 'loading' | 'error'>();
 const sceneRequests = new Map<string, Promise<void>>();
-async function loadLearningScene(data: WordExplanation, retry = false): Promise<void> {
+async function loadLearningScene(data: WordExplanation, retry = false, change = false): Promise<void> {
   const owner = learningOwner(), key = data.word.toLowerCase().trim(), token = `${owner}:${key}`;
-  if (readLearningScene(data.scene, data) || (!retry && sceneStates.has(token))) return;
+  if ((!change && readLearningScene(data.scene, data)) || (!retry && sceneStates.has(token))) return;
   if (sceneRequests.has(token)) return sceneRequests.get(token);
   sceneStates.set(token, 'loading');
+  if (change && currentWord?.toLowerCase().trim() === key) renderWordCard(data);
   const request = (async () => {
     try {
       const enriched = await loadWordUsage(data);
       if (enriched.usage === undefined) throw new Error('Usage still unavailable');
-      const scene = await generateLearningScene(enriched, callOpenAI);
+      const previous = change && readLearningScene(data.scene, data);
+      const scene = await generateLearningScene(enriched, callOpenAI, previous ? [previous.scenario.situation] : []);
       const latest = getCachedWord(key);
       if (owner !== learningOwner() || !latest || latest.meaning_en !== scene.sense || sceneUsage(latest) !== scene.usage) { sceneStates.delete(token); return; }
       const saved = { ...latest, scene }; setWordCache(key, saved);
@@ -807,10 +809,14 @@ export async function retryLearningScene(word: string): Promise<void> {
   const data = getCachedWord(word);
   if (data) await loadLearningScene(data, true);
 }
+export async function changeLearningScene(word: string): Promise<void> {
+  const data = getCachedWord(word);
+  if (data) await loadLearningScene(data, true, true);
+}
 
 // --- Practice ---
 function goToPractice(word: string, usage?: number) { navigateTo('#practice'); setTimeout(() => { void startPracticeForWord(word, usage, true); }, 50); }
-function renderPracticeHistoryList() { const list = document.getElementById('practiceHistoryList'); const wordsWithData = searchHistory.filter(h => h.wordData); if (wordsWithData.length === 0) { list.innerHTML = '<div class="history-empty" style="padding:2rem 0;">Zoek eerst een woord op om mee te oefenen</div>'; return; } list.innerHTML = wordsWithData.map(entry => { const safe = escapeHtml(entry.word); const safeAttr = safe.replace(/"/g, '&quot;'); const plant = getPlantStage(entry.word); const status = escapeHtml(plant.hint || plant.label); return `<li data-action="start-practice-word" data-word="${safeAttr}"><span class="word-label">${safe}</span><span class="word-type-hint">${plant.emoji} ${status}</span></li>`; }).join(''); }
+function renderPracticeHistoryList() { const list = document.getElementById('practiceHistoryList'); const wordsWithData = searchHistory.filter(h => h.wordData); if (wordsWithData.length === 0) { list.innerHTML = '<div class="history-empty" style="padding:2rem 0;">Look up a word to start practising</div>'; return; } list.innerHTML = wordsWithData.map(entry => { const safe = escapeHtml(entry.word); const safeAttr = safe.replace(/"/g, '&quot;'); const plant = getPlantStage(entry.word); const status = escapeHtml(plant.hint || plant.label); return `<li data-action="start-practice-word" data-word="${safeAttr}"><span class="word-label">${safe}</span><span class="word-type-hint">${plant.emoji} ${status}</span></li>`; }).join(''); }
 function startPracticeWithInput() { const input = document.getElementById('practiceWordInput') as HTMLInputElement; const word = input.value.trim(); if (!word) return; input.value = ''; startPracticeForWord(word); }
 function setPracticePreparing(disabled: boolean): void {
   for (const id of ['voiceStartBtn', 'textModeBtn', 'voiceModeBtn']) {
@@ -861,7 +867,7 @@ async function startPracticeForWord(word: string, usage?: number, helped = false
   document.getElementById('practiceUsage')!.innerHTML = '';
   structuredPractice.stop(); resetRealtimeEncounterUi(); void switchPracticeMode('voice');
   setPracticePreparing(true);
-  document.getElementById('voiceStatus').textContent = 'Een toepassing voorbereiden…';
+  document.getElementById('voiceStatus').textContent = 'Preparing your task…';
   try {
     if (!data) {
       data = await generateWordExplanation(word, callOpenAI);
@@ -876,7 +882,7 @@ async function startPracticeForWord(word: string, usage?: number, helped = false
       if (helped || (data && recentlyViewedScene(data, learningOwner()))) markPracticeHelp();
       document.getElementById('practiceUsage')!.innerHTML = renderPracticeUsage(getPracticeContext());
       setPracticePreparing(false);
-      document.getElementById('voiceStatus').textContent = 'Druk op de knop om te beginnen';
+      document.getElementById('voiceStatus').textContent = 'Start when you are ready';
       const context = getPracticeContext()!;
       await structuredPractice.start(context.word, context.usage, context.helpUsed, {
         voice: true, meaning: context.meaning, studiedScenario: context.helpUsed ? context.studiedScenario : undefined,

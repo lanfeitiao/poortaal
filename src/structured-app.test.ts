@@ -45,7 +45,7 @@ test('bundled application boots with the real DOM and preserves word stats acros
   assert.equal(document.getElementById('voicePracticePanel')!.style.display, '');
   assert.ok(!spoken.textContent!.includes(scenario.expressions[0]));
   assert.equal((document.getElementById('voiceModeBtn') as HTMLButtonElement).disabled, false);
-  click('#textModeBtn'); await wait(() => panel.textContent!.includes('Een kort gesprek'));
+  click('#textModeBtn'); await wait(() => panel.textContent!.includes('One useful line'));
   click('[data-structured="continue"]');
   const input = document.getElementById('structuredAnswer') as HTMLTextAreaElement;
   input.value = answer; input.dispatchEvent(new dom.Event('input', { bubbles: true }));

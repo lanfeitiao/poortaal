@@ -14,7 +14,7 @@ export class StructuredPractice {
   private chat?: CompleteChat;
   constructor(notify: () => void, chat?: CompleteChat) { this.notify = notify; this.chat = chat; }
   private write(next: StructuredSession): void { this.session = saveSession(next); }
-  private fail(): void { this.error = 'Opslaan of laden is niet gelukt. Probeer opnieuw. Je bewaarde antwoord blijft staan.'; }
+  private fail(): void { this.error = 'Could not save or load. Try again; your saved reply is still available.'; }
   showError(message: string): void { this.error = message; this.notify(); }
   stop(leave = false): void {
     if (leave && this.session?.owner === learningOwner()) {
@@ -38,7 +38,10 @@ export class StructuredPractice {
   }
   async start(word: string, usage?: WordUsage, helped = false, options?: { voice: boolean; meaning?: string; studiedScenario?: PracticeScenario }): Promise<void> {
     this.stop();
-    const saved = readSessions().sessions.reverse().find(s => samePractice(s, word, usage?.chunk) && s.phase !== 'complete' && (s.delivery === 'voice') === !!options?.voice);
+    const saved = readSessions().sessions.reverse().find(s => samePractice(s, word, usage?.chunk) && s.phase !== 'complete'
+      && (s.delivery === 'voice') === !!options?.voice && (!options?.meaning || s.meaning === options.meaning)
+      && (!options?.studiedScenario || (s.studiedScenario?.situation === options.studiedScenario.situation
+        && s.studiedScenario?.task === options.studiedScenario.task)));
     try {
       this.write(saved ? { ...saved, supportUsed: saved.supportUsed || (helped && !saved.rounds[0]?.feedback) }
         : { ...createSession(learningOwner(), word, usage, !options?.voice && !hasPractised(word, usage?.chunk), helped),
@@ -50,7 +53,7 @@ export class StructuredPractice {
   }
   syncProgress(): void {
     try { if (this.session) saveStructuredProgress(this.session); this.error = ''; }
-    catch { this.error = 'Je feedback is bewaard. Je leerresultaat kon nog niet worden opgeslagen. Probeer opslaan opnieuw.'; }
+    catch { this.error = 'Your feedback is saved. Retry saving your learning progress.'; }
   }
   draft(value: string): void {
     const s = this.session;
@@ -67,7 +70,7 @@ export class StructuredPractice {
     if (!s || s.delivery !== 'voice' || s.phase !== 'answer' || this.busy) return;
     const draft = turns.filter(t => t.role === 'user').map(t => t.content).join('\n');
     if (!draft.trim() && currentRound(s).draft.trim()) return;
-    if (draft.length > 2000) { this.error = 'Deze ronde is lang. Rond af en begin een kortere poging.'; this.notify(); return; }
+    if (draft.length > 2000) { this.error = 'This round is long. Finish it and try a shorter reply.'; this.notify(); return; }
     this.mutate(() => ({ ...s, supportUsed: s.supportUsed || helped, pending: null,
       rounds: s.rounds.map((r, i) => i === s.round ? { ...r, draft, turns, voiceSettled: settled } : r) }));
   }
@@ -93,10 +96,10 @@ export class StructuredPractice {
     const s = this.session;
     if (!s || this.busy || !['prepare', 'answer'].includes(s.phase)) return;
     if (s.delivery === 'voice' && s.phase === 'answer' && !currentRound(s).voiceSettled) {
-      this.showError('Start het gesprek om je antwoord af te maken voordat je feedback ophaalt.'); return;
+      this.showError('Start the conversation and finish your reply before requesting feedback.'); return;
     }
     if (s.phase === 'answer' && !currentRound(s).draft.trim()) {
-      this.error = 'Schrijf eerst je antwoord in het Nederlands.'; this.notify(); return;
+      this.error = 'Reply in Dutch first.'; this.notify(); return;
     }
     const ticket = ++this.ticket;
     const current = () => ticket === this.ticket && s.owner === learningOwner() && this.session?.id === s.id;
@@ -130,7 +133,7 @@ export class StructuredPractice {
         });
       } else await run();
     } catch {
-      if (current()) this.error = 'De aanvraag is niet gelukt. Je bewaarde antwoord blijft staan. Probeer de aanvraag opnieuw.';
+      if (current()) this.error = 'The request failed. Your reply is saved; try again.';
     } finally {
       if (current()) { this.busy = false; this.notify(); }
     }

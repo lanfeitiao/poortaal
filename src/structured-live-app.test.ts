@@ -37,7 +37,8 @@ test('the study page presents a scene and passes its exposure into the spoken ta
   const input = f.document.getElementById('wordInput') as HTMLInputElement;
   input.value = 'afspraak'; f.click('#searchBtn');
   assert.ok(f.document.getElementById('content')!.textContent!.includes(scenario.situation));
-  assert.ok(f.document.getElementById('content')!.textContent!.includes('Een kort gesprek'));
+  assert.ok(f.document.getElementById('content')!.textContent!.includes('One useful line'));
+  assert.equal(f.document.querySelector('#content .structured-dialogue'), null);
   f.click('[data-action="practice-word"]');
   await f.wait(() => f.session()?.delivery === 'voice' && f.session()?.phase === 'answer');
   assert.equal(f.session()?.supportUsed, true);

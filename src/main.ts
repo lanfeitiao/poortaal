@@ -18,6 +18,7 @@ import {
   revealAnswer,
   retryWordUsage,
   retryLearningScene,
+  changeLearningScene,
   showPracticePicker,
   signInWithGoogle,
   startMicroReview,
@@ -45,13 +46,16 @@ function booleanData(value: string | undefined) {
 
 function handleActionClick(event: MouseEvent) {
   const target = (event.target as HTMLElement | null)?.closest<HTMLElement>('[data-action]');
-  if (!target) return;
+  if (!target || target.hasAttribute('disabled')) return;
 
   const word = target.dataset.word;
 
   switch (target.dataset.action) {
     case 'retry-learning-scene':
       if (word) void retryLearningScene(word);
+      break;
+    case 'change-learning-scene':
+      if (word) void changeLearningScene(word);
       break;
     case 'start-review':
       startReviewSession();
