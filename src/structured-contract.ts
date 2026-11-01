@@ -4,6 +4,12 @@ export type PracticeScenario = PracticeTask & {
   dialogue: { speaker: string; line: string }[];
   tip: string | null;
 };
+export type LearningMoment = {
+  translation: string;
+  notice: string | null;
+  transfer: { situation: string; openingLine: string; example: string };
+};
+
 export type StructuredFeedback = {
   task: 'completed' | 'partial' | 'not-yet';
   target: 'correct' | 'incorrect' | 'not-used' | 'uncertain';
@@ -48,6 +54,16 @@ export function validateScenario(value: unknown): PracticeScenario {
       return { speaker: text(line.speaker, 80), line: text(line.line, 300) };
     }), tip: v.tip === null ? null : text(v.tip, 300) };
 }
+export function validateLearningMoment(value: unknown): LearningMoment {
+  const v = object(value), transfer = object(v.transfer);
+  return {
+    translation: text(v.translation, 300),
+    notice: v.notice === null ? null : text(v.notice, 300),
+    transfer: { situation: text(transfer.situation, 400),
+      openingLine: text(transfer.openingLine, 300), example: text(transfer.example, 300) },
+  };
+}
+
 export function validateStructuredFeedback(value: unknown, answer: string, situation: string,
   turns?: { role: 'user' | 'assistant'; content: string }[], requireSupport = false): StructuredFeedback {
   const v = object(value), strength = object(v.strength), retry = object(v.retry);
