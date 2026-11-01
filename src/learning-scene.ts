@@ -1,27 +1,33 @@
-import { validateScenario, type PracticeScenario } from './structured-contract.ts';
-import { generateScenario, validateLessonGrounding, type CompleteChat } from './structured-ai.ts';
+import { validateLearningMoment, validateScenario, type LearningMoment, type PracticeScenario } from './structured-contract.ts';
+import { generateLearningMoment, containsLessonTarget, validateLessonGrounding, type CompleteChat } from './structured-ai.ts';
 import { createSession } from './structured-session.ts';
 import { usageKey } from './word-usage.ts';
 import type { WordExplanation } from './word-explanation.ts';
 
-export type LearningScene = { version: 2; generatedAt: number; sense: string; usage: string; scenario: PracticeScenario };
+export type LearningScene = { version: 3; generatedAt: number; sense: string; usage: string; scenario: PracticeScenario; moment: LearningMoment };
 export function sceneUsage(data: Pick<WordExplanation, 'word' | 'usage'>): string {
   return usageKey(data.usage?.[0]?.chunk || data.word);
 }
 export function readLearningScene(value: unknown, data: Pick<WordExplanation, 'word' | 'usage' | 'meaning_en'>): LearningScene | undefined {
   try {
     const v = value as LearningScene;
-    if (!v || v.version !== 2 || v.sense !== data.meaning_en || v.usage !== sceneUsage(data)) return;
+    if (!v || v.version !== 3 || v.sense !== data.meaning_en || v.usage !== sceneUsage(data)) return;
     if (!Number.isSafeInteger(v.generatedAt) || v.generatedAt < 0) return;
     const scenario = validateScenario(v.scenario);
     validateLessonGrounding(scenario, data.word);
-    return { version: 2, generatedAt: v.generatedAt, sense: v.sense, usage: v.usage, scenario };
+    const moment = validateLearningMoment(v.moment);
+    if (!containsLessonTarget(moment.transfer.example, data.word)
+      || !scenario.openingLine || scenario.situation === moment.transfer.situation
+      || scenario.expressions[0] === moment.transfer.example
+      || containsLessonTarget(scenario.openingLine, data.word)
+      || containsLessonTarget(moment.transfer.openingLine, data.word)) return;
+    return { version: 3, generatedAt: v.generatedAt, sense: v.sense, usage: v.usage, scenario, moment };
   } catch { return; }
 }
 export async function generateLearningScene(data: WordExplanation, chat: CompleteChat, previous: string[] = []): Promise<LearningScene> {
   const session = { ...createSession('lesson', data.word, data.usage?.[0], true, true), meaning: data.meaning_en };
-  const scenario = await generateScenario(session, previous, chat, true);
-  return { version: 2, generatedAt: Date.now(), sense: data.meaning_en, usage: sceneUsage(data), scenario };
+  const { scenario, moment } = await generateLearningMoment(session, previous, data.tips, chat);
+  return { version: 3, generatedAt: Date.now(), sense: data.meaning_en, usage: sceneUsage(data), scenario, moment };
 }
 type Exposure = { word: string; sense: string; usage: string; at: number };
 function exposures(owner: string): Exposure[] {
