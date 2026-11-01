@@ -1,4 +1,5 @@
 import { usageKey, type WordUsage } from './word-usage.ts';
+import { readLearningScene } from './learning-scene.ts';
 import type { WordExplanation } from './word-explanation.ts';
 
 export type UsageOutcome = 'independent' | 'supported' | 'needs-practice' | 'self-reviewed';
@@ -70,12 +71,30 @@ export function wordReview(data: WordExplanation, level: number, reviews: number
   const use = chooseWordUsage(data, attempts, reviews);
   const last = use && usageHistory(data.word, use.chunk, attempts).filter(a => a.outcome !== 'self-reviewed').at(-1);
   const pending = last && ['needs-practice', 'supported'].includes(last.outcome);
-  if (!use || (!pending && (level === 0 || reviews % 3 === 0))) {
+  // Only reuse an already validated scene for the same sense and selected use.
+  // It was taught previously, but the changed context stays hidden until review.
+  const lesson = readLearningScene(data.scene, data);
+  const recalled = lesson && (!use || lesson.usage === usageKey(use.chunk))
+    ? lesson.moment.transfer : undefined;
+  const contextReview = () => recalled && ({
+    kind: 'context' as const,
+    prompt: recalled.situation,
+    openingLine: recalled.openingLine,
+    nl: recalled.example,
+    en: '',
+    ...(use ? { usage: use } : {}),
+  });
+  if ((!use && (!recalled || level === 0 || reviews % 3 === 0))
+    || (use && !pending && (level === 0 || reviews % 3 === 0))) {
     return { kind: 'meaning', prompt: 'Wat betekent dit woord?', nl: data.meaning_nl, en: data.meaning_en };
   }
-  if (!pending && level === 1) {
+  if (use && !pending && level === 1) {
     return { kind: 'chunk', usage: use, prompt: `Hoe zeg je: ${use.meaning_en}?`, nl: use.chunk, en: use.meaning_en };
   }
-  // Use the same translation pair for the task and reveal, including legacy saved words.
+  // At review time, vary the lesson context rather than copying its original reply.
+  // Without a valid matching scene, keep the existing translation/meaning review.
+  const transfer = contextReview();
+  if (transfer) return transfer;
+  if (!use) return { kind: 'meaning', prompt: 'Wat betekent dit woord?', nl: data.meaning_nl, en: data.meaning_en };
   return { kind: 'output', usage: use, prompt: `How would you say this in Dutch? “${use.example_en}”`, nl: use.example_nl, en: use.example_en };
 }
