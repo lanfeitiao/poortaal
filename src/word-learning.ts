@@ -67,13 +67,13 @@ export function needsUsageReview(data: Pick<WordExplanation, 'word' | 'usage'>, 
   return (data.usage || []).some(use => usageReviewDue(data.word, use.chunk, attempts, now));
 }
 
-export function wordReview(data: WordExplanation, level: number, reviews: number, attempts: UsageAttempt[]) {
+export function wordReview(data: WordExplanation, level: number, reviews: number, attempts: UsageAttempt[], allowContext = true) {
   const use = chooseWordUsage(data, attempts, reviews);
   const last = use && usageHistory(data.word, use.chunk, attempts).filter(a => a.outcome !== 'self-reviewed').at(-1);
   const pending = last && ['needs-practice', 'supported'].includes(last.outcome);
   // Only reuse an already validated scene for the same sense and selected use.
   // It was taught previously, but the changed context stays hidden until review.
-  const lesson = readLearningScene(data.scene, data);
+  const lesson = allowContext ? readLearningScene(data.scene, data) : undefined;
   const recalled = lesson && (!use || lesson.usage === usageKey(use.chunk))
     ? lesson.moment.transfer : undefined;
   const contextReview = () => recalled && ({
