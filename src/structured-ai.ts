@@ -79,14 +79,14 @@ Return {${CONTEXT}, "expressions":["one complete Dutch sentence"], ${INTERACTION
 // Check both parts as whole words, in order; do not accept unrelated substrings.
 export function containsLessonTarget(line: string, word: string): boolean {
   if (containsTarget(line, word)) return true;
-  const tokens = (s: string) => s.toLocaleLowerCase('nl-NL').match(/[\\p{L}\\p{M}\\p{N}]+/gu) || [];
+  const tokens = (s: string) => s.toLocaleLowerCase('nl-NL').match(/[\p{L}\p{M}\p{N}]+/gu) || [];
   const lemma = word.toLocaleLowerCase('nl-NL');
   const particles = ['terug', 'samen', 'bezig', 'open', 'dicht', 'klaar', 'voor', 'over',
     'door', 'neer', 'vast', 'mee', 'aan', 'uit', 'op', 'af', 'weg', 'bij', 'toe', 'los', 'na', 'in', 'om'];
   for (const particle of particles) {
     if (!lemma.startsWith(particle) || lemma.length < particle.length + 4 || !lemma.endsWith('en')) continue;
     const base = lemma.slice(particle.length), rawStem = base.slice(0, -2);
-    const regularStem = rawStem.replace(/([^aeiou])\\1$/u, '$1');
+    const regularStem = rawStem.replace(/([^aeiou])\1$/u, '$1');
     // doen -> doe, bellen -> bel, houden -> houd, trekken -> trek
     const forms = new Set([base, rawStem, regularStem, base.slice(0, -1),
       regularStem + 't', base.slice(0, -1) + 't']);
