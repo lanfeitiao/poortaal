@@ -76,5 +76,6 @@ export function wordReview(data: WordExplanation, level: number, reviews: number
   if (!pending && level === 1) {
     return { kind: 'chunk', usage: use, prompt: `Hoe zeg je: ${use.meaning_en}?`, nl: use.chunk, en: use.meaning_en };
   }
-  return { kind: 'output', usage: use, prompt: use.review_prompt, nl: use.example_nl, en: use.example_en };
+  // Use the same translation pair for the task and reveal, including legacy saved words.
+  return { kind: 'output', usage: use, prompt: `How would you say this in Dutch? “${use.example_en}”`, nl: use.example_nl, en: use.example_en };
 }
