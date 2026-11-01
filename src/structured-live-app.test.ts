@@ -38,8 +38,8 @@ test('the study page presents a scene and passes its exposure into the spoken ta
   input.value = 'afspraak'; f.click('#searchBtn');
   assert.ok(f.document.getElementById('content')!.textContent!.includes(scenario.situation));
   assert.ok(f.document.getElementById('content')!.textContent!.includes('See it naturally'));
-  assert.ok(f.document.querySelector('#content .learning-transfer-answer'));
-  assert.ok(f.document.getElementById('learning-try-answer'));
+  assert.equal(f.document.querySelector('#content .learning-transfer-answer'), null);
+  assert.equal(f.document.getElementById('learning-try-answer'), null);
   assert.equal(f.document.querySelector('#content .structured-dialogue'), null);
   f.click('[data-action="practice-word"]');
   await f.wait(() => f.session()?.delivery === 'voice' && f.session()?.phase === 'answer');
