@@ -903,7 +903,7 @@ function startMicroReview(word: string) {
   const panel = document.getElementById('historyPanel'); if (panel.classList.contains('open')) toggleHistory();
   const data = getCachedWord(word) || entry.wordData;
   const stats = getWordStats()[word];
-  const review = microReviewPrompt = wordReview(data, stats?.level || 0, stats?.reviews.length || 0, getWordAttempts(word));
+  const review = microReviewPrompt = wordReview(data, stats?.level || 0, stats?.reviews.length || 0, getWordAttempts(word), false);
   if (data.usage === undefined) void loadWordUsage(data);
   document.getElementById('reviewWord').textContent = data.word;
   document.getElementById('reviewType').textContent = data.type || '';
