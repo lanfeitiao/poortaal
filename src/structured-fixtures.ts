@@ -1,4 +1,4 @@
-import type { PracticeScenario, StructuredFeedback } from './structured-contract.ts';
+import type { LearningMoment, PracticeScenario, StructuredFeedback } from './structured-contract.ts';
 import type { WordUsage } from './word-usage.ts';
 
 export const practiceUsage: WordUsage = { kind: 'collocation', note: 'Use maken when arranging an appointment.',
@@ -11,6 +11,15 @@ export const scenario: PracticeScenario = {
   expressions: ['Ik wil een afspraak maken.', 'Kan ik morgen een afspraak maken?'],
   dialogue: [{ speaker: 'Jij', line: 'Ik wil een afspraak maken.' }, { speaker: 'Assistent', line: 'Wanneer kun je komen?' }],
   tip: null, hints: ['Welke dag heb je tijd?', 'Ik wil een…', 'Ik wil een afspraak maken. Kan ik morgen komen?'],
+};
+export const lessonScenario: PracticeScenario = { ...scenario,
+  expressions: [scenario.expressions[0]], dialogue: [] };
+export const learningMoment: LearningMoment = {
+  translation: 'I would like to make an appointment.',
+  notice: null,
+  transfer: { situation: 'You need an appointment for Friday instead.',
+    openingLine: 'Wanneer wil je langskomen?',
+    example: 'Kan ik vrijdag een afspraak maken?' },
 };
 export const answer = 'Ik wil een afspraak maken. Kan ik morgen komen?';
 export function goodFeedback(situation = scenario.situation, quote = answer): StructuredFeedback {

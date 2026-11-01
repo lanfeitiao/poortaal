@@ -1,5 +1,5 @@
 import { requestOpenAIChat } from './openai-client.ts';
-import { InvalidStructuredOutput, validateScenario, validateStructuredFeedback } from './structured-contract.ts';
+import { InvalidStructuredOutput, object, validateLearningMoment, validateScenario, validateStructuredFeedback } from './structured-contract.ts';
 import { currentRound, currentTask, type StructuredSession } from './structured-session.ts';
 import type { ChatMessage } from './word-explanation.ts';
 
@@ -75,12 +75,81 @@ Return {${CONTEXT}, "expressions":["one complete Dutch sentence"], ${INTERACTION
     return scenario;
   }, chat);
 }
+// A natural separable verb can appear as "ik doe ... aan" rather than "aandoen".
+// Check both parts as whole words, in order; do not accept unrelated substrings.
+export function containsLessonTarget(line: string, word: string): boolean {
+  if (containsTarget(line, word)) return true;
+  const tokens = (s: string) => s.toLocaleLowerCase('nl-NL').match(/[\p{L}\p{M}\p{N}]+/gu) || [];
+  const lemma = word.toLocaleLowerCase('nl-NL');
+  const particles = ['terug', 'samen', 'bezig', 'open', 'dicht', 'klaar', 'voor', 'over',
+    'door', 'neer', 'vast', 'mee', 'aan', 'uit', 'op', 'af', 'weg', 'bij', 'toe', 'los', 'na', 'in', 'om'];
+  for (const particle of particles) {
+    if (!lemma.startsWith(particle) || lemma.length < particle.length + 4 || !lemma.endsWith('en')) continue;
+    const base = lemma.slice(particle.length), rawStem = base.slice(0, -2);
+    const regularStem = rawStem.replace(/([^aeiou])\1$/u, '$1');
+    // doen -> doe, bellen -> bel, houden -> houd, trekken -> trek
+    const forms = new Set([base, rawStem, regularStem, base.slice(0, -1),
+      regularStem + 't', base.slice(0, -1) + 't']);
+    const words = tokens(line);
+    if (words.some((token, i) => forms.has(token) && words.slice(i + 1).includes(particle))) return true;
+  }
+  return false;
+}
 export function validateLessonGrounding(scenario: import('./structured-contract.ts').PracticeScenario, word: string): void {
-  const contains = (text: string) => containsTarget(text, word);
-  if (!scenario.expressions.every(contains) || (scenario.dialogue.length > 0 && !scenario.dialogue.some(d => contains(d.line)))) {
+  if (!scenario.expressions.every(line => containsLessonTarget(line, word))) {
     throw new InvalidStructuredOutput('Lesson examples must demonstrate the target word');
   }
 }
+
+export function generateLearningMoment(
+  session: StructuredSession, previous: string[], tips: string, chat: CompleteChat = complete,
+): Promise<{ scenario: import('./structured-contract.ts').PracticeScenario; moment: import('./structured-contract.ts').LearningMoment }> {
+  return validated([
+    { role: 'system', content: `${RULES}
+Create a brief, REAL spoken exchange to help an A2-B1 learner understand the target Dutch word in context.
+The partner says something natural, the learner replies naturally using the target in the selected sense. The partner does not model the target first.
+Use a real reason to talk (someone waiting, asking, reminding, requesting, etc.), not "tell someone you will do X".
+Do not repeat the same meaning as a separate "goal" explanation. Avoid mechanically turning a sentence into a Situation/Goal/Example.
+Choose an appropriate Netherlands everyday setting. Natural spoken grammar and fluency matter more than forcing the dictionary infinitive:
+for separable verbs such as "aandoen", prefer "Ik doe nog even mijn jas aan" when natural, not an artificial infinitive solely to show the lemma.
+Output "scenario" with situation (short English context), task (English communication goal, saved for future conversation),
+openingLine (natural Dutch PARTNER line), expressions (exactly ONE natural Dutch LEARNER reply), dialogue:[],
+tip:null, hints (one coherent ladder; 1 cue, 2 unfinished prefix ending …, 3 the complete reply).
+The expression must answer openingLine, not restate an instruction.
+Output "moment" with translation (accurate English translation of the learner reply),
+notice (null unless ONE specific, reliable language pattern worth noticing; never merely restate the meaning,
+and do not repeat an already supplied word tip or usage note),
+transfer: {situation: short English changed real-life circumstance, openingLine: natural Dutch partner line,
+example: one natural Dutch learner reply using the SAME word and sense in the changed circumstance}.
+Make the transfer change something meaningful (e.g. jacket -> shoes) while keeping language within A2-B1.
+The transfer should require the learner to retrieve the word, not just repeat the first answer.
+EVERY learner reply, including transfer.example, must demonstrate the target sense.
+Use the target as naturally spoken, including inflection and separable word order.
+Return ONLY JSON: {"scenario":{"situation":"...", "task":"...", "openingLine":"...", "expressions":["..."],
+"dialogue":[], "tip":null, "hints":["...", "...", "..."]},
+"moment":{"translation":"...", "notice":null, "transfer":{"situation":"...", "openingLine":"...", "example":"..."}}}.` },
+    { role: 'user', content: JSON.stringify({ kind: 'learning-moment', word: session.word, meaning: session.meaning,
+      usage: session.usage, tips, previous: previous.slice(-5) }) },
+  ], value => {
+    const v = object(value), scenario = validateScenario(v.scenario), moment = validateLearningMoment(v.moment);
+    validateGeneratedHintLadder(scenario);
+    validateLessonGrounding(scenario, session.word);
+    if (!containsLessonTarget(moment.transfer.example, session.word)) {
+      throw new InvalidStructuredOutput('Transfer reply must use the target word');
+    }
+    if (!scenario.openingLine || previous.includes(scenario.situation)
+      || scenario.situation === moment.transfer.situation
+      || scenario.expressions[0] === moment.transfer.example) {
+      throw new InvalidStructuredOutput('Lesson needs a real exchange and a distinct transfer');
+    }
+    if (containsLessonTarget(scenario.openingLine, session.word)
+      || containsLessonTarget(moment.transfer.openingLine, session.word)) {
+      throw new InvalidStructuredOutput('Partner must not supply the target word');
+    }
+    return { scenario, moment };
+  }, chat);
+}
+
 export function validateGeneratedHintLadder(task: import('./structured-contract.ts').PracticeTask): void {
   const words = (s: string) => s.normalize('NFC').toLocaleLowerCase('nl-NL').match(/[\p{L}\p{M}\p{N}]+/gu) || [];
   const prefix = words(task.hints[1]), answer = words(task.hints[2]);
