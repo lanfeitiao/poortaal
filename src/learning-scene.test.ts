@@ -19,12 +19,24 @@ test('a lesson ties one sense and verified use to a situation, spoken expression
   const { document } = parseHTML(html);
   assert.ok(html.includes(scenario.situation)); assert.ok(html.includes(scenario.task));
   assert.equal(document.querySelectorAll('.learning-scene > .example-nl').length, 1);
-  assert.equal(document.querySelectorAll('details[open]').length, 0);
-  assert.ok(document.querySelector('details')!.textContent!.includes(scenario.expressions[1]));
+  assert.equal(document.querySelectorAll('details').length, 0);
+  assert.equal(document.querySelector('.scene-help'), null);
+  assert.ok(!html.includes(scenario.expressions[1]));
+  assert.ok(!html.includes(practiceUsage.note));
   assert.equal(document.querySelector('.structured-dialogue'), null);
   assert.equal(document.querySelector('[data-action="practice-word"]')!.textContent, 'Start conversation');
   assert.equal(readLearningScene(scene, { ...word, meaning_en: 'a different sense' }), undefined);
   assert.equal(readLearningScene(scene, { ...word, usage: [] }), undefined);
+});
+test('legacy scene tips do not recreate a redundant More help section', () => {
+  const data = { ...word, scene: { version: 2 as const, generatedAt: 1, sense: word.meaning_en,
+    usage: practiceUsage.chunk, scenario: { ...scenario, tip: 'Use a polite form.' } } };
+  const html = renderLearningScene(data);
+  assert.ok(html.includes('One useful line'));
+  assert.ok(html.includes(scenario.expressions[0]));
+  assert.ok(!html.includes('Use a polite form.'));
+  assert.ok(!html.includes('More help'));
+  assert.ok(html.includes('Start conversation'));
 });
 test('scene-only expressions are repaired before a lesson is displayed', async () => {
   let calls = 0;
