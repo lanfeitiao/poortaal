@@ -354,6 +354,7 @@ function renderReviewSession() {
   const meaningEn = escapeHtml(review.en || '');
   const safeWord = escapeHtml(word);
   const safeType = escapeHtml(data.type || '');
+  const contextLine = 'openingLine' in review && typeof review.openingLine === 'string' ? review.openingLine : null;
   const revealedClass = reviewRevealed ? 'revealed' : '';
   const actionsDisabled = reviewRevealed ? '' : 'disabled';
   const back2 = reviewIndex + 2 < total ? '<div class="review-card back-2"></div>' : '';
@@ -374,12 +375,15 @@ function renderReviewSession() {
           <div class="review-card-word">${safeWord}</div>
           ${safeType ? `<div class="review-card-type">${safeType}</div>` : ''}
           <div class="review-card-task">${escapeHtml(review.prompt)}</div>
+          ${contextLine ? `<div class="review-context-partner"><span>Other person</span><p>${escapeHtml(contextLine)}</p></div>
+            <div class="review-context-question">What would you say in Dutch?</div>` : ''}
           <button class="tts-btn review-tts-btn" data-action="review-tts" data-word="${safeWord.replace(/"/g, '&quot;')}" title="Uitspraak beluisteren">🔊</button>
           <div class="review-card-hint" id="reviewCardHint" ${reviewRevealed ? 'hidden' : ''}>${review.kind === 'meaning' ? 'tik om te onthullen' : 'probeer eerst zelf · tik voor een voorbeeld'}</div>
           <div class="review-card-answer ${revealedClass}" id="reviewCardAnswer">
             <div class="answer-nl">${meaningNl}</div>
             ${meaningEn ? `<div class="answer-en">${meaningEn}</div>` : ''}
-            ${review.usage ? `<div class="use-frame">${escapeHtml(review.usage.frame)}</div><div class="example-en">Andere juiste antwoorden zijn ook goed.</div>` : ''}
+            ${review.usage && !contextLine ? `<div class="use-frame">${escapeHtml(review.usage.frame)}</div>` : ''}
+            ${review.usage || contextLine ? '<div class="example-en">One possible answer — other natural replies can also be correct.</div>' : ''}
           </div>
         </div>
       </div>
@@ -899,7 +903,7 @@ function startMicroReview(word: string) {
   const panel = document.getElementById('historyPanel'); if (panel.classList.contains('open')) toggleHistory();
   const data = getCachedWord(word) || entry.wordData;
   const stats = getWordStats()[word];
-  const review = microReviewPrompt = wordReview(data, stats?.level || 0, stats?.reviews.length || 0, getWordAttempts(word));
+  const review = microReviewPrompt = wordReview(data, stats?.level || 0, stats?.reviews.length || 0, getWordAttempts(word), false);
   if (data.usage === undefined) void loadWordUsage(data);
   document.getElementById('reviewWord').textContent = data.word;
   document.getElementById('reviewType').textContent = data.type || '';

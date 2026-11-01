@@ -12,7 +12,7 @@ const lessonReply = { scenario: lessonScenario, moment: learningMoment };
 const savedScene = { version: 3 as const, generatedAt: 1, sense: word.meaning_en,
   usage: practiceUsage.chunk, ...lessonReply };
 
-test('study shows a real exchange and a hidden changed-context answer, without repeating goal or More help', async () => {
+test('study shows a short exchange with only a useful notice; changed-context recall stays for later review', async () => {
   const scene = await generateLearningScene(word, async messages => {
     const input = JSON.parse(messages[1].content);
     assert.equal(input.meaning, word.meaning_en);
@@ -27,11 +27,13 @@ test('study shows a real exchange and a hidden changed-context answer, without r
   assert.ok(text.includes(lessonScenario.situation));
   assert.ok(text.includes(lessonScenario.openingLine!));
   assert.ok(text.includes(learningMoment.translation));
-  assert.ok(text.includes(learningMoment.transfer.situation));
+  assert.ok(!text.includes(learningMoment.transfer.situation));
+  assert.ok(!text.includes(learningMoment.transfer.openingLine));
+  assert.ok(!text.includes(learningMoment.transfer.example));
   assert.equal(document.querySelectorAll('.learning-you .example-nl').length, 1);
-  assert.equal(document.querySelectorAll('.learning-transfer-answer').length, 1);
-  assert.equal(document.querySelector('.learning-transfer-answer')!.hasAttribute('open'), false);
-  assert.ok(document.querySelector('#learning-try-answer'));
+  assert.equal(document.querySelectorAll('.learning-transfer').length, 0);
+  assert.equal(document.querySelector('.learning-transfer-answer'), null);
+  assert.equal(document.querySelector('#learning-try-answer'), null);
   assert.ok(!text.includes('Your goal:'));
   assert.ok(!text.includes('One useful line'));
   assert.ok(!text.includes('More help'));
@@ -50,7 +52,7 @@ test('a genuine notice appears once, and HTML or attribute injection is escaped'
   const { document } = parseHTML(html);
   assert.equal(document.querySelector('.learning-notice p')!.textContent, 'The verb splits in a main clause.');
   assert.ok(html.includes('&lt;img'));
-  assert.ok(html.includes('&lt;script'));
+  assert.ok(!html.includes('&lt;script'));
   assert.ok(!html.includes('<img'));
   assert.ok(!html.includes('<script'));
   assert.ok(!html.includes('Vaste combinatie'));
@@ -88,7 +90,8 @@ test('aandoen is allowed in a natural split form, without forcing the infinitive
       openingLine: 'Mama, ben je klaar?', example: 'Ik doe nog even mijn schoenen aan.' } };
   const generated = await generateLearningScene(clothing, async () => JSON.stringify({ scenario: scene, moment }));
   assert.equal(readLearningScene(generated, clothing)?.scenario.expressions[0], scene.expressions[0]);
-  assert.ok(renderLearningScene({ ...clothing, scene: generated }).includes('Ik doe nog even mijn schoenen aan.'));
+  assert.ok(!renderLearningScene({ ...clothing, scene: generated }).includes('Ik doe nog even mijn schoenen aan.'));
+  assert.equal(readLearningScene(generated, clothing)?.moment.transfer.example, 'Ik doe nog even mijn schoenen aan.');
 });
 test('v2 scenes regenerate; malformed lessons retain the base word instead of inventing a scene', () => {
   assert.equal(readLearningScene({ ...savedScene, version: 2 }, word), undefined);
