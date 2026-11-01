@@ -62,6 +62,7 @@ test('history quick review never drops the partner line from a deferred scene ta
   assert.ok(!prompt.includes('You need an appointment on Friday instead.'));
   assert.ok(f.document.getElementById('reviewNl')!.textContent!.includes('Ik wil'));
   assert.equal(f.document.getElementById('microReviewOverlay')!.classList.contains('open'), true);
+  f.click('[data-action="micro-reveal"]');
   f.click('[data-action="micro-close"]');
 });
 
