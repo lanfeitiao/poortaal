@@ -116,6 +116,7 @@ test('later review reuses saved changed-context question without immediately sho
   assert.equal(wordReview(data, 1, 1, []).kind, 'chunk');
   const review = wordReview(data, 2, 2, []);
   assert.equal(review.kind, 'context');
+  assert.equal(wordReview(data, 2, 2, [], false).kind, 'output', 'quick review keeps its short prompt');
   assert.equal(review.prompt, learningMoment.transfer.situation);
   assert.equal(review.nl, learningMoment.transfer.example);
   assert.equal(review.en, '');
