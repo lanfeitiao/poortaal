@@ -38,7 +38,7 @@ test('study shows a short exchange with only a useful notice; changed-context re
   assert.ok(!text.includes('One useful line'));
   assert.ok(!text.includes('More help'));
   assert.ok(!text.includes(practiceUsage.note));
-  assert.equal(document.querySelector('.learning-notice'), null);
+  assert.ok(document.querySelector('.learning-notice')!.textContent!.includes('maak ... af.'));
   assert.equal(document.querySelector('[data-action="practice-word"]')!.textContent, 'Start conversation');
   assert.equal(readLearningScene(scene, { ...word, meaning_en: 'a different sense' }), undefined);
   assert.equal(readLearningScene(scene, { ...word, usage: [] }), undefined);
