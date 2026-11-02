@@ -38,7 +38,7 @@ test('study shows a short exchange with only a useful notice; changed-context re
   assert.ok(!text.includes('One useful line'));
   assert.ok(!text.includes('More help'));
   assert.ok(!text.includes(practiceUsage.note));
-  assert.ok(document.querySelector('.learning-notice')!.textContent!.includes('maak ... af.'));
+  assert.equal(document.querySelector('.learning-notice'), null);
   assert.equal(document.querySelector('[data-action="practice-word"]')!.textContent, 'Start conversation');
   assert.equal(readLearningScene(scene, { ...word, meaning_en: 'a different sense' }), undefined);
   assert.equal(readLearningScene(scene, { ...word, usage: [] }), undefined);
@@ -114,7 +114,7 @@ test('afmaken can appear as maak ... af in an everyday child-pickup scene', asyn
   assert.equal(readLearningScene(scene, finishing)?.scenario.expressions[0], scenario.expressions[0]);
   const { document } = parseHTML(renderLearningScene({ ...finishing, scene }));
   assert.match(document.querySelector('.learning-you')!.textContent!, /Maak het dak nog even af/);
-  assert.match(document.querySelector('.learning-notice')!.textContent!, /maak \\.\\.\\. af/);
+  assert.ok(document.querySelector('.learning-notice')!.textContent!.includes('maak ... af.'));
   assert.ok(!document.querySelector('.learning-scene')!.textContent!.includes(moment.transfer.example));
 });
 
