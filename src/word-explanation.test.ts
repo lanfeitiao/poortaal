@@ -30,17 +30,37 @@ test('optional tips and memory clues normalize without filler content', () => {
     assert.equal(result.fun_fact, null);
   }
 });
-test('new explanations regenerate missing usages once while legacy data stays valid', async () => {
+test('fresh lookups accept missing optional usages without retrying', async () => {
   const { usage, ...legacy } = validExplanation;
+  // Older saved cards still keep the missing-usage marker for later enrichment.
   assert.equal(validateWordExplanation(legacy).usage, undefined);
   let calls = 0;
   const result = await generateWordExplanation('gezellig', async () => {
     calls++;
-    return JSON.stringify(calls === 1 ? legacy : validExplanation);
+    return JSON.stringify(legacy);
   });
-  assert.equal(calls, 2);
+  assert.equal(calls, 1);
   assert.deepEqual(result.usage, []);
-  await assert.rejects(() => generateWordExplanation('gezellig', async () => JSON.stringify(legacy)), InvalidWordExplanationError);
+});
+
+test('vervoer remains usable when the AI returns malformed optional usage', async () => {
+  let calls = 0;
+  const result = await generateWordExplanation('vervoer', async () => {
+    calls++;
+    return JSON.stringify({
+      ...validExplanation,
+      word: 'vervoer',
+      meaning_nl: 'Vervoer betekent mensen of spullen van de ene plek naar de andere brengen.',
+      meaning_en: 'transport',
+      examples: [{ nl: 'We gaan met het openbaar vervoer.', en: 'We are taking public transport.' }],
+      usage: [{ chunk: 'openbaar vervoer' }], // invalid: missing required usage fields
+    });
+  });
+  assert.equal(calls, 1);
+  assert.equal(result.word, 'vervoer');
+  assert.equal(result.meaning_en, 'transport');
+  assert.deepEqual(result.usage, []);
+  assert.equal(result.examples[0].nl, 'We gaan met het openbaar vervoer.');
 });
 
 test('returns a validated word explanation for valid JSON', async () => {
