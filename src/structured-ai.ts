@@ -50,8 +50,9 @@ export function generateScenario(session: StructuredSession, previous: string[],
   return validated([
     { role: 'system', content: `${RULES}
 Create a NEW situation differing from previous practice, naturally inviting the selected use.
-Prefer everyday life in the Netherlands: school or BSO pickup, talking to a teacher, arranging a playdate, shopping or returns, booking appointments, and household repairs.
-Choose whichever context fits this word and sense naturally. Use another everyday context if none fits; never force a school setting or default to a job interview or office example.
+Prefer everyday life in the Netherlands: managing a playdate or pickup, talking to visiting children or their parents, school or BSO, neighbours, shopping, appointments and household routines.
+The learner is an adult, often speaking as a parent, not automatically a student or employee. Pick a different setting whenever the word and sense fit better; do not force parenting into formal or unrelated vocabulary.
+Give the partner a believable immediate reason to speak (a small request, objection, or practical snag) and let the learner resolve it with a natural reply.
 Give the learner a concrete reason to contact someone and something to resolve, not a generic topic. Use generic roles, never invent personal names or events about the learner.
 Respect the word's register: administrative wording belongs naturally in booking, registration or email tasks, rather than forced formalities between friends.
 Build every field around ONE action by the learner. The situation describes the learner's starting problem; task says what the learner needs to tell or ask the partner. Never swap their roles.
@@ -90,6 +91,9 @@ export function containsLessonTarget(line: string, word: string): boolean {
     // doen -> doe, bellen -> bel, houden -> houd, trekken -> trek
     const forms = new Set([base, rawStem, regularStem, base.slice(0, -1),
       regularStem + 't', base.slice(0, -1) + 't']);
+    // Open-syllable verbs: maken -> maak, spelen -> speel, lopen -> loop.
+    const openStem = rawStem.match(/^(.*?)([aeo])([^aeiou])$/u);
+    if (openStem) forms.add(openStem[1] + openStem[2].repeat(2) + openStem[3]);
     const words = tokens(line);
     if (words.some((token, i) => forms.has(token) && words.slice(i + 1).includes(particle))) return true;
   }
@@ -106,12 +110,14 @@ export function generateLearningMoment(
 ): Promise<{ scenario: import('./structured-contract.ts').PracticeScenario; moment: import('./structured-contract.ts').LearningMoment }> {
   return validated([
     { role: 'system', content: `${RULES}
-Create a brief, REAL spoken exchange to help an A2-B1 learner understand the target Dutch word in context.
-The partner says something natural, the learner replies naturally using the target in the selected sense. The partner does not model the target first.
-Use a real reason to talk (someone waiting, asking, reminding, requesting, etc.), not "tell someone you will do X".
-Do not repeat the same meaning as a separate "goal" explanation. Avoid mechanically turning a sentence into a Situation/Goal/Example.
-Choose an appropriate Netherlands everyday setting. Natural spoken grammar and fluency matter more than forcing the dictionary infinitive:
-for separable verbs such as "aandoen", prefer "Ik doe nog even mijn jas aan" when natural, not an artificial infinitive solely to show the lemma.
+Write a believable slice of everyday life, not a sentence invented to demonstrate a dictionary word.
+The learner is an adult in the Netherlands. When the word naturally fits, favour moments with their child, visiting children, other parents (playdates, pickup, parties), school, neighbours, shops or household routines. For a word that does NOT fit these, choose an appropriate adult situation instead. Do not cast the learner as a homework-doing pupil or office worker by default.
+First imagine one concrete event with a small practical snag: the children want to finish building before pickup; another parent is running late; something needs arranging. Give just enough detail to explain WHY the conversation happens, rather than a generic topic or a contrived exercise.
+Write the learner's natural reply first, then a partner line that really invites that reply. The partner might object, ask a practical question or make a request; do not always use a generic greeting. One or two short spoken sentences in the learner reply are fine when they make the response human.
+For example, with afmaken: two children are building a house before pickup; "Maar we zijn nog niet klaar!" -> "Maak het dak nog even af. Daarna ruimen we samen op." This is a style example, NOT a scene to copy for other words.
+Silently check who is speaking, the timeline, and whether the response actually answers the partner (including yes/no logic). "Heb je je huiswerk al gedaan?" -> "Ja, ik moet het nog afmaken" is contradictory and must not be produced.
+Do not repeat the same meaning as a separate goal. Natural A2-B1 spoken forms matter more than forcing the dictionary infinitive: "Ik doe mijn jas nog even aan" is better than a forced aandoen infinitive.
+The partner must not model the target before the learner replies.
 Output "scenario" with situation (short English context), task (English communication goal, saved for future conversation),
 openingLine (natural Dutch PARTNER line), expressions (exactly ONE natural Dutch LEARNER reply), dialogue:[],
 tip:null, hints (one coherent ladder; 1 cue, 2 unfinished prefix ending …, 3 the complete reply).

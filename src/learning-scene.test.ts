@@ -17,7 +17,7 @@ test('study shows a short exchange with only a useful notice; changed-context re
     const input = JSON.parse(messages[1].content);
     assert.equal(input.meaning, word.meaning_en);
     assert.equal(input.kind, 'learning-moment');
-    assert.ok(messages[0].content.includes('REAL spoken exchange'));
+    assert.ok(messages[0].content.includes('believable slice of everyday life'));
     return JSON.stringify(lessonReply);
   });
   const saved = validateWordExplanation({ ...word, scene });
@@ -93,6 +93,31 @@ test('aandoen is allowed in a natural split form, without forcing the infinitive
   assert.ok(!renderLearningScene({ ...clothing, scene: generated }).includes('Ik doe nog even mijn schoenen aan.'));
   assert.equal(readLearningScene(generated, clothing)?.moment.transfer.example, 'Ik doe nog even mijn schoenen aan.');
 });
+test('afmaken can appear as maak ... af in an everyday child-pickup scene', async () => {
+  const finishing = { ...word, word: 'afmaken', type: 'werkwoord', meaning_en: 'to finish', usage: [] };
+  const scenario = { ...lessonScenario,
+    situation: 'Two children are building a house at your home, and pickup is in five minutes.',
+    task: 'Let them finish the roof, then ask them to tidy up.',
+    openingLine: 'Maar we zijn nog niet klaar!',
+    expressions: ['Maak het dak nog even af. Daarna ruimen we samen op.'],
+    hints: ['Geef ze nog even tijd voor het dak, daarna opruimen.',
+      'Maak het dak…', 'Maak het dak nog even af. Daarna ruimen we samen op.'] as [string, string, string] };
+  const moment = { translation: 'Finish the roof first. Then we will tidy up together.',
+    notice: 'Afmaken splits in a main clause: maak ... af.',
+    transfer: { situation: 'Your child wants to finish a drawing before you leave.',
+      openingLine: 'Mag ik nog even tekenen?', example: 'Je mag de tekening vanavond afmaken.' } };
+  const scene = await generateLearningScene(finishing, async messages => {
+    assert.match(messages[0].content, /The learner is an adult in the Netherlands/);
+    assert.match(messages[0].content, /whether the response actually answers the partner/);
+    return JSON.stringify({ scenario, moment });
+  });
+  assert.equal(readLearningScene(scene, finishing)?.scenario.expressions[0], scenario.expressions[0]);
+  const { document } = parseHTML(renderLearningScene({ ...finishing, scene }));
+  assert.match(document.querySelector('.learning-you')!.textContent!, /Maak het dak nog even af/);
+  assert.ok(document.querySelector('.learning-notice')!.textContent!.includes('maak ... af.'));
+  assert.ok(!document.querySelector('.learning-scene')!.textContent!.includes(moment.transfer.example));
+});
+
 test('v2 scenes regenerate; malformed lessons retain the base word instead of inventing a scene', () => {
   assert.equal(readLearningScene({ ...savedScene, version: 2 }, word), undefined);
   const saved = validateWordExplanation({ ...word, scene: { scenario: 'broken' } });
