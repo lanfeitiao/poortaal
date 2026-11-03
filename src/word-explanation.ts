@@ -112,6 +112,20 @@ function parseWordExplanation(raw: string): WordExplanation {
   } catch {
     throw new InvalidWordExplanationError('AI response was not valid JSON');
   }
+  // Usage is optional learning enrichment. A malformed usage candidate must not
+  // prevent showing an otherwise valid word meaning and ordinary example.
+  // Stored explanations still use the stricter validator to flag legacy usages.
+  if (isRecord(parsed)) {
+    const normalized = { ...parsed, usage: parsed.usage ?? [] };
+    try {
+      return validateWordExplanation(normalized);
+    } catch (error) {
+      if (!(error instanceof InvalidWordExplanationError) || error.message !== 'Invalid word usage') {
+        throw error;
+      }
+      return validateWordExplanation({ ...normalized, usage: [] });
+    }
+  }
   return validateWordExplanation(parsed);
 }
 
@@ -161,11 +175,13 @@ async function requestWordExplanation(
   }
 
   const data = parseWordExplanation(cleanJsonResponse(raw));
-  if (data.usage === undefined) throw new InvalidWordExplanationError('Missing word usage');
   let usage: WordUsage[];
   try { usage = await reviewWordUsage(data, completeChat); }
   catch (error) {
-    if (error instanceof InvalidUsageReviewError) throw new InvalidWordExplanationError(error.message);
+    if (error instanceof InvalidUsageReviewError) {
+      // Never publish an unchecked construction, but keep the valid core explanation.
+      return { ...data, usage: [] };
+    }
     throw new WordExplanationRequestError(error);
   }
   const use = usage[0];
