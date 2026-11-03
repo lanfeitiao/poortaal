@@ -753,6 +753,8 @@ async function lookupWord() {
   } catch (e) {
     if (e instanceof InvalidWordExplanationError) {
       console.warn('Rejected invalid AI word explanation', e);
+    } else if (!(e instanceof WordExplanationRequestError)) {
+      console.error('Unexpected error while processing word lookup', e);
     }
     const requestFailed = e instanceof WordExplanationRequestError;
     content.innerHTML = requestFailed
