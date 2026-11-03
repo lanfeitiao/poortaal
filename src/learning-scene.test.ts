@@ -17,7 +17,7 @@ test('study shows a short exchange with only a useful notice; changed-context re
     const input = JSON.parse(messages[1].content);
     assert.equal(input.meaning, word.meaning_en);
     assert.equal(input.kind, 'learning-moment');
-    assert.ok(messages[0].content.includes('REAL spoken exchange'));
+    assert.ok(messages[0].content.includes('believable slice of everyday life'));
     return JSON.stringify(lessonReply);
   });
   const saved = validateWordExplanation({ ...word, scene });
