@@ -13,9 +13,9 @@ export function renderLearningScene(data: WordExplanation, state?: 'loading' | '
   return `<section class="card structured-practice learning-scene"><div class="card-label">Try it in real life</div>
     <h3>See it naturally</h3>
     <p class="learning-context">${e(s.situation)}</p>
-    <div class="learning-bubble learning-partner"><span class="learning-role">Other person</span>${line(s.openingLine!)}</div>
-    <div class="learning-bubble learning-you"><span class="learning-role">You could say</span>
-      ${line(s.expressions[0])}<p class="learning-translation">${e(m.translation)}</p></div>
+    ${s.dialogue.map(turn => `<div class="learning-bubble ${turn.role === 'learner' ? 'learning-you' : 'learning-partner'}">
+      <span class="learning-role">${e(turn.role === 'learner' ? 'You' : turn.speaker)}</span>${line(turn.line)}
+      <p class="learning-translation">${e(turn.translation)}</p></div>`).join('')}
     ${m.notice ? `<div class="learning-notice"><strong>Notice</strong><p>${e(m.notice)}</p></div>` : ''}
     <div class="structured-actions"><button type="button" class="use-button" data-action="practice-word" data-word="${e(data.word)}" ${state === 'loading' ? 'disabled' : ''}>Start conversation</button>
     <button type="button" class="use-button secondary" data-action="change-learning-scene" data-word="${e(data.word)}" ${state === 'loading' ? 'disabled' : ''}>${state === 'loading' ? 'Changing situation…' : 'Different situation'}</button></div>
