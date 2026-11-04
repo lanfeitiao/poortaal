@@ -4,6 +4,11 @@ export type PracticeScenario = PracticeTask & {
   dialogue: { speaker: string; line: string }[];
   tip: string | null;
 };
+export type StudyTurn = {
+  role: 'learner' | 'partner'; speaker: string; line: string; translation: string;
+};
+export type StudyScenario = { situation: string; task: string; dialogue: StudyTurn[] };
+export type StudiedScenario = PracticeScenario | StudyScenario;
 export type LearningMoment = {
   translation: string;
   notice: string | null;
@@ -53,6 +58,27 @@ export function validateScenario(value: unknown): PracticeScenario {
       const line = object(d);
       return { speaker: text(line.speaker, 80), line: text(line.line, 300) };
     }), tip: v.tip === null ? null : text(v.tip, 300) };
+}
+export function validateStudyScenario(value: unknown): StudyScenario {
+  const v = object(value);
+  const dialogue = list(v.dialogue, 2, 5).map(item => {
+    const turn = object(item);
+    return { role: choice(turn.role, ['learner', 'partner'] as const), speaker: text(turn.speaker, 80),
+      line: text(turn.line, 300), translation: text(turn.translation, 300) };
+  });
+  const segmenter = new Intl.Segmenter('nl', { granularity: 'sentence' });
+  const counts = dialogue.map(turn => Array.from(segmenter.segment(turn.line))
+    .filter(part => /[\p{L}\p{N}]/u.test(part.segment)).length);
+  if (counts.some(count => count === 0) || counts.reduce((sum, count) => sum + count, 0) > 5) {
+    throw new InvalidStructuredOutput('Study dialogue must contain at most five spoken sentences in total');
+  }
+  if (!dialogue.some(turn => turn.role === 'learner') || !dialogue.some(turn => turn.role === 'partner')) {
+    throw new InvalidStructuredOutput('Study dialogue needs both the learner and another speaker');
+  }
+  return { situation: text(v.situation), task: text(v.task), dialogue };
+}
+export function validateStudiedScenario(value: unknown): StudiedScenario {
+  return Object.hasOwn(object(value), 'expressions') ? validateScenario(value) : validateStudyScenario(value);
 }
 export function validateLearningMoment(value: unknown): LearningMoment {
   const v = object(value), transfer = object(v.transfer);

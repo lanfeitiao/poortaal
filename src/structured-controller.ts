@@ -3,7 +3,7 @@ import { evaluateResponse, generateScenario, type CompleteChat } from './structu
 import { advanceSession, createSession, currentRound, type StructuredSession } from './structured-session.ts';
 import { activeSession, hasPractised, leaveSession, readSessions, samePractice, saveSession, saveStructuredProgress } from './structured-store.ts';
 import type { WordUsage } from './word-usage.ts';
-import type { PracticeScenario } from './structured-contract.ts';
+import type { StudiedScenario } from './structured-contract.ts';
 
 export class StructuredPractice {
   session: StructuredSession | null = null;
@@ -36,7 +36,7 @@ export class StructuredPractice {
     if (saved?.revision === current.revision) return;
     this.stop(); this.session = saved || null; this.syncProgress(); this.notify();
   }
-  async start(word: string, usage?: WordUsage, helped = false, options?: { voice: boolean; meaning?: string; studiedScenario?: PracticeScenario }): Promise<void> {
+  async start(word: string, usage?: WordUsage, helped = false, options?: { voice: boolean; meaning?: string; studiedScenario?: StudiedScenario }): Promise<void> {
     this.stop();
     const saved = readSessions().sessions.reverse().find(s => samePractice(s, word, usage?.chunk) && s.phase !== 'complete'
       && (s.delivery === 'voice') === !!options?.voice && (!options?.meaning || s.meaning === options.meaning)
