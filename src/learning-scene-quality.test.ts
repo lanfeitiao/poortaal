@@ -126,3 +126,15 @@ test('a child can say the target while the learner gives a natural one-word repl
   assert.ok(!Object.hasOwn(scene.scenario, 'expressions'));
   assert.ok(!Object.hasOwn(scene.scenario, 'hints'));
 });
+
+test('a target appearing only in English translations or metadata does not count as spoken exposure', async () => {
+  const scenario = { ...draft.scenario, dialogue: [
+    studyTurn('partner', 'Wat is er kapot?', 'Which onderdeel is broken?'),
+    studyTurn('learner', 'Dat weet ik nog niet.', 'I do not know yet.'),
+  ] };
+  let calls = 0;
+  await assert.rejects(generateLearningScene(word, async () => {
+    calls++; return JSON.stringify({ ...draft, scenario });
+  }), /at least one Dutch line/);
+  assert.equal(calls, 2);
+});
