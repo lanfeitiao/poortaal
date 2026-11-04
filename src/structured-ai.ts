@@ -2,6 +2,7 @@ import { requestOpenAIChat } from './openai-client.ts';
 import { InvalidStructuredOutput, object, validateLearningMoment, validateScenario, validateStructuredFeedback } from './structured-contract.ts';
 import { currentRound, currentTask, type StructuredSession } from './structured-session.ts';
 import type { ChatMessage } from './word-explanation.ts';
+import { NATURAL_EXCHANGE_GUIDANCE, reviewLearningMoment } from './learning-scene-quality.ts';
 
 export type CompleteChat = (messages: ChatMessage[], temperature?: number) => Promise<string>;
 const complete: CompleteChat = (messages, temperature) => requestOpenAIChat('https://poortaal-api.weilin1990.workers.dev', messages, temperature);
@@ -32,15 +33,17 @@ function keepOpeningNeutral(task: import('./structured-contract.ts').PracticeTas
   }
 }
 
-async function validated<T>(messages: ChatMessage[], validate: (value: unknown) => T, chat: CompleteChat): Promise<T> {
+async function validated<T>(messages: ChatMessage[], validate: (value: unknown) => T | Promise<T>, chat: CompleteChat): Promise<T> {
   for (let attempt = 0; attempt < 2; attempt++) {
     const raw = await chat(messages, 0.3);
-    try { return validate(JSON.parse(raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, ''))); }
+    try { return await validate(JSON.parse(raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, ''))); }
     catch (error) {
       if (!(error instanceof SyntaxError || error instanceof InvalidStructuredOutput) || attempt === 1) throw error;
-      if (error instanceof InvalidStructuredOutput && error.message.startsWith('Hint 2')) {
+      if (error instanceof InvalidStructuredOutput) {
         messages = [...messages, { role: 'assistant', content: raw }, { role: 'user',
-          content: 'Repair the hint ladder for the same task: hint 2 must be an exact unfinished prefix of hint 3, ending in an ellipsis. Keep hint 1 about that same answer. Return the complete corrected JSON.' }];
+          content: error.message.startsWith('Hint 2')
+            ? 'Repair the hint ladder for the same task: hint 2 must be an exact unfinished prefix of hint 3, ending in an ellipsis. Keep hint 1 about that same answer. Return the complete corrected JSON.'
+            : `Repair the draft using this validation feedback: ${error.message} Return the complete corrected JSON, including matching hints and translation. You may change the setting to fit the target word naturally.` }];
       }
     }
   }
@@ -111,6 +114,7 @@ export function generateLearningMoment(
   return validated([
     { role: 'system', content: `${RULES}
 Write a believable slice of everyday life, not a sentence invented to demonstrate a dictionary word.
+${NATURAL_EXCHANGE_GUIDANCE}
 The learner is an adult in the Netherlands. When the word naturally fits, favour moments with their child, visiting children, other parents (playdates, pickup, parties), school, neighbours, shops or household routines. For a word that does NOT fit these, choose an appropriate adult situation instead. Do not cast the learner as a homework-doing pupil or office worker by default.
 First imagine one concrete event with a small practical snag: the children want to finish building before pickup; another parent is running late; something needs arranging. Give just enough detail to explain WHY the conversation happens, rather than a generic topic or a contrived exercise.
 Write the learner's natural reply first, then a partner line that really invites that reply. The partner might object, ask a practical question or make a request; do not always use a generic greeting. One or two short spoken sentences in the learner reply are fine when they make the response human.
@@ -136,7 +140,7 @@ Return ONLY JSON: {"scenario":{"situation":"...", "task":"...", "openingLine":".
 "moment":{"translation":"...", "notice":null, "transfer":{"situation":"...", "openingLine":"...", "example":"..."}}}.` },
     { role: 'user', content: JSON.stringify({ kind: 'learning-moment', word: session.word, meaning: session.meaning,
       usage: session.usage, tips, previous: previous.slice(-5) }) },
-  ], value => {
+  ], async value => {
     const v = object(value), scenario = validateScenario(v.scenario), moment = validateLearningMoment(v.moment);
     validateGeneratedHintLadder(scenario);
     validateLessonGrounding(scenario, session.word);
@@ -152,6 +156,7 @@ Return ONLY JSON: {"scenario":{"situation":"...", "task":"...", "openingLine":".
       || containsLessonTarget(moment.transfer.openingLine, session.word)) {
       throw new InvalidStructuredOutput('Partner must not supply the target word');
     }
+    await reviewLearningMoment(session.word, session.meaning, scenario, moment, chat);
     return { scenario, moment };
   }, chat);
 }
