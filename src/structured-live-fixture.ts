@@ -51,11 +51,7 @@ export async function liveFixture(t: TestContext, scenarioReply?: (input: Record
     const raw = input.answer ? goodFeedback(input.situation as string, input.answer as string)
       : scenarioReply ? await scenarioReply(input) : input.kind === 'learning-moment' ? lessonScenario : scenario;
     const reply = input.kind === 'learning-moment' && raw && typeof raw === 'object'
-      && !Object.hasOwn(raw, 'scenario') ? { scenario: raw, moment: Array.isArray(input.previous) && input.previous.length
-        ? { ...learningMoment, transfer: {
-          situation: 'Now you need an appointment on Monday instead.',
-          openingLine: 'Welke dag kun je nu?', example: 'Kan ik maandag een afspraak maken?' } }
-        : learningMoment } : raw;
+      && !Object.hasOwn(raw, 'scenario') ? { scenario: raw, moment: learningMoment } : raw;
     return Response.json({ choices: [{ message: { content: JSON.stringify(reply) } }] });
   });
   const result = await build({ configFile: false, logLevel: 'silent', build: { write: false } });
