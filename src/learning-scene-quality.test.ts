@@ -100,3 +100,20 @@ test('a review request failure is surfaced without repeatedly generating more dr
   }), /HTTP failure/);
   assert.equal(calls, 2);
 });
+
+test('final hints are derived from the displayed reply instead of accepting an unrelated model answer', async () => {
+  let generations = 0, reviews = 0;
+  const mismatched = { ...draft, scenario: { ...draft.scenario,
+    hints: ['Zeg wat er nog nodig is.', 'Ik heb een…', 'Ik heb een onderdeel nodig.'] } };
+  const scene = await generateLearningScene(word, async messages => {
+    if (JSON.parse(messages[1].content).kind === 'learning-moment-review') {
+      reviews++; return JSON.stringify(approvedLearningReview);
+    }
+    generations++;
+    return JSON.stringify(mismatched);
+  });
+  assert.equal(generations, 1); assert.equal(reviews, 1);
+  assert.equal(scene.scenario.hints[2], scene.scenario.expressions[0]);
+  assert.equal(scene.scenario.hints[1], 'Nog niet, ik…');
+  assert.equal(readLearningScene({ ...scene, scenario: mismatched.scenario }, word), undefined);
+});

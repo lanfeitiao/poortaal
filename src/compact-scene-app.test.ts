@@ -4,7 +4,8 @@ import { liveFixture } from './structured-live-fixture.ts';
 import { approvedLearningReview, scenario } from './structured-fixtures.ts';
 
 const changed = { ...scenario, situation: 'You need to move a meeting with your child’s teacher.',
-  task: 'Ask for an appointment on Friday.', expressions: ['Kan ik vrijdag een afspraak maken?'], dialogue: [] };
+  task: 'Ask for an appointment on Friday.', expressions: ['Kan ik vrijdag een afspraak maken?'], dialogue: [],
+  hints: ['Vraag of je vrijdag kunt komen.', 'Kan ik vrijdag…', 'Kan ik vrijdag een afspraak maken?'] };
 
 test('changing a scene prevents duplicate requests and passes the chosen task into speech without another lesson', async t => {
   let resolve!: (value: unknown) => void;

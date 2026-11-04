@@ -1,4 +1,4 @@
-import { InvalidStructuredOutput, object, text, type LearningMoment, type PracticeScenario } from './structured-contract.ts';
+import { InvalidStructuredOutput, list, object, text, validateScenario, type LearningMoment, type PracticeScenario } from './structured-contract.ts';
 import type { CompleteChat } from './structured-ai.ts';
 
 export const NATURAL_EXCHANGE_GUIDANCE = `Each reply must do conversational work: answer a question, react, offer help, explain a delay or suggest a next step. A short confirmation that answers a real question is fine.
@@ -26,6 +26,16 @@ export function validateDisplayedReply(scenario: PracticeScenario): void {
   if (scenario.expressions.length !== 1 || scenario.hints[2] !== scenario.expressions[0]) {
     throw new InvalidStructuredOutput('Scene quality: hint 3 must exactly match the ONE displayed learner reply, with hint 2 its unfinished prefix. Keep the target in that reply.');
   }
+}
+
+export function alignLearningReply(value: unknown): PracticeScenario {
+  const v = object(value), reply = text(list(v.expressions, 1, 1)[0], 300);
+  const cue = text(list(v.hints, 3, 3)[0]);
+  const words = reply.split(/\s+/u);
+  if (words.length < 2) throw new InvalidStructuredOutput('The learner reply needs at least two words for progressive hints');
+  // The app knows the answer: do not ask a model to invent it again for each hint.
+  const prefix = words.slice(0, Math.min(3, words.length - 1)).join(' ') + '…';
+  return validateScenario({ ...v, hints: [cue, prefix, reply] });
 }
 
 export async function reviewLearningMoment(

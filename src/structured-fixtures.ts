@@ -13,7 +13,8 @@ export const scenario: PracticeScenario = {
   tip: null, hints: ['Welke dag heb je tijd?', 'Ik wil een…', 'Ik wil een afspraak maken. Kan ik morgen komen?'],
 };
 export const lessonScenario: PracticeScenario = { ...scenario,
-  expressions: [scenario.expressions[0]], dialogue: [] };
+  expressions: [scenario.expressions[0]], dialogue: [],
+  hints: ['Zeg wat je wilt regelen.', 'Ik wil een…', scenario.expressions[0]] };
 export const learningMoment: LearningMoment = {
   translation: 'I would like to make an appointment.',
   notice: null,

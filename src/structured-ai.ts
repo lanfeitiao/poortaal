@@ -2,7 +2,7 @@ import { requestOpenAIChat } from './openai-client.ts';
 import { InvalidStructuredOutput, object, validateLearningMoment, validateScenario, validateStructuredFeedback } from './structured-contract.ts';
 import { currentRound, currentTask, type StructuredSession } from './structured-session.ts';
 import type { ChatMessage } from './word-explanation.ts';
-import { NATURAL_EXCHANGE_GUIDANCE, reviewLearningMoment } from './learning-scene-quality.ts';
+import { alignLearningReply, NATURAL_EXCHANGE_GUIDANCE, reviewLearningMoment } from './learning-scene-quality.ts';
 
 export type CompleteChat = (messages: ChatMessage[], temperature?: number) => Promise<string>;
 const complete: CompleteChat = (messages, temperature) => requestOpenAIChat('https://poortaal-api.weilin1990.workers.dev', messages, temperature);
@@ -120,7 +120,7 @@ Write scenario.expressions FIRST: exactly ONE learner reply of one or two short 
 Then write openingLine: what the OTHER person just said to invite that reply. Keep both partner opening lines free of the target word and its forms; keep the target in both learner replies.
 Describe who is speaking and one concrete reason to speak now in situation (one English sentence). Task (English) must describe what the LEARNER reply actually achieves, not the partner's action. Do not repeat a goal on the page.
 Silently check roles, timeline, and whether the response actually answers the partner, including yes/no logic.
-Hints refer to the ONE displayed reply: hint 3 must be EXACTLY scenario.expressions[0]; hint 2 an exact unfinished prefix of that reply ending in …; hint 1 a short Dutch cue for the same intention, without giving the target.
+Hints: supply only hint 1, a short Dutch cue for the displayed reply's intention without giving the target word. Set hints[1] and hints[2] to empty strings; the app will derive the prefix and complete answer from the displayed reply.
 Translation must translate scenario.expressions[0] exactly, without adding information from hints or the scene. Notice is null unless one reliable language pattern adds something beyond the supplied tips and usage.
 Transfer is saved for later recall: change a meaningful condition, with a new English situation, a Dutch partner openingLine, and a DIFFERENT natural learner example using the same target sense. Do not copy the study reply verbatim.
 Avoid previous situations. Return ONLY JSON, with dialogue:[] and tip:null:
@@ -130,7 +130,7 @@ Avoid previous situations. Return ONLY JSON, with dialogue:[] and tip:null:
     { role: 'user', content: JSON.stringify({ kind: 'learning-moment', word: session.word, meaning: session.meaning,
       usage: session.usage, tips, previous: previous.slice(-5) }) },
   ], async value => {
-    const v = object(value), scenario = validateScenario(v.scenario), moment = validateLearningMoment(v.moment);
+    const v = object(value), scenario = alignLearningReply(v.scenario), moment = validateLearningMoment(v.moment);
     validateGeneratedHintLadder(scenario);
     validateLessonGrounding(scenario, session.word);
     if (!containsLessonTarget(moment.transfer.example, session.word)) {
