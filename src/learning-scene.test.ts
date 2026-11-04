@@ -21,7 +21,7 @@ test('study renders all turns with translations and audio; changed-context recal
     const input = JSON.parse(messages[1].content);
     assert.equal(input.meaning, word.meaning_en);
     assert.equal(input.kind, 'learning-moment');
-    assert.ok(messages[0].content.includes('believable slice of everyday life'));
+    assert.ok(messages[0].content.includes('school/child communication'));
     return JSON.stringify(lessonReply);
   });
   const saved = validateWordExplanation({ ...word, scene });
