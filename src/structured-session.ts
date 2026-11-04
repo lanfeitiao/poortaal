@@ -1,4 +1,4 @@
-import type { PracticeScenario, PracticeTask, StructuredFeedback } from './structured-contract.ts';
+import type { PracticeScenario, PracticeTask, StructuredFeedback, StudiedScenario } from './structured-contract.ts';
 import type { WordUsage } from './word-usage.ts';
 import type { UsageAttempt, UsageOutcome } from './word-learning.ts';
 
@@ -13,7 +13,7 @@ export type StructuredSession = {
   phase: 'prepare' | 'guide' | 'answer' | 'feedback' | 'complete';
   pending: 'scenario' | 'feedback' | null; round: 0 | 1; rounds: PracticeRound[];
   scenario?: PracticeScenario; skippedRetry: boolean;
-  delivery?: 'voice'; meaning?: string; studiedScenario?: PracticeScenario;
+  delivery?: 'voice'; meaning?: string; studiedScenario?: StudiedScenario;
 };
 export function createSession(owner: string, word: string, usage: WordUsage | undefined, guided: boolean, helped: boolean): StructuredSession {
   return { version: 1, id: crypto.randomUUID(), owner, word, usage, revision: 0, updatedAt: Date.now(),

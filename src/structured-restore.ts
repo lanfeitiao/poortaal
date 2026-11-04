@@ -1,4 +1,4 @@
-import { choice, object, text, validateScenario, validateStructuredFeedback } from './structured-contract.ts';
+import { choice, object, text, validateScenario, validateStudiedScenario, validateStructuredFeedback } from './structured-contract.ts';
 import type { PracticeRound, StructuredSession } from './structured-session.ts';
 import { validateWordUsage } from './word-usage.ts';
 
@@ -49,7 +49,7 @@ export function restoreSession(value: unknown, owner: string): StructuredSession
   return { version: 1, id: text(v.id, 100), owner, word: text(v.word, 200),
     ...(v.delivery === undefined ? {} : { delivery: choice(v.delivery, ['voice'] as const) }),
     ...(v.meaning === undefined ? {} : { meaning: text(v.meaning) }),
-    ...(v.studiedScenario === undefined ? {} : { studiedScenario: validateScenario(v.studiedScenario) }),
+    ...(v.studiedScenario === undefined ? {} : { studiedScenario: validateStudiedScenario(v.studiedScenario) }),
     usage: v.usage === undefined ? undefined : validateWordUsage([v.usage])[0],
     revision: integer(v.revision), updatedAt: integer(v.updatedAt), mode,
     supportUsed: mode === 'guided' || v.supportUsed, phase, pending, round, rounds, scenario,

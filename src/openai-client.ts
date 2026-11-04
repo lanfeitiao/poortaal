@@ -46,13 +46,18 @@ async function requestOpenAIChatOnce(
   messages: ChatMessage[],
   temperature: number,
   fetchImpl: Fetcher,
+  model: string,
 ): Promise<string> {
+  const effort = model === 'gpt-6.1-sol' ? 'medium' : model === 'gpt-5.6-terra' ? 'low' : undefined;
+  const sampling = effort
+    ? { reasoning_effort: effort, max_completion_tokens: 4000 }
+    : { temperature };
   let response: Response;
   try {
     response = await fetchImpl(`${apiBase}/openai`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'gpt-4o-mini', messages, temperature }),
+      body: JSON.stringify({ model, messages, ...sampling }),
     });
   } catch (error) {
     throw new OpenAIRequestError('network', { originalError: error });
@@ -85,13 +90,14 @@ export async function requestOpenAIChat(
   messages: ChatMessage[],
   temperature = 0.7,
   fetchImpl: Fetcher = fetch,
+  model = 'gpt-4o-mini',
 ): Promise<string> {
   try {
-    return await requestOpenAIChatOnce(apiBase, messages, temperature, fetchImpl);
+    return await requestOpenAIChatOnce(apiBase, messages, temperature, fetchImpl, model);
   } catch (error) {
     if (!isRetryableOpenAIRequestError(error)) throw error;
   }
 
   await delay(RETRY_DELAY_MS);
-  return requestOpenAIChatOnce(apiBase, messages, temperature, fetchImpl);
+  return requestOpenAIChatOnce(apiBase, messages, temperature, fetchImpl, model);
 }

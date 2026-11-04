@@ -1,18 +1,22 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { generateLearningScene, readLearningScene, rememberSceneExposure, recentlyViewedScene } from './learning-scene.ts';
+import { generateLearningScene as generateReviewedScene, readLearningScene, rememberSceneExposure, recentlyViewedScene } from './learning-scene.ts';
 import { renderLearningScene } from './learning-scene-view.ts';
-import { validateWordExplanation } from './word-explanation.ts';
-import { learningMoment, lessonScenario, practiceUsage } from './structured-fixtures.ts';
+import { validateWordExplanation, type WordExplanation } from './word-explanation.ts';
+import type { CompleteChat } from './structured-ai.ts';
+import { approvedLearningReview, learningMoment, lessonScenario, practiceUsage, studyTurn } from './structured-fixtures.ts';
 import { parseHTML } from 'linkedom';
 
 const word = { word: 'afspraak', type: 'zelfstandig naamwoord', meaning_nl: 'Een plan.', meaning_en: 'appointment',
   examples: [{ nl: practiceUsage.example_nl, en: practiceUsage.example_en }], usage: [practiceUsage], tips: '', fun_fact: null };
 const lessonReply = { scenario: lessonScenario, moment: learningMoment };
-const savedScene = { version: 3 as const, generatedAt: 1, sense: word.meaning_en,
+const savedScene = { version: 5 as const, generatedAt: 1, sense: word.meaning_en,
   usage: practiceUsage.chunk, ...lessonReply };
+const generateLearningScene = (data: WordExplanation, chat: CompleteChat, previous?: string[]) =>
+  generateReviewedScene(data, async (messages, temperature, model) => JSON.parse(messages[1].content).kind === 'learning-moment-review'
+    ? JSON.stringify(approvedLearningReview) : chat(messages, temperature, model), previous);
 
-test('study shows a short exchange with only a useful notice; changed-context recall stays for later review', async () => {
+test('study renders all turns with translations and audio; changed-context recall stays hidden until review', async () => {
   const scene = await generateLearningScene(word, async messages => {
     const input = JSON.parse(messages[1].content);
     assert.equal(input.meaning, word.meaning_en);
@@ -25,12 +29,16 @@ test('study shows a short exchange with only a useful notice; changed-context re
   const { document } = parseHTML(renderLearningScene(saved));
   const text = document.querySelector('.learning-scene')!.textContent!;
   assert.ok(text.includes(lessonScenario.situation));
-  assert.ok(text.includes(lessonScenario.openingLine!));
-  assert.ok(text.includes(learningMoment.translation));
+  for (const turn of lessonScenario.dialogue) {
+    assert.ok(text.includes(turn.line)); assert.ok(text.includes(turn.translation));
+  }
   assert.ok(!text.includes(learningMoment.transfer.situation));
   assert.ok(!text.includes(learningMoment.transfer.openingLine));
   assert.ok(!text.includes(learningMoment.transfer.example));
-  assert.equal(document.querySelectorAll('.learning-you .example-nl').length, 1);
+  assert.equal(document.querySelectorAll('.learning-you .example-nl').length, 2);
+  assert.equal(document.querySelectorAll('.learning-bubble').length, 4);
+  assert.equal(document.querySelectorAll('.learning-bubble [data-action="play-example-tts"]').length, 4);
+  assert.ok(!text.includes('You could say'));
   assert.equal(document.querySelectorAll('.learning-transfer').length, 0);
   assert.equal(document.querySelector('.learning-transfer-answer'), null);
   assert.equal(document.querySelector('#learning-try-answer'), null);
@@ -59,37 +67,45 @@ test('a genuine notice appears once, and HTML or attribute injection is escaped'
 });
 test('an unrelated study line gets one repair attempt and cannot be saved', async () => {
   let calls = 0;
-  const unrelated = { ...lessonScenario, expressions: ['Mijn laptop is kapot.'] };
+  const unrelated = { ...lessonScenario, dialogue: lessonScenario.dialogue.map((turn, index) => index === 1
+    ? { ...turn, line: 'Mijn laptop is kapot.', translation: 'My laptop is broken.' } : turn) };
   const scene = await generateLearningScene(word, async () =>
     JSON.stringify({ ...lessonReply, scenario: ++calls === 1 ? unrelated : lessonScenario }));
   assert.equal(calls, 2);
   assert.deepEqual(scene.scenario, lessonScenario);
   assert.equal(readLearningScene({ ...scene, scenario: unrelated }, word), undefined);
 });
-test('substrings, target only in partner, or transfer answer without target do not count', async () => {
-  const unrelated = { ...lessonScenario, expressions: ['De afspraakjes zijn leuk.'] };
+test('substrings and transfer answers without the target do not count', async () => {
+  const unrelated = { ...lessonScenario, dialogue: lessonScenario.dialogue.map((turn, index) => index === 1
+    ? { ...turn, line: 'De afspraakjes zijn leuk.', translation: 'The dates are fun.' } : turn) };
   await assert.rejects(generateLearningScene(word, async () =>
     JSON.stringify({ ...lessonReply, scenario: unrelated })));
   await assert.rejects(generateLearningScene(word, async () =>
-    JSON.stringify({ ...lessonReply, scenario: { ...lessonScenario,
-      openingLine: 'Heb je al een afspraak gemaakt?' } })));
-  await assert.rejects(generateLearningScene(word, async () =>
     JSON.stringify({ ...lessonReply, moment: { ...learningMoment,
       transfer: { ...learningMoment.transfer, example: 'Ik ben er morgen.' } } })));
+});
+test('the target may occur only in the opening partner line, without a learner repetition', async () => {
+  const scenario = { ...lessonScenario, task: 'Say when you can come.', dialogue: [
+    studyTurn('partner', 'Wanneer wil je de afspraak?', 'When would you like the appointment?'),
+    studyTurn('learner', 'Morgen, als dat kan.', 'Tomorrow, if possible.'),
+  ] };
+  const scene = await generateLearningScene(word, async () => JSON.stringify({ scenario, moment: learningMoment }));
+  assert.ok(readLearningScene(scene, word));
+  assert.deepEqual(scene.scenario.dialogue, scenario.dialogue);
+  assert.ok(!scene.scenario.dialogue[1].line.includes(word.word));
 });
 test('aandoen is allowed in a natural split form, without forcing the infinitive', async () => {
   const clothing = { ...word, word: 'aandoen', meaning_en: 'put on clothing', usage: [] };
   const scene = { ...lessonScenario,
     situation: 'You are leaving home and a friend is waiting.',
     task: 'Reply while putting on your coat.',
-    openingLine: 'Kom je? We moeten gaan!',
-    expressions: ['Ja, ik doe nog even mijn jas aan.'],
-    hints: ['Je hebt nog je jas nodig.', 'Ja, ik doe…', 'Ja, ik doe nog even mijn jas aan.'] as [string, string, string] };
-  const moment = { translation: "Yes, I'll just put on my coat.", notice: 'The verb splits: ik doe ... aan.',
+    dialogue: [studyTurn('partner', 'Kom je? We moeten gaan!', 'Are you coming? We have to go!'),
+      studyTurn('learner', 'Ja, ik doe nog even mijn jas aan.', "Yes, I'll just put on my coat.")] };
+  const moment = { notice: 'The verb splits: ik doe ... aan.',
     transfer: { situation: 'You are still putting on your shoes.',
       openingLine: 'Mama, ben je klaar?', example: 'Ik doe nog even mijn schoenen aan.' } };
   const generated = await generateLearningScene(clothing, async () => JSON.stringify({ scenario: scene, moment }));
-  assert.equal(readLearningScene(generated, clothing)?.scenario.expressions[0], scene.expressions[0]);
+  assert.equal(readLearningScene(generated, clothing)?.scenario.dialogue[1].line, scene.dialogue[1].line);
   assert.ok(!renderLearningScene({ ...clothing, scene: generated }).includes('Ik doe nog even mijn schoenen aan.'));
   assert.equal(readLearningScene(generated, clothing)?.moment.transfer.example, 'Ik doe nog even mijn schoenen aan.');
 });
@@ -98,28 +114,25 @@ test('afmaken can appear as maak ... af in an everyday child-pickup scene', asyn
   const scenario = { ...lessonScenario,
     situation: 'Two children are building a house at your home, and pickup is in five minutes.',
     task: 'Let them finish the roof, then ask them to tidy up.',
-    openingLine: 'Maar we zijn nog niet klaar!',
-    expressions: ['Maak het dak nog even af. Daarna ruimen we samen op.'],
-    hints: ['Geef ze nog even tijd voor het dak, daarna opruimen.',
-      'Maak het dak…', 'Maak het dak nog even af. Daarna ruimen we samen op.'] as [string, string, string] };
-  const moment = { translation: 'Finish the roof first. Then we will tidy up together.',
-    notice: 'Afmaken splits in a main clause: maak ... af.',
+    dialogue: [studyTurn('partner', 'Maar we zijn nog niet klaar!', 'But we are not ready yet!', 'Child'),
+      studyTurn('learner', 'Maak het dak nog even af. Daarna ruimen we samen op.',
+        'Finish the roof first. Then we will tidy up together.')] };
+  const moment = { notice: 'Afmaken splits in a main clause: maak ... af.',
     transfer: { situation: 'Your child wants to finish a drawing before you leave.',
       openingLine: 'Mag ik nog even tekenen?', example: 'Je mag de tekening vanavond afmaken.' } };
   const scene = await generateLearningScene(finishing, async messages => {
-    assert.match(messages[0].content, /The learner is an adult in the Netherlands/);
-    assert.match(messages[0].content, /whether the response actually answers the partner/);
+    assert.equal(JSON.parse(messages[1].content).word, 'afmaken');
     return JSON.stringify({ scenario, moment });
   });
-  assert.equal(readLearningScene(scene, finishing)?.scenario.expressions[0], scenario.expressions[0]);
+  assert.equal(readLearningScene(scene, finishing)?.scenario.dialogue[1].line, scenario.dialogue[1].line);
   const { document } = parseHTML(renderLearningScene({ ...finishing, scene }));
   assert.match(document.querySelector('.learning-you')!.textContent!, /Maak het dak nog even af/);
   assert.ok(document.querySelector('.learning-notice')!.textContent!.includes('maak ... af.'));
   assert.ok(!document.querySelector('.learning-scene')!.textContent!.includes(moment.transfer.example));
 });
 
-test('v2 scenes regenerate; malformed lessons retain the base word instead of inventing a scene', () => {
-  assert.equal(readLearningScene({ ...savedScene, version: 2 }, word), undefined);
+test('older scenes regenerate; malformed lessons retain the base word', () => {
+  for (const version of [2, 3, 4]) assert.equal(readLearningScene({ ...savedScene, version }, word), undefined);
   const saved = validateWordExplanation({ ...word, scene: { scenario: 'broken' } });
   assert.equal(saved.scene, undefined); assert.deepEqual(saved.examples, word.examples);
   const html = renderLearningScene(saved, 'error');
@@ -142,7 +155,7 @@ test('changing a scene passes the previous context and validates the newly gener
     assert.deepEqual(JSON.parse(messages[1].content).previous, ['A school appointment.']);
     return JSON.stringify({ scenario: newScenario, moment: learningMoment });
   }, ['A school appointment.']);
-  assert.equal(scene.version, 3);
+  assert.equal(scene.version, 5);
   assert.equal(readLearningScene(scene, word)?.scenario.situation, newScenario.situation);
   const { version: _legacy, ...old } = scene;
   assert.equal(readLearningScene(old, word), undefined);

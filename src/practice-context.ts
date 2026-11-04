@@ -2,10 +2,10 @@ import { chooseWordUsage, type UsageAttempt } from './word-learning.ts';
 import { getWordAttempts } from './learning-store.ts';
 import type { WordExplanation } from './word-explanation.ts';
 import { usageKey, type WordUsage } from './word-usage.ts';
-import type { PracticeScenario } from './structured-contract.ts';
+import type { StudiedScenario } from './structured-contract.ts';
 import { readLearningScene } from './learning-scene.ts';
 
-export type PracticeContext = { id: string; word: string; usage?: WordUsage; recent: UsageAttempt[]; helpUsed: boolean; meaning?: string; studiedScenario?: PracticeScenario };
+export type PracticeContext = { id: string; word: string; usage?: WordUsage; recent: UsageAttempt[]; helpUsed: boolean; meaning?: string; studiedScenario?: StudiedScenario };
 let context: PracticeContext | null = null;
 export function setPracticeContext(data: Pick<WordExplanation, 'word' | 'usage'> & Partial<Pick<WordExplanation, 'meaning_en' | 'scene'>>, count = 0, selected?: number): void {
   const recent = getWordAttempts(data.word);

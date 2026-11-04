@@ -1,17 +1,20 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { liveFixture } from './structured-live-fixture.ts';
-import { scenario } from './structured-fixtures.ts';
+import { approvedLearningReview, lessonScenario, scenario, studyTurn } from './structured-fixtures.ts';
 
-const changed = { ...scenario, situation: 'You need to move a meeting with your child’s teacher.',
-  task: 'Ask for an appointment on Friday.', expressions: ['Kan ik vrijdag een afspraak maken?'], dialogue: [] };
+const changed = { ...lessonScenario, situation: 'You need to move a meeting with your child’s teacher.',
+  task: 'Ask for an appointment on Friday.', dialogue: [
+    studyTurn('partner', 'Welke dag kun je komen?', 'Which day can you come?'),
+    studyTurn('learner', 'Kan ik vrijdag een afspraak maken?', 'Can I make an appointment for Friday?'),
+  ] };
 
 test('changing a scene prevents duplicate requests and passes the chosen task into speech without another lesson', async t => {
   let resolve!: (value: unknown) => void;
   const requests: Record<string, unknown>[] = [];
   const f = await liveFixture(t, input => {
     requests.push(input);
-    return input.studiedScenario ? { ...changed, situation: changed.situation + ' Only the morning is available.' }
+    return input.studiedScenario ? { ...scenario, task: changed.task, situation: changed.situation + ' Only the morning is available.' }
       : new Promise(done => { resolve = done; });
   });
   (f.document.getElementById('wordInput') as HTMLInputElement).value = 'afspraak';
@@ -49,4 +52,57 @@ test('a failed scene change keeps the current lesson and allows practice after a
   f.click('[data-action="practice-word"]');
   await f.wait(() => f.session()?.phase === 'answer');
   assert.equal(f.session().studiedScenario.situation, scenario.situation);
+});
+
+test('an unreviewed cached scene is automatically regenerated and stored without losing the word', async t => {
+  const f = await liveFixture(t);
+  const cache = JSON.parse(f.storage.get('poortaal_word_cache_v4')!);
+  cache.afspraak.scene.version = 4;
+  cache.afspraak.scene.scenario = { ...scenario, situation: 'An old two-line scene.' };
+  f.storage.set('poortaal_word_cache_v4', JSON.stringify(cache));
+  (f.document.getElementById('wordInput') as HTMLInputElement).value = 'afspraak';
+  f.click('#searchBtn');
+  await f.wait(() => JSON.parse(f.storage.get('poortaal_word_cache_v4')!).afspraak.scene?.version === 5);
+  const saved = JSON.parse(f.storage.get('poortaal_word_cache_v4')!).afspraak;
+  assert.equal(saved.meaning_en, 'appointment');
+  assert.equal(saved.scene.scenario.situation, scenario.situation);
+  assert.ok(!f.document.getElementById('content')!.textContent!.includes('An old two-line scene.'));
+});
+
+test('editorial rejection of both new drafts keeps the existing scene in the UI and cache', async t => {
+  let generations = 0, reviews = 0;
+  const f = await liveFixture(t, () => { generations++; return changed; }, () => {
+    reviews++; return { ...approvedLearningReview, wordFitsContext: false, feedback: 'Choose a more suitable context.' };
+  });
+  (f.document.getElementById('wordInput') as HTMLInputElement).value = 'afspraak';
+  f.click('#searchBtn'); f.click('[data-action="change-learning-scene"]');
+  await f.wait(() => f.document.getElementById('content')!.textContent!.includes('Could not change the situation'));
+  assert.equal(generations, 2); assert.equal(reviews, 2);
+  assert.equal(JSON.parse(f.storage.get('poortaal_word_cache_v4')!).afspraak.scene.scenario.situation, scenario.situation);
+  assert.ok(f.document.getElementById('content')!.textContent!.includes(scenario.situation));
+  assert.ok(!f.document.getElementById('content')!.textContent!.includes(changed.situation));
+  assert.equal(f.document.querySelector('[data-action="practice-word"]')!.hasAttribute('disabled'), false);
+});
+
+test('a five-line conversation with the target only in a child line reaches practice without claiming mastery', async t => {
+  const f = await liveFixture(t);
+  const cache = JSON.parse(f.storage.get('poortaal_word_cache_v4')!);
+  const study = { situation: 'Your child asks about a dentist appointment.', task: 'Explain when you will collect them.', dialogue: [
+    studyTurn('partner', 'Heb je de afspraak al gemaakt?', 'Have you made the appointment yet?', 'Child'),
+    studyTurn('learner', 'Ja, voor vrijdagmiddag.', 'Yes, for Friday afternoon.'),
+    studyTurn('partner', 'Moet ik dan eerder weg van school?', 'Do I have to leave school early then?', 'Child'),
+    studyTurn('learner', 'Ja, ik haal je om twee uur op.', 'Yes, I will pick you up at two.'),
+    studyTurn('partner', 'Dan leg ik mijn tas alvast klaar.', 'Then I will get my bag ready.', 'Child'),
+  ] };
+  cache.afspraak.scene.scenario = study;
+  f.storage.set('poortaal_word_cache_v4', JSON.stringify(cache));
+  (f.document.getElementById('wordInput') as HTMLInputElement).value = 'afspraak';
+  f.click('#searchBtn');
+  assert.equal(f.document.querySelectorAll('.learning-bubble').length, 5);
+  assert.ok(f.document.querySelector('.learning-partner')!.textContent!.includes('Child'));
+  f.click('[data-action="practice-word"]');
+  await f.wait(() => f.session()?.phase === 'answer');
+  assert.deepEqual(f.session().studiedScenario, study);
+  assert.equal(f.session().supportUsed, true);
+  assert.equal(f.attempts().length, 0);
 });

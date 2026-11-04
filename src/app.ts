@@ -644,9 +644,9 @@ function initSwipeHandlers(list: HTMLElement) { const items = list.querySelector
 
 // --- Toast / OpenAI ---
 function showToast(msg: string) { const existing = document.querySelector('.toast'); if (existing) existing.remove(); const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 4000); }
-async function callOpenAI(messages: ChatMessage[], temperature = 0.7): Promise<string> {
+async function callOpenAI(messages: ChatMessage[], temperature = 0.7, model?: string): Promise<string> {
   try {
-    return await requestOpenAIChat(API_BASE, messages, temperature);
+    return await requestOpenAIChat(API_BASE, messages, temperature, fetch, model);
   } catch (error) {
     if (error instanceof OpenAIRequestError && error.kind === 'http') {
       showToast('Er ging iets mis');

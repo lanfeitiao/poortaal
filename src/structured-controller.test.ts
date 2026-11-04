@@ -3,7 +3,7 @@ import test from 'node:test';
 import { StructuredPractice } from './structured-controller.ts';
 import { getWordAttempts, setLearningOwner } from './learning-store.ts';
 import { activeSession, clearStructuredWord, readSessions } from './structured-store.ts';
-import { answer, goodFeedback, practiceUsage, scenario } from './structured-fixtures.ts';
+import { answer, goodFeedback, lessonScenario, practiceUsage, scenario } from './structured-fixtures.ts';
 import type { ChatMessage } from './word-explanation.ts';
 
 const data = new Map<string, string>();
@@ -156,4 +156,19 @@ test('verified tutor models of inflected and separable verbs cannot become indep
     const restored = new StructuredPractice(noop); restored.restore();
     assert.deepEqual(restored.session?.rounds[0].feedback?.supportEvidence, { tutorQuote: line, learnerQuote: line });
   }
+});
+test('changed dialogue with the same situation and task does not resume an older teaching snapshot', async () => {
+  const p = new StructuredPractice(noop, chat);
+  const options = { voice: true, studiedScenario: lessonScenario };
+  await p.start('afspraak', practiceUsage, true, options);
+  const first = p.session!.id;
+  p.captureVoice([{ role: 'user', content: answer }]);
+  await p.start('afspraak', practiceUsage, true, options);
+  assert.equal(p.session!.id, first);
+  const changed = { ...lessonScenario, dialogue: lessonScenario.dialogue.map((turn, index) => index === 3
+    ? { ...turn, line: 'Morgenmiddag, als dat kan.', translation: 'Tomorrow afternoon, if possible.' } : turn) };
+  await p.start('afspraak', practiceUsage, true, { ...options, studiedScenario: changed });
+  assert.notEqual(p.session!.id, first);
+  assert.deepEqual(p.session!.studiedScenario, changed);
+  assert.equal(readSessions().sessions.find(s => s.id === first)!.rounds[0].draft, answer);
 });
