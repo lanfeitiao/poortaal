@@ -63,7 +63,7 @@ test('each editorial dimension can reject a draft and its feedback reaches the b
         openingLine: 'Wat missen we nog?', expressions: ['We hebben nog een onderdeel nodig.'],
         hints: ['Zeg wat er ontbreekt.', 'We hebben nog…', 'We hebben nog een onderdeel nodig.'] } };
       const scene = await generateLearningScene(word, async (messages, temperature, model) => {
-        assert.equal(model, 'gpt-4.1-mini');
+        assert.equal(model, 'gpt-5.6-terra');
         const input = JSON.parse(messages[1].content);
         if (input.kind === 'learning-moment-review') {
           assert.equal(messages.length, 2); assert.equal(temperature, 0);

@@ -2,7 +2,7 @@ import { requestOpenAIChat } from './openai-client.ts';
 import { InvalidStructuredOutput, object, validateLearningMoment, validateScenario, validateStructuredFeedback } from './structured-contract.ts';
 import { currentRound, currentTask, type StructuredSession } from './structured-session.ts';
 import type { ChatMessage } from './word-explanation.ts';
-import { alignLearningReply, NATURAL_EXCHANGE_GUIDANCE, reviewLearningMoment } from './learning-scene-quality.ts';
+import { alignLearningReply, LEARNING_SCENE_MODEL, NATURAL_EXCHANGE_GUIDANCE, reviewLearningMoment } from './learning-scene-quality.ts';
 
 export type CompleteChat = (messages: ChatMessage[], temperature?: number, model?: string) => Promise<string>;
 const complete: CompleteChat = (messages, temperature, model) => requestOpenAIChat('https://poortaal-api.weilin1990.workers.dev', messages, temperature, fetch, model);
@@ -148,7 +148,7 @@ Avoid previous situations. Return ONLY JSON, with dialogue:[] and tip:null:
     }
     await reviewLearningMoment(session.word, session.meaning, scenario, moment, chat);
     return { scenario, moment };
-  }, chat, 'gpt-4.1-mini');
+  }, chat, LEARNING_SCENE_MODEL);
 }
 
 export function validateGeneratedHintLadder(task: import('./structured-contract.ts').PracticeTask): void {

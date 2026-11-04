@@ -1,6 +1,8 @@
 import { InvalidStructuredOutput, list, object, text, validateScenario, type LearningMoment, type PracticeScenario } from './structured-contract.ts';
 import type { CompleteChat } from './structured-ai.ts';
 
+export const LEARNING_SCENE_MODEL = 'gpt-5.6-terra';
+
 export const NATURAL_EXCHANGE_GUIDANCE = `Each reply must do conversational work: answer a question, react, offer help, explain a delay or suggest a next step. A short confirmation that answers a real question is fine.
 Never have both people state the same information with one synonym replaced. "We hebben een stuk nodig voor de Lego." -> "We hebben een onderdeel nodig voor de Lego." is a vocabulary substitution, not a conversation.
 Choose the setting around the word's ordinary use and register. Do not shoehorn every word into a playdate. A Lego brick is normally a blokje; for onderdeel, waiting for a replacement part for a broken appliance can fit better.
@@ -67,7 +69,7 @@ Return ONLY JSON with the role analyses BEFORE the verdicts:
         hintCue: scenario.hints[0], translation: moment.translation },
       transfer: { situation: moment.transfer.situation, partnerLine: moment.transfer.openingLine,
         learnerReply: moment.transfer.example } }) },
-  ], 0, 'gpt-4.1-mini');
+  ], 0, LEARNING_SCENE_MODEL);
   let verdict: Record<string, unknown>;
   try { verdict = object(JSON.parse(raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, ''))); }
   catch (error) {
