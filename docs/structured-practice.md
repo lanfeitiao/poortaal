@@ -4,6 +4,9 @@ Explore teaches the selected word sense through one coherent everyday situation,
 a complete conversation of at most five Dutch sentences and an optional language notice. Verified
 Word Usage is retained; ordinary expressions are not labelled as collocations.
 Legacy definitions, examples, Review data and usage evidence remain valid.
+The scene brief prioritises practical Dutch everyday life and school/child communication:
+shopping, appointments, pickup, teacher conversations, arranging playdates, children's
+birthday parties and talking to children visiting the learner's home.
 
 Lessons are validated and cached with their sense and use, and join existing word
 cloud sync. Failed generation shows a retry without fabricating a lesson. Recently
@@ -21,7 +24,7 @@ Either speaker can start and use the target, including a child; the learner does
 need to repeat it. Every turn has an English role label and translation, plus audio.
 The sentence cap counts all Dutch sentences, including multiple sentences in one
 turn. Study scenes no longer contain a forced learner reference answer or hints.
-Scene version 5 regenerates older paired scenes without deleting definitions or
+Scene version 6 regenerates older scenes using the updated practical brief without deleting definitions or
 learning progress. Full conversations are carried into practice and restored from
 saved sessions; older practice-shaped teaching contexts remain readable.
 
