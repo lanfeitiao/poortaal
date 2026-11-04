@@ -1,7 +1,7 @@
 # Contextual learning and structured spoken practice
 
 Explore teaches the selected word sense through one coherent everyday situation,
-2–4 conversational expressions, a short dialogue and an optional reminder. Verified
+a short partner/learner exchange and an optional language notice. Verified
 Word Usage is retained; ordinary expressions are not labelled as collocations.
 Legacy definitions, examples, Review data and usage evidence remain valid.
 
@@ -9,6 +9,16 @@ Lessons are validated and cached with their sense and use, and join existing wor
 cloud sync. Failed generation shows a retry without fabricating a lesson. Recently
 viewed examples are remembered per owner/use for 30 minutes; direct lesson handoff
 also carries the studied scene and its assistance provenance into the session.
+
+Learning scenes use a writer followed by a separate editorial model request. The
+editor checks natural Dutch, conversational coherence and whether the selected word
+fits both the study context and the hidden transfer. Synonym-only echoes are also
+blocked before review. A failed check supplies concrete feedback for one rewrite;
+at most two drafts are attempted. This adds a model request per valid draft and can
+increase loading time. A rejected change preserves the existing reviewed scene.
+The final two hints are derived from the displayed reply, so they cannot silently
+teach a different answer. Scene version 4 regenerates older, unreviewed scenes
+without deleting definitions or learning progress.
 
 Practice defaults to Realtime Tutor. A new condition invites the same use without
 reciting the lesson. Learners try first, optionally say “hint” (three progressive
