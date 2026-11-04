@@ -1,18 +1,20 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { liveFixture } from './structured-live-fixture.ts';
-import { approvedLearningReview, scenario } from './structured-fixtures.ts';
+import { approvedLearningReview, lessonScenario, scenario, studyTurn } from './structured-fixtures.ts';
 
-const changed = { ...scenario, situation: 'You need to move a meeting with your child’s teacher.',
-  task: 'Ask for an appointment on Friday.', expressions: ['Kan ik vrijdag een afspraak maken?'], dialogue: [],
-  hints: ['Vraag of je vrijdag kunt komen.', 'Kan ik vrijdag…', 'Kan ik vrijdag een afspraak maken?'] };
+const changed = { ...lessonScenario, situation: 'You need to move a meeting with your child’s teacher.',
+  task: 'Ask for an appointment on Friday.', dialogue: [
+    studyTurn('partner', 'Welke dag kun je komen?', 'Which day can you come?'),
+    studyTurn('learner', 'Kan ik vrijdag een afspraak maken?', 'Can I make an appointment for Friday?'),
+  ] };
 
 test('changing a scene prevents duplicate requests and passes the chosen task into speech without another lesson', async t => {
   let resolve!: (value: unknown) => void;
   const requests: Record<string, unknown>[] = [];
   const f = await liveFixture(t, input => {
     requests.push(input);
-    return input.studiedScenario ? { ...changed, situation: changed.situation + ' Only the morning is available.' }
+    return input.studiedScenario ? { ...scenario, task: changed.task, situation: changed.situation + ' Only the morning is available.' }
       : new Promise(done => { resolve = done; });
   });
   (f.document.getElementById('wordInput') as HTMLInputElement).value = 'afspraak';
@@ -55,16 +57,16 @@ test('a failed scene change keeps the current lesson and allows practice after a
 test('an unreviewed cached scene is automatically regenerated and stored without losing the word', async t => {
   const f = await liveFixture(t);
   const cache = JSON.parse(f.storage.get('poortaal_word_cache_v4')!);
-  cache.afspraak.scene.version = 3;
-  cache.afspraak.scene.scenario.situation = 'An old unreviewed scene.';
+  cache.afspraak.scene.version = 4;
+  cache.afspraak.scene.scenario = { ...scenario, situation: 'An old two-line scene.' };
   f.storage.set('poortaal_word_cache_v4', JSON.stringify(cache));
   (f.document.getElementById('wordInput') as HTMLInputElement).value = 'afspraak';
   f.click('#searchBtn');
-  await f.wait(() => JSON.parse(f.storage.get('poortaal_word_cache_v4')!).afspraak.scene?.version === 4);
+  await f.wait(() => JSON.parse(f.storage.get('poortaal_word_cache_v4')!).afspraak.scene?.version === 5);
   const saved = JSON.parse(f.storage.get('poortaal_word_cache_v4')!).afspraak;
   assert.equal(saved.meaning_en, 'appointment');
   assert.equal(saved.scene.scenario.situation, scenario.situation);
-  assert.ok(!f.document.getElementById('content')!.textContent!.includes('An old unreviewed scene.'));
+  assert.ok(!f.document.getElementById('content')!.textContent!.includes('An old two-line scene.'));
 });
 
 test('editorial rejection of both new drafts keeps the existing scene in the UI and cache', async t => {
