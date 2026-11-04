@@ -12,9 +12,9 @@ const word = { word: 'afspraak', type: 'zelfstandig naamwoord', meaning_nl: 'Een
 const lessonReply = { scenario: lessonScenario, moment: learningMoment };
 const savedScene = { version: 5 as const, generatedAt: 1, sense: word.meaning_en,
   usage: practiceUsage.chunk, ...lessonReply };
-const generateLearningScene = (data: WordExplanation, chat: CompleteChat, previous?: string[]) =>
+const generateLearningScene = (data: WordExplanation, chat: CompleteChat) =>
   generateReviewedScene(data, async (messages, temperature, model) => JSON.parse(messages[1].content).kind === 'learning-moment-review'
-    ? JSON.stringify(approvedLearningReview) : chat(messages, temperature, model), previous);
+    ? JSON.stringify(approvedLearningReview) : chat(messages, temperature, model));
 
 test('study renders all turns with translations and audio; changed-context recall stays hidden until review', async () => {
   const scene = await generateLearningScene(word, async messages => {
@@ -132,7 +132,7 @@ test('afmaken can appear as maak ... af in an everyday child-pickup scene', asyn
 });
 
 test('older scenes regenerate; malformed lessons retain the base word', () => {
-  for (const version of [2, 3, 4]) assert.equal(readLearningScene({ ...savedScene, version }, word), undefined);
+  for (const version of [undefined, 2, 3, 4]) assert.equal(readLearningScene({ ...savedScene, version }, word), undefined);
   const saved = validateWordExplanation({ ...word, scene: { scenario: 'broken' } });
   assert.equal(saved.scene, undefined); assert.deepEqual(saved.examples, word.examples);
   const html = renderLearningScene(saved, 'error');
@@ -148,15 +148,4 @@ test('exposure remains scoped to learner and sense and expires for independent r
   assert.equal(recentlyViewedScene(data, 'two', 200), false);
   assert.equal(recentlyViewedScene(data, 'one', 100 + 30 * 60_000), false);
   assert.equal(recentlyViewedScene({ ...data, meaning_en: 'another sense' }, 'one', 200), false);
-});
-test('changing a scene passes the previous context and validates the newly generated lesson', async () => {
-  const newScenario = { ...lessonScenario, situation: 'A school appointment has to move to Friday.' };
-  const scene = await generateLearningScene(word, async messages => {
-    assert.deepEqual(JSON.parse(messages[1].content).previous, ['A school appointment.']);
-    return JSON.stringify({ scenario: newScenario, moment: learningMoment });
-  }, ['A school appointment.']);
-  assert.equal(scene.version, 5);
-  assert.equal(readLearningScene(scene, word)?.scenario.situation, newScenario.situation);
-  const { version: _legacy, ...old } = scene;
-  assert.equal(readLearningScene(old, word), undefined);
 });

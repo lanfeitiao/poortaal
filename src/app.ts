@@ -781,18 +781,16 @@ function renderWordCard(data: WordExplanation) {
 
 const sceneStates = new Map<string, 'loading' | 'error'>();
 const sceneRequests = new Map<string, Promise<void>>();
-async function loadLearningScene(data: WordExplanation, retry = false, change = false): Promise<void> {
+async function loadLearningScene(data: WordExplanation, retry = false): Promise<void> {
   const owner = learningOwner(), key = data.word.toLowerCase().trim(), token = `${owner}:${key}`;
-  if ((!change && readLearningScene(data.scene, data)) || (!retry && sceneStates.has(token))) return;
+  if (readLearningScene(data.scene, data) || (!retry && sceneStates.has(token))) return;
   if (sceneRequests.has(token)) return sceneRequests.get(token);
   sceneStates.set(token, 'loading');
-  if (change && currentWord?.toLowerCase().trim() === key) renderWordCard(data);
   const request = (async () => {
     try {
       const enriched = await loadWordUsage(data);
       if (enriched.usage === undefined) throw new Error('Usage still unavailable');
-      const previous = change && readLearningScene(data.scene, data);
-      const scene = await generateLearningScene(enriched, callOpenAI, previous ? [previous.scenario.situation] : []);
+      const scene = await generateLearningScene(enriched, callOpenAI);
       const latest = getCachedWord(key);
       if (owner !== learningOwner() || !latest || latest.meaning_en !== scene.sense || sceneUsage(latest) !== scene.usage) { sceneStates.delete(token); return; }
       const saved = { ...latest, scene }; setWordCache(key, saved);
@@ -814,10 +812,6 @@ async function loadLearningScene(data: WordExplanation, retry = false, change = 
 export async function retryLearningScene(word: string): Promise<void> {
   const data = getCachedWord(word);
   if (data) await loadLearningScene(data, true);
-}
-export async function changeLearningScene(word: string): Promise<void> {
-  const data = getCachedWord(word);
-  if (data) await loadLearningScene(data, true, true);
 }
 
 // --- Practice ---

@@ -17,7 +17,5 @@ export function renderLearningScene(data: WordExplanation, state?: 'loading' | '
       <span class="learning-role">${e(turn.role === 'learner' ? 'You' : turn.speaker)}</span>${line(turn.line)}
       <p class="learning-translation">${e(turn.translation)}</p></div>`).join('')}
     ${m.notice ? `<div class="learning-notice"><strong>Notice</strong><p>${e(m.notice)}</p></div>` : ''}
-    <div class="structured-actions"><button type="button" class="use-button" data-action="practice-word" data-word="${e(data.word)}" ${state === 'loading' ? 'disabled' : ''}>Start conversation</button>
-    <button type="button" class="use-button secondary" data-action="change-learning-scene" data-word="${e(data.word)}" ${state === 'loading' ? 'disabled' : ''}>${state === 'loading' ? 'Changing situation…' : 'Different situation'}</button></div>
-    ${state === 'error' ? '<p role="status">Could not change the situation. Try again.</p>' : ''}</section>`;
+    <div class="structured-actions"><button type="button" class="use-button" data-action="practice-word" data-word="${e(data.word)}">Start conversation</button></div></section>`;
 }
