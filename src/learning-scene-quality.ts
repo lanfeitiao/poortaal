@@ -30,7 +30,7 @@ export function validateDisplayedReply(scenario: PracticeScenario): void {
 
 export function alignLearningReply(value: unknown): PracticeScenario {
   const v = object(value), reply = text(list(v.expressions, 1, 1)[0], 300);
-  const cue = text(list(v.hints, 3, 3)[0]);
+  const cue = text(list(v.hints, 1, 3)[0]);
   const words = reply.split(/\s+/u);
   if (words.length < 2) throw new InvalidStructuredOutput('The learner reply needs at least two words for progressive hints');
   // The app knows the answer: do not ask a model to invent it again for each hint.
@@ -54,7 +54,7 @@ Check who speaks, yes/no logic, timeline, and whether BOTH learner replies use t
 The learner reply must achieve the English task, not the partner's task: receiving a confirmation does not itself confirm attendance. Translation must match the displayed reply exactly; do not accept added or missing information.
 Return ONLY JSON: {"naturalDutch":boolean,"coherentExchange":boolean,"wordFitsContext":boolean,"feedback":"brief concrete repair advice, or empty when all pass"}.` },
     { role: 'user', content: JSON.stringify({ kind: 'learning-moment-review', word, meaning, scenario, moment }) },
-  ], 0);
+  ], 0, 'gpt-4.1-mini');
   let verdict: Record<string, unknown>;
   try { verdict = object(JSON.parse(raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, ''))); }
   catch (error) {
