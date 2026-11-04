@@ -3,7 +3,7 @@ import { generateLearningMoment, containsLessonTarget, validateLessonGrounding, 
 import { createSession } from './structured-session.ts';
 import { usageKey } from './word-usage.ts';
 import type { WordExplanation } from './word-explanation.ts';
-import { validateLearningExchange } from './learning-scene-quality.ts';
+import { validateDisplayedReply, validateLearningExchange } from './learning-scene-quality.ts';
 
 export type LearningScene = { version: 4; generatedAt: number; sense: string; usage: string; scenario: PracticeScenario; moment: LearningMoment };
 export function sceneUsage(data: Pick<WordExplanation, 'word' | 'usage'>): string {
@@ -22,6 +22,7 @@ export function readLearningScene(value: unknown, data: Pick<WordExplanation, 'w
       || scenario.expressions[0] === moment.transfer.example
       || containsLessonTarget(scenario.openingLine, data.word)
       || containsLessonTarget(moment.transfer.openingLine, data.word)) return;
+    validateDisplayedReply(scenario);
     validateLearningExchange(scenario.openingLine, scenario.expressions[0]);
     validateLearningExchange(moment.transfer.openingLine, moment.transfer.example);
     return { version: 4, generatedAt: v.generatedAt, sense: v.sense, usage: v.usage, scenario, moment };
