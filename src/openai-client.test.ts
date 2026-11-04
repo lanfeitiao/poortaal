@@ -47,6 +47,16 @@ test('retries HTTP 429 once and succeeds', async () => {
   assert.equal(calls, 2);
 });
 
+test('an explicitly selected scene model is preserved across HTTP retries', async () => {
+  const seen: string[] = [];
+  const result = await requestOpenAIChat('https://example.test', messages, 0.3, async (_url, init) => {
+    seen.push(JSON.parse(init!.body as string).model);
+    return seen.length === 1 ? jsonResponse({}, 429) : jsonResponse({ choices: [{ message: { content: 'reviewed' } }] });
+  }, 'gpt-4.1-mini');
+  assert.equal(result, 'reviewed');
+  assert.deepEqual(seen, ['gpt-4.1-mini', 'gpt-4.1-mini']);
+});
+
 test('retries HTTP 500 once and preserves the second failure', async () => {
   let calls = 0;
 

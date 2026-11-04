@@ -39,6 +39,8 @@ test('the reported Lego synonym echo is repaired before review and cannot reappe
 
 test('the same echo guard covers hidden transfer replies without rejecting ordinary responses', async () => {
   for (const [opening, reply] of [['Kom je mee?', 'Ja, ik kom mee.'],
+    ['We vertrekken om twee uur?', 'We vertrekken om drie uur.'],
+    ['We vertrekken om twee uur.', 'Nee, we vertrekken om drie uur.'],
     ['Is hij al gemaakt?', 'Nog niet, ik wacht op een onderdeel.']]) {
     assert.doesNotThrow(() => validateLearningExchange(opening, reply));
   }
@@ -60,7 +62,8 @@ test('each editorial dimension can reject a draft and its feedback reaches the b
       const forced = { ...draft, scenario: { ...draft.scenario, situation: echo.scenario.situation,
         openingLine: 'Wat missen we nog?', expressions: ['We hebben nog een onderdeel nodig.'],
         hints: ['Zeg wat er ontbreekt.', 'We hebben nog…', 'We hebben nog een onderdeel nodig.'] } };
-      const scene = await generateLearningScene(word, async (messages, temperature) => {
+      const scene = await generateLearningScene(word, async (messages, temperature, model) => {
+        assert.equal(model, 'gpt-4.1-mini');
         const input = JSON.parse(messages[1].content);
         if (input.kind === 'learning-moment-review') {
           assert.equal(messages.length, 2); assert.equal(temperature, 0);

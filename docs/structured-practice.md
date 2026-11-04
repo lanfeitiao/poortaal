@@ -10,7 +10,7 @@ cloud sync. Failed generation shows a retry without fabricating a lesson. Recent
 viewed examples are remembered per owner/use for 30 minutes; direct lesson handoff
 also carries the studied scene and its assistance provenance into the session.
 
-Learning scenes use a writer followed by a separate editorial model request. The
+Learning scenes use GPT-4.1 mini for the writer and a separate editorial request. The
 editor checks natural Dutch, conversational coherence and whether the selected word
 fits both the study context and the hidden transfer. Synonym-only echoes are also
 blocked before review. A failed check supplies concrete feedback for one rewrite;

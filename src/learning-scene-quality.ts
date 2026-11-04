@@ -15,8 +15,9 @@ export function validateLearningExchange(opening: string, reply: string): void {
   while (suffix < Math.min(a.length, b.length) - prefix
     && a[a.length - 1 - suffix] === b[b.length - 1 - suffix]) suffix++;
   const removed = a.length - prefix - suffix, added = b.length - prefix - suffix;
+  const correction = /\?\s*$/u.test(opening) || b.some(word => ['nee', 'maar', 'toch', 'juist', 'bedoel'].includes(word));
   if ((a.length > 0 && prefix === a.length && prefix === b.length)
-    || (prefix >= 2 && suffix >= 1 && prefix + suffix >= 4
+    || (!correction && prefix >= 2 && suffix >= 1 && prefix + suffix >= 4
       && removed >= 1 && removed <= 2 && added >= 1 && added <= 2)) {
     throw new InvalidStructuredOutput('Scene quality: the reply merely repeats the partner with a word replaced. Write a real response that moves the exchange forward.');
   }
@@ -52,6 +53,7 @@ ${NATURAL_EXCHANGE_GUIDANCE}
 Reject clearly stilted Dutch, an incoherent reply, a synonym echo, or a target word forced into an unsuitable context. Do not reject a valid brief reply just because another wording is possible.
 Check who speaks, yes/no logic, timeline, and whether BOTH learner replies use the target naturally in the selected sense.
 The learner reply must achieve the English task, not the partner's task: receiving a confirmation does not itself confirm attendance. Translation must match the displayed reply exactly; do not accept added or missing information.
+The first hint must be a Dutch cue for that same learner action, without giving the target word or introducing new facts.
 Return ONLY JSON: {"naturalDutch":boolean,"coherentExchange":boolean,"wordFitsContext":boolean,"feedback":"brief concrete repair advice, or empty when all pass"}.` },
     { role: 'user', content: JSON.stringify({ kind: 'learning-moment-review', word, meaning, scenario, moment }) },
   ], 0, 'gpt-4.1-mini');
