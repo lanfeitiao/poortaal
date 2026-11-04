@@ -10,7 +10,6 @@ export type StudyTurn = {
 export type StudyScenario = { situation: string; task: string; dialogue: StudyTurn[] };
 export type StudiedScenario = PracticeScenario | StudyScenario;
 export type LearningMoment = {
-  translation: string;
   notice: string | null;
   transfer: { situation: string; openingLine: string; example: string };
 };
@@ -83,7 +82,6 @@ export function validateStudiedScenario(value: unknown): StudiedScenario {
 export function validateLearningMoment(value: unknown): LearningMoment {
   const v = object(value), transfer = object(v.transfer);
   return {
-    translation: text(v.translation, 300),
     notice: v.notice === null ? null : text(v.notice, 300),
     transfer: { situation: text(transfer.situation, 400),
       openingLine: text(transfer.openingLine, 300), example: text(transfer.example, 300) },
