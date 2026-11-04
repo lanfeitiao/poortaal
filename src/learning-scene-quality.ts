@@ -1,7 +1,7 @@
 import { InvalidStructuredOutput, list, object, text, validateScenario, type LearningMoment, type PracticeScenario } from './structured-contract.ts';
 import type { CompleteChat } from './structured-ai.ts';
 
-export const LEARNING_SCENE_MODEL = 'gpt-5.6-terra';
+export const LEARNING_SCENE_MODEL = 'gpt-6.1-sol';
 
 export const NATURAL_EXCHANGE_GUIDANCE = `Each reply must do conversational work: answer a question, react, offer help, explain a delay or suggest a next step. A short confirmation that answers a real question is fine.
 Never have both people state the same information with one synonym replaced. "We hebben een stuk nodig voor de Lego." -> "We hebben een onderdeel nodig voor de Lego." is a vocabulary substitution, not a conversation.

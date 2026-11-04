@@ -72,6 +72,19 @@ test('the learning reasoning model omits temperature and preserves compatible se
   }
 });
 
+test('GPT-6.1 Sol keeps medium reasoning and its completion cap across retries', async () => {
+  const bodies: Record<string, unknown>[] = [];
+  await requestOpenAIChat('https://example.test', messages, 0, async (_url, init) => {
+    bodies.push(JSON.parse(init!.body as string));
+    return bodies.length === 1 ? jsonResponse({}, 500) : jsonResponse({ choices: [{ message: { content: 'ok' } }] });
+  }, 'gpt-6.1-sol');
+  assert.equal(bodies.length, 2);
+  for (const body of bodies) {
+    assert.equal(body.model, 'gpt-6.1-sol'); assert.equal(body.reasoning_effort, 'medium');
+    assert.equal(body.max_completion_tokens, 4000); assert.ok(!Object.hasOwn(body, 'temperature'));
+  }
+});
+
 test('retries HTTP 500 once and preserves the second failure', async () => {
   let calls = 0;
 

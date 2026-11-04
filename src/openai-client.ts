@@ -48,8 +48,9 @@ async function requestOpenAIChatOnce(
   fetchImpl: Fetcher,
   model: string,
 ): Promise<string> {
-  const sampling = model === 'gpt-5.6-terra'
-    ? { reasoning_effort: 'low', max_completion_tokens: 4000 }
+  const effort = model === 'gpt-6.1-sol' ? 'medium' : model === 'gpt-5.6-terra' ? 'low' : undefined;
+  const sampling = effort
+    ? { reasoning_effort: effort, max_completion_tokens: 4000 }
     : { temperature };
   let response: Response;
   try {
