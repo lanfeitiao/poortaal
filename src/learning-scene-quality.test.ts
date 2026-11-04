@@ -68,7 +68,9 @@ test('each editorial dimension can reject a draft and its feedback reaches the b
         if (input.kind === 'learning-moment-review') {
           assert.equal(messages.length, 2); assert.equal(temperature, 0);
           assert.equal(input.word, word.word); assert.equal(input.meaning, word.meaning_en);
-          assert.deepEqual(input.moment.transfer, draft.moment.transfer);
+          assert.equal(input.study.learnerReply, generations === 1 ? forced.scenario.expressions[0] : draft.scenario.expressions[0]);
+          assert.equal(input.transfer.partnerLine, draft.moment.transfer.openingLine);
+          assert.equal(input.transfer.learnerReply, draft.moment.transfer.example);
           return JSON.stringify(++reviews === 1 ? { ...approvedLearningReview, [check]: false, feedback } : approvedLearningReview);
         }
         if (++generations === 2) assert.ok(messages.at(-1)!.content.includes(feedback));

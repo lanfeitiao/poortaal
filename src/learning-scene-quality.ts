@@ -61,7 +61,12 @@ Return ONLY JSON with the role analyses BEFORE the verdicts:
 {"study":{"partnerRole":"...","learnerRole":"...","reason":"what was asked and how the reply responds","coherent":boolean},
 "transfer":{"partnerRole":"...","learnerRole":"...","reason":"what was asked and how the reply responds","coherent":boolean},
 "naturalDutch":boolean,"coherentExchange":boolean,"wordFitsContext":boolean,"feedback":"brief concrete repair advice, or empty when all pass"}.` },
-    { role: 'user', content: JSON.stringify({ kind: 'learning-moment-review', word, meaning, scenario, moment }) },
+    { role: 'user', content: JSON.stringify({ kind: 'learning-moment-review', word, meaning,
+      study: { situation: scenario.situation, learnerGoal: scenario.task,
+        partnerLine: scenario.openingLine, learnerReply: scenario.expressions[0],
+        hintCue: scenario.hints[0], translation: moment.translation },
+      transfer: { situation: moment.transfer.situation, partnerLine: moment.transfer.openingLine,
+        learnerReply: moment.transfer.example } }) },
   ], 0, 'gpt-4.1-mini');
   let verdict: Record<string, unknown>;
   try { verdict = object(JSON.parse(raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, ''))); }
