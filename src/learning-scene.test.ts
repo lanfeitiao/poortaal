@@ -4,19 +4,19 @@ import { generateLearningScene as generateReviewedScene, readLearningScene, reme
 import { renderLearningScene } from './learning-scene-view.ts';
 import { validateWordExplanation, type WordExplanation } from './word-explanation.ts';
 import type { CompleteChat } from './structured-ai.ts';
-import { approvedLearningReview, learningMoment, lessonScenario, practiceUsage } from './structured-fixtures.ts';
+import { approvedLearningReview, learningMoment, lessonScenario, practiceUsage, studyTurn } from './structured-fixtures.ts';
 import { parseHTML } from 'linkedom';
 
 const word = { word: 'afspraak', type: 'zelfstandig naamwoord', meaning_nl: 'Een plan.', meaning_en: 'appointment',
   examples: [{ nl: practiceUsage.example_nl, en: practiceUsage.example_en }], usage: [practiceUsage], tips: '', fun_fact: null };
 const lessonReply = { scenario: lessonScenario, moment: learningMoment };
-const savedScene = { version: 4 as const, generatedAt: 1, sense: word.meaning_en,
+const savedScene = { version: 5 as const, generatedAt: 1, sense: word.meaning_en,
   usage: practiceUsage.chunk, ...lessonReply };
 const generateLearningScene = (data: WordExplanation, chat: CompleteChat, previous?: string[]) =>
-  generateReviewedScene(data, async (messages, temperature) => JSON.parse(messages[1].content).kind === 'learning-moment-review'
-    ? JSON.stringify(approvedLearningReview) : chat(messages, temperature), previous);
+  generateReviewedScene(data, async (messages, temperature, model) => JSON.parse(messages[1].content).kind === 'learning-moment-review'
+    ? JSON.stringify(approvedLearningReview) : chat(messages, temperature, model), previous);
 
-test('study shows a short exchange with only a useful notice; changed-context recall stays for later review', async () => {
+test('study renders all turns with translations and audio; changed-context recall stays hidden until review', async () => {
   const scene = await generateLearningScene(word, async messages => {
     const input = JSON.parse(messages[1].content);
     assert.equal(input.meaning, word.meaning_en);
@@ -29,12 +29,16 @@ test('study shows a short exchange with only a useful notice; changed-context re
   const { document } = parseHTML(renderLearningScene(saved));
   const text = document.querySelector('.learning-scene')!.textContent!;
   assert.ok(text.includes(lessonScenario.situation));
-  assert.ok(text.includes(lessonScenario.openingLine!));
-  assert.ok(text.includes(learningMoment.translation));
+  for (const turn of lessonScenario.dialogue) {
+    assert.ok(text.includes(turn.line)); assert.ok(text.includes(turn.translation));
+  }
   assert.ok(!text.includes(learningMoment.transfer.situation));
   assert.ok(!text.includes(learningMoment.transfer.openingLine));
   assert.ok(!text.includes(learningMoment.transfer.example));
-  assert.equal(document.querySelectorAll('.learning-you .example-nl').length, 1);
+  assert.equal(document.querySelectorAll('.learning-you .example-nl').length, 2);
+  assert.equal(document.querySelectorAll('.learning-bubble').length, 4);
+  assert.equal(document.querySelectorAll('.learning-bubble [data-action="play-example-tts"]').length, 4);
+  assert.ok(!text.includes('You could say'));
   assert.equal(document.querySelectorAll('.learning-transfer').length, 0);
   assert.equal(document.querySelector('.learning-transfer-answer'), null);
   assert.equal(document.querySelector('#learning-try-answer'), null);
@@ -63,23 +67,32 @@ test('a genuine notice appears once, and HTML or attribute injection is escaped'
 });
 test('an unrelated study line gets one repair attempt and cannot be saved', async () => {
   let calls = 0;
-  const unrelated = { ...lessonScenario, expressions: ['Mijn laptop is kapot.'] };
+  const unrelated = { ...lessonScenario, dialogue: lessonScenario.dialogue.map((turn, index) => index === 1
+    ? { ...turn, line: 'Mijn laptop is kapot.', translation: 'My laptop is broken.' } : turn) };
   const scene = await generateLearningScene(word, async () =>
     JSON.stringify({ ...lessonReply, scenario: ++calls === 1 ? unrelated : lessonScenario }));
   assert.equal(calls, 2);
   assert.deepEqual(scene.scenario, lessonScenario);
   assert.equal(readLearningScene({ ...scene, scenario: unrelated }, word), undefined);
 });
-test('substrings, target only in partner, or transfer answer without target do not count', async () => {
-  const unrelated = { ...lessonScenario, expressions: ['De afspraakjes zijn leuk.'] };
+test('substrings and transfer answers without the target do not count', async () => {
+  const unrelated = { ...lessonScenario, dialogue: lessonScenario.dialogue.map((turn, index) => index === 1
+    ? { ...turn, line: 'De afspraakjes zijn leuk.', translation: 'The dates are fun.' } : turn) };
   await assert.rejects(generateLearningScene(word, async () =>
     JSON.stringify({ ...lessonReply, scenario: unrelated })));
   await assert.rejects(generateLearningScene(word, async () =>
-    JSON.stringify({ ...lessonReply, scenario: { ...lessonScenario,
-      openingLine: 'Heb je al een afspraak gemaakt?' } })));
-  await assert.rejects(generateLearningScene(word, async () =>
     JSON.stringify({ ...lessonReply, moment: { ...learningMoment,
       transfer: { ...learningMoment.transfer, example: 'Ik ben er morgen.' } } })));
+});
+test('the target may occur only in the opening partner line, without a learner repetition', async () => {
+  const scenario = { ...lessonScenario, task: 'Say when you can come.', dialogue: [
+    studyTurn('partner', 'Wanneer wil je de afspraak?', 'When would you like the appointment?'),
+    studyTurn('learner', 'Morgen, als dat kan.', 'Tomorrow, if possible.'),
+  ] };
+  const scene = await generateLearningScene(word, async () => JSON.stringify({ scenario, moment: learningMoment }));
+  assert.ok(readLearningScene(scene, word));
+  assert.deepEqual(scene.scenario.dialogue, scenario.dialogue);
+  assert.ok(!scene.scenario.dialogue[1].line.includes(word.word));
 });
 test('aandoen is allowed in a natural split form, without forcing the infinitive', async () => {
   const clothing = { ...word, word: 'aandoen', meaning_en: 'put on clothing', usage: [] };
