@@ -51,3 +51,52 @@ test('the same echo guard covers hidden transfer replies without rejecting ordin
   }), /merely repeats/);
   assert.equal(calls, 2);
 });
+
+test('each editorial dimension can reject a draft and its feedback reaches the bounded rewrite', async t => {
+  for (const check of ['naturalDutch', 'coherentExchange', 'wordFitsContext']) {
+    await t.test(check, async () => {
+      let generations = 0, reviews = 0;
+      const feedback = 'Choose a context where a replacement part is actually needed.';
+      const forced = { ...draft, scenario: { ...draft.scenario, situation: echo.scenario.situation,
+        openingLine: 'Wat missen we nog?', expressions: ['We hebben nog een onderdeel nodig.'],
+        hints: ['Zeg wat er ontbreekt.', 'We hebben nog…', 'We hebben nog een onderdeel nodig.'] } };
+      const scene = await generateLearningScene(word, async (messages, temperature) => {
+        const input = JSON.parse(messages[1].content);
+        if (input.kind === 'learning-moment-review') {
+          assert.equal(messages.length, 2); assert.equal(temperature, 0);
+          assert.equal(input.word, word.word); assert.equal(input.meaning, word.meaning_en);
+          assert.deepEqual(input.moment.transfer, draft.moment.transfer);
+          return JSON.stringify(++reviews === 1 ? { ...approvedLearningReview, [check]: false, feedback } : approvedLearningReview);
+        }
+        if (++generations === 2) assert.ok(messages.at(-1)!.content.includes(feedback));
+        return JSON.stringify(generations === 1 ? forced : draft);
+      });
+      assert.equal(generations, 2); assert.equal(reviews, 2);
+      assert.equal(scene.scenario.situation, draft.scenario.situation);
+    });
+  }
+});
+
+test('rejected or malformed reviews never save a scene and stop after two drafts', async t => {
+  for (const verdict of [{ ...approvedLearningReview, coherentExchange: false, feedback: 'The reply does not answer the question.' },
+    { ...approvedLearningReview, naturalDutch: 'true' }, { naturalDutch: true }, 'not JSON']) {
+    await t.test(JSON.stringify(verdict), async () => {
+      const calls: string[] = [];
+      await assert.rejects(generateLearningScene(word, async messages => {
+        const kind = JSON.parse(messages[1].content).kind; calls.push(kind);
+        return kind === 'learning-moment-review' ? (typeof verdict === 'string' ? verdict : JSON.stringify(verdict)) : JSON.stringify(draft);
+      }), /Scene quality/);
+      assert.deepEqual(calls, ['learning-moment', 'learning-moment-review', 'learning-moment', 'learning-moment-review']);
+    });
+  }
+});
+
+test('a review request failure is surfaced without repeatedly generating more drafts', async () => {
+  let calls = 0;
+  await assert.rejects(generateLearningScene(word, async messages => {
+    calls++;
+    if (JSON.parse(messages[1].content).kind === 'learning-moment-review') throw new Error('HTTP failure');
+    return JSON.stringify(draft);
+  }), /HTTP failure/);
+  assert.equal(calls, 2);
+});
