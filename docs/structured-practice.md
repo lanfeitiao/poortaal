@@ -1,7 +1,7 @@
 # Contextual learning and structured spoken practice
 
 Explore teaches the selected word sense through one coherent everyday situation,
-a short partner/learner exchange and an optional language notice. Verified
+a complete conversation of at most five Dutch sentences and an optional language notice. Verified
 Word Usage is retained; ordinary expressions are not labelled as collocations.
 Legacy definitions, examples, Review data and usage evidence remain valid.
 
@@ -10,18 +10,24 @@ cloud sync. Failed generation shows a retry without fabricating a lesson. Recent
 viewed examples are remembered per owner/use for 30 minutes; direct lesson handoff
 also carries the studied scene and its assistance provenance into the session.
 
-Learning scenes use GPT-5.6 Terra for the writer and a separate editorial request. The
+Learning scenes use GPT-6.1 Sol with medium reasoning and a 4,000-token completion
+cap for the writer and a separate editorial request. The
 editor checks natural Dutch, conversational coherence and whether the selected word
 fits both the study context and the hidden transfer. Synonym-only echoes are also
 blocked before review. A failed check supplies concrete feedback for one rewrite;
 at most two drafts are attempted. This adds a model request per valid draft and can
 increase loading time. A rejected change preserves the existing reviewed scene.
-The final two hints are derived from the displayed reply, so they cannot silently
-teach a different answer. Scene version 4 regenerates older, unreviewed scenes
-without deleting definitions or learning progress.
+Either speaker can start and use the target, including a child; the learner does not
+need to repeat it. Every turn has an English role label and translation, plus audio.
+The sentence cap counts all Dutch sentences, including multiple sentences in one
+turn. Study scenes no longer contain a forced learner reference answer or hints.
+Scene version 5 regenerates older paired scenes without deleting definitions or
+learning progress. Full conversations are carried into practice and restored from
+saved sessions; older practice-shaped teaching contexts remain readable.
 
 Practice defaults to Realtime Tutor. A new condition invites the same use without
-reciting the lesson. Learners try first, optionally say “hint” (three progressive
+reciting the lesson. The hidden transfer remains a recall task with a neutral
+partner opening and a target-using learner example. Learners try first, optionally say “hint” (three progressive
 levels), then request “feedback” or finish the round with the button. The live
 partner waits for client-validated hints and feedback instead of inventing them.
 Verified feedback affirms a strength, separates goal/target/naturalness, and offers
