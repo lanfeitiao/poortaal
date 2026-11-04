@@ -3,19 +3,19 @@ import test from 'node:test';
 import { liveFixture } from './structured-live-fixture.ts';
 import { scenario, studyTurn } from './structured-fixtures.ts';
 
-test('an unreviewed cached scene is automatically regenerated and stored without losing the word', async t => {
+test('an earlier cached scene is regenerated for the new prompt without losing the word', async t => {
   const f = await liveFixture(t);
   const cache = JSON.parse(f.storage.get('poortaal_word_cache_v4')!);
-  cache.afspraak.scene.version = 4;
-  cache.afspraak.scene.scenario = { ...scenario, situation: 'An old two-line scene.' };
+  cache.afspraak.scene.version = 5;
+  cache.afspraak.scene.scenario = { ...scenario, situation: 'An old generic scene.' };
   f.storage.set('poortaal_word_cache_v4', JSON.stringify(cache));
   (f.document.getElementById('wordInput') as HTMLInputElement).value = 'afspraak';
   f.click('#searchBtn');
-  await f.wait(() => JSON.parse(f.storage.get('poortaal_word_cache_v4')!).afspraak.scene?.version === 5);
+  await f.wait(() => JSON.parse(f.storage.get('poortaal_word_cache_v4')!).afspraak.scene?.version === 6);
   const saved = JSON.parse(f.storage.get('poortaal_word_cache_v4')!).afspraak;
   assert.equal(saved.meaning_en, 'appointment');
   assert.equal(saved.scene.scenario.situation, scenario.situation);
-  assert.ok(!f.document.getElementById('content')!.textContent!.includes('An old two-line scene.'));
+  assert.ok(!f.document.getElementById('content')!.textContent!.includes('An old generic scene.'));
 });
 
 test('a five-line conversation with the target only in a child line reaches practice without claiming mastery', async t => {

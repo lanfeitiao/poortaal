@@ -5,14 +5,14 @@ import { usageKey } from './word-usage.ts';
 import type { WordExplanation } from './word-explanation.ts';
 import { validateLearningDialogue, validateLearningExchange } from './learning-scene-quality.ts';
 
-export type LearningScene = { version: 5; generatedAt: number; sense: string; usage: string; scenario: StudyScenario; moment: LearningMoment };
+export type LearningScene = { version: 6; generatedAt: number; sense: string; usage: string; scenario: StudyScenario; moment: LearningMoment };
 export function sceneUsage(data: Pick<WordExplanation, 'word' | 'usage'>): string {
   return usageKey(data.usage?.[0]?.chunk || data.word);
 }
 export function readLearningScene(value: unknown, data: Pick<WordExplanation, 'word' | 'usage' | 'meaning_en'>): LearningScene | undefined {
   try {
     const v = value as LearningScene;
-    if (!v || v.version !== 5 || v.sense !== data.meaning_en || v.usage !== sceneUsage(data)) return;
+    if (!v || v.version !== 6 || v.sense !== data.meaning_en || v.usage !== sceneUsage(data)) return;
     if (!Number.isSafeInteger(v.generatedAt) || v.generatedAt < 0) return;
     const scenario = validateStudyScenario(v.scenario);
     validateStudyGrounding(scenario, data.word);
@@ -23,13 +23,13 @@ export function readLearningScene(value: unknown, data: Pick<WordExplanation, 'w
       || containsLessonTarget(moment.transfer.openingLine, data.word)) return;
     validateLearningDialogue(scenario);
     validateLearningExchange(moment.transfer.openingLine, moment.transfer.example);
-    return { version: 5, generatedAt: v.generatedAt, sense: v.sense, usage: v.usage, scenario, moment };
+    return { version: 6, generatedAt: v.generatedAt, sense: v.sense, usage: v.usage, scenario, moment };
   } catch { return; }
 }
 export async function generateLearningScene(data: WordExplanation, chat: CompleteChat): Promise<LearningScene> {
   const session = { ...createSession('lesson', data.word, data.usage?.[0], true, true), meaning: data.meaning_en };
   const { scenario, moment } = await generateLearningMoment(session, data.tips, chat);
-  return { version: 5, generatedAt: Date.now(), sense: data.meaning_en, usage: sceneUsage(data), scenario, moment };
+  return { version: 6, generatedAt: Date.now(), sense: data.meaning_en, usage: sceneUsage(data), scenario, moment };
 }
 type Exposure = { word: string; sense: string; usage: string; at: number };
 function exposures(owner: string): Exposure[] {

@@ -10,7 +10,7 @@ import { parseHTML } from 'linkedom';
 const word = { word: 'afspraak', type: 'zelfstandig naamwoord', meaning_nl: 'Een plan.', meaning_en: 'appointment',
   examples: [{ nl: practiceUsage.example_nl, en: practiceUsage.example_en }], usage: [practiceUsage], tips: '', fun_fact: null };
 const lessonReply = { scenario: lessonScenario, moment: learningMoment };
-const savedScene = { version: 5 as const, generatedAt: 1, sense: word.meaning_en,
+const savedScene = { version: 6 as const, generatedAt: 1, sense: word.meaning_en,
   usage: practiceUsage.chunk, ...lessonReply };
 const generateLearningScene = (data: WordExplanation, chat: CompleteChat) =>
   generateReviewedScene(data, async (messages, temperature, model) => JSON.parse(messages[1].content).kind === 'learning-moment-review'
@@ -21,7 +21,7 @@ test('study renders all turns with translations and audio; changed-context recal
     const input = JSON.parse(messages[1].content);
     assert.equal(input.meaning, word.meaning_en);
     assert.equal(input.kind, 'learning-moment');
-    assert.ok(messages[0].content.includes('believable slice of everyday life'));
+    assert.ok(messages[0].content.includes('school/child communication'));
     return JSON.stringify(lessonReply);
   });
   const saved = validateWordExplanation({ ...word, scene });
@@ -132,7 +132,7 @@ test('afmaken can appear as maak ... af in an everyday child-pickup scene', asyn
 });
 
 test('older scenes regenerate; malformed lessons retain the base word', () => {
-  for (const version of [undefined, 2, 3, 4]) assert.equal(readLearningScene({ ...savedScene, version }, word), undefined);
+  for (const version of [undefined, 2, 3, 4, 5]) assert.equal(readLearningScene({ ...savedScene, version }, word), undefined);
   const saved = validateWordExplanation({ ...word, scene: { scenario: 'broken' } });
   assert.equal(saved.scene, undefined); assert.deepEqual(saved.examples, word.examples);
   const html = renderLearningScene(saved, 'error');
