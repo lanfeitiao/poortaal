@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { liveFixture } from './structured-live-fixture.ts';
-import { scenario } from './structured-fixtures.ts';
+import { approvedLearningReview, scenario } from './structured-fixtures.ts';
 
 const changed = { ...scenario, situation: 'You need to move a meeting with your child’s teacher.',
   task: 'Ask for an appointment on Friday.', expressions: ['Kan ik vrijdag een afspraak maken?'], dialogue: [] };
@@ -49,4 +49,34 @@ test('a failed scene change keeps the current lesson and allows practice after a
   f.click('[data-action="practice-word"]');
   await f.wait(() => f.session()?.phase === 'answer');
   assert.equal(f.session().studiedScenario.situation, scenario.situation);
+});
+
+test('an unreviewed cached scene is automatically regenerated and stored without losing the word', async t => {
+  const f = await liveFixture(t);
+  const cache = JSON.parse(f.storage.get('poortaal_word_cache_v4')!);
+  cache.afspraak.scene.version = 3;
+  cache.afspraak.scene.scenario.situation = 'An old unreviewed scene.';
+  f.storage.set('poortaal_word_cache_v4', JSON.stringify(cache));
+  (f.document.getElementById('wordInput') as HTMLInputElement).value = 'afspraak';
+  f.click('#searchBtn');
+  await f.wait(() => JSON.parse(f.storage.get('poortaal_word_cache_v4')!).afspraak.scene?.version === 4);
+  const saved = JSON.parse(f.storage.get('poortaal_word_cache_v4')!).afspraak;
+  assert.equal(saved.meaning_en, 'appointment');
+  assert.equal(saved.scene.scenario.situation, scenario.situation);
+  assert.ok(!f.document.getElementById('content')!.textContent!.includes('An old unreviewed scene.'));
+});
+
+test('editorial rejection of both new drafts keeps the existing scene in the UI and cache', async t => {
+  let generations = 0, reviews = 0;
+  const f = await liveFixture(t, () => { generations++; return changed; }, () => {
+    reviews++; return { ...approvedLearningReview, wordFitsContext: false, feedback: 'Choose a more suitable context.' };
+  });
+  (f.document.getElementById('wordInput') as HTMLInputElement).value = 'afspraak';
+  f.click('#searchBtn'); f.click('[data-action="change-learning-scene"]');
+  await f.wait(() => f.document.getElementById('content')!.textContent!.includes('Could not change the situation'));
+  assert.equal(generations, 2); assert.equal(reviews, 2);
+  assert.equal(JSON.parse(f.storage.get('poortaal_word_cache_v4')!).afspraak.scene.scenario.situation, scenario.situation);
+  assert.ok(f.document.getElementById('content')!.textContent!.includes(scenario.situation));
+  assert.ok(!f.document.getElementById('content')!.textContent!.includes(changed.situation));
+  assert.equal(f.document.querySelector('[data-action="practice-word"]')!.hasAttribute('disabled'), false);
 });

@@ -5,7 +5,8 @@ import { build } from 'vite';
 import { parseHTML } from 'linkedom';
 import { approvedLearningReview, goodFeedback, learningMoment, lessonScenario, practiceUsage, scenario } from './structured-fixtures.ts';
 
-export async function liveFixture(t: TestContext, scenarioReply?: (input: Record<string, unknown>) => unknown | Promise<unknown>) {
+export async function liveFixture(t: TestContext, scenarioReply?: (input: Record<string, unknown>) => unknown | Promise<unknown>,
+  reviewReply?: (input: Record<string, unknown>) => unknown | Promise<unknown>) {
   const { document, window: dom } = parseHTML(await readFile(new URL('../index.html', import.meta.url), 'utf8'));
   const events = new EventTarget() as EventTarget & Record<string, unknown>;
   events.location = { hash: '#practice', href: 'http://localhost/#practice' };
@@ -45,7 +46,8 @@ export async function liveFixture(t: TestContext, scenarioReply?: (input: Record
     if (String(url).endsWith('/live-session')) return Response.json({ transport: { type: 'webrtc', sdp: 'answer' } });
     assert.ok(String(url).endsWith('/openai'));
     const input = JSON.parse(JSON.parse(init!.body as string).messages[1].content);
-    if (input.kind === 'learning-moment-review') return Response.json({ choices: [{ message: { content: JSON.stringify(approvedLearningReview) } }] });
+    if (input.kind === 'learning-moment-review') return Response.json({ choices: [{ message: {
+      content: JSON.stringify(reviewReply ? await reviewReply(input) : approvedLearningReview) } }] });
     const raw = input.answer ? goodFeedback(input.situation as string, input.answer as string)
       : scenarioReply ? await scenarioReply(input) : input.kind === 'learning-moment' ? lessonScenario : scenario;
     const reply = input.kind === 'learning-moment' && raw && typeof raw === 'object'
