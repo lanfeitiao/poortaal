@@ -26,9 +26,9 @@ export function readLearningScene(value: unknown, data: Pick<WordExplanation, 'w
     return { version: 5, generatedAt: v.generatedAt, sense: v.sense, usage: v.usage, scenario, moment };
   } catch { return; }
 }
-export async function generateLearningScene(data: WordExplanation, chat: CompleteChat, previous: string[] = []): Promise<LearningScene> {
+export async function generateLearningScene(data: WordExplanation, chat: CompleteChat): Promise<LearningScene> {
   const session = { ...createSession('lesson', data.word, data.usage?.[0], true, true), meaning: data.meaning_en };
-  const { scenario, moment } = await generateLearningMoment(session, previous, data.tips, chat);
+  const { scenario, moment } = await generateLearningMoment(session, data.tips, chat);
   return { version: 5, generatedAt: Date.now(), sense: data.meaning_en, usage: sceneUsage(data), scenario, moment };
 }
 type Exposure = { word: string; sense: string; usage: string; at: number };
