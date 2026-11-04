@@ -1,16 +1,20 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { generateLearningScene, readLearningScene, rememberSceneExposure, recentlyViewedScene } from './learning-scene.ts';
+import { generateLearningScene as generateReviewedScene, readLearningScene, rememberSceneExposure, recentlyViewedScene } from './learning-scene.ts';
 import { renderLearningScene } from './learning-scene-view.ts';
-import { validateWordExplanation } from './word-explanation.ts';
-import { learningMoment, lessonScenario, practiceUsage } from './structured-fixtures.ts';
+import { validateWordExplanation, type WordExplanation } from './word-explanation.ts';
+import type { CompleteChat } from './structured-ai.ts';
+import { approvedLearningReview, learningMoment, lessonScenario, practiceUsage } from './structured-fixtures.ts';
 import { parseHTML } from 'linkedom';
 
 const word = { word: 'afspraak', type: 'zelfstandig naamwoord', meaning_nl: 'Een plan.', meaning_en: 'appointment',
   examples: [{ nl: practiceUsage.example_nl, en: practiceUsage.example_en }], usage: [practiceUsage], tips: '', fun_fact: null };
 const lessonReply = { scenario: lessonScenario, moment: learningMoment };
-const savedScene = { version: 3 as const, generatedAt: 1, sense: word.meaning_en,
+const savedScene = { version: 4 as const, generatedAt: 1, sense: word.meaning_en,
   usage: practiceUsage.chunk, ...lessonReply };
+const generateLearningScene = (data: WordExplanation, chat: CompleteChat, previous?: string[]) =>
+  generateReviewedScene(data, async (messages, temperature) => JSON.parse(messages[1].content).kind === 'learning-moment-review'
+    ? JSON.stringify(approvedLearningReview) : chat(messages, temperature), previous);
 
 test('study shows a short exchange with only a useful notice; changed-context recall stays for later review', async () => {
   const scene = await generateLearningScene(word, async messages => {
@@ -118,8 +122,9 @@ test('afmaken can appear as maak ... af in an everyday child-pickup scene', asyn
   assert.ok(!document.querySelector('.learning-scene')!.textContent!.includes(moment.transfer.example));
 });
 
-test('v2 scenes regenerate; malformed lessons retain the base word instead of inventing a scene', () => {
+test('v2 and unreviewed v3 scenes regenerate; malformed lessons retain the base word', () => {
   assert.equal(readLearningScene({ ...savedScene, version: 2 }, word), undefined);
+  assert.equal(readLearningScene({ ...savedScene, version: 3 }, word), undefined);
   const saved = validateWordExplanation({ ...word, scene: { scenario: 'broken' } });
   assert.equal(saved.scene, undefined); assert.deepEqual(saved.examples, word.examples);
   const html = renderLearningScene(saved, 'error');
@@ -142,7 +147,7 @@ test('changing a scene passes the previous context and validates the newly gener
     assert.deepEqual(JSON.parse(messages[1].content).previous, ['A school appointment.']);
     return JSON.stringify({ scenario: newScenario, moment: learningMoment });
   }, ['A school appointment.']);
-  assert.equal(scene.version, 3);
+  assert.equal(scene.version, 4);
   assert.equal(readLearningScene(scene, word)?.scenario.situation, newScenario.situation);
   const { version: _legacy, ...old } = scene;
   assert.equal(readLearningScene(old, word), undefined);

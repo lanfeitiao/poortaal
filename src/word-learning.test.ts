@@ -109,7 +109,7 @@ test('usage evidence from another word cannot influence this word', () => {
 });
 
 test('later review reuses saved changed-context question without immediately showing its answer', () => {
-  const scene = { version: 3 as const, generatedAt: 100, sense: word.meaning_en, usage: practiceUsage.chunk,
+  const scene = { version: 4 as const, generatedAt: 100, sense: word.meaning_en, usage: practiceUsage.chunk,
     scenario: lessonScenario, moment: learningMoment };
   const data: WordExplanation = { ...word, usage: [practiceUsage], scene };
   assert.equal(wordReview(data, 0, 0, []).kind, 'meaning');
@@ -125,14 +125,14 @@ test('later review reuses saved changed-context question without immediately sho
   assert.notEqual(review.nl, lessonScenario.expressions[0]);
 });
 test('a word without collocations can use occasional changed-context review', () => {
-  const data: WordExplanation = { ...word, usage: [], scene: { version: 3, generatedAt: 100,
+  const data: WordExplanation = { ...word, usage: [], scene: { version: 4, generatedAt: 100,
     sense: word.meaning_en, usage: word.word, scenario: lessonScenario, moment: learningMoment } };
   assert.equal(wordReview(data, 0, 0, []).kind, 'meaning');
   assert.equal(wordReview(data, 2, 2, []).kind, 'context');
   assert.equal(wordReview(data, 2, 3, []).kind, 'meaning');
 });
 test('review never borrows a lesson from a different sense or collocation', () => {
-  const scene = { version: 3 as const, generatedAt: 100, sense: word.meaning_en,
+  const scene = { version: 4 as const, generatedAt: 100, sense: word.meaning_en,
     usage: practiceUsage.chunk, scenario: lessonScenario, moment: learningMoment };
   assert.equal(wordReview({ ...word, usage: [move], scene }, 2, 2, []).kind, 'output');
   assert.equal(wordReview({ ...word, usage: [practiceUsage], meaning_en: 'arrangement', scene }, 2, 2, []).kind, 'output');

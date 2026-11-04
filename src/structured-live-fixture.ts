@@ -3,7 +3,7 @@ import type { TestContext } from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { build } from 'vite';
 import { parseHTML } from 'linkedom';
-import { goodFeedback, learningMoment, lessonScenario, practiceUsage, scenario } from './structured-fixtures.ts';
+import { approvedLearningReview, goodFeedback, learningMoment, lessonScenario, practiceUsage, scenario } from './structured-fixtures.ts';
 
 export async function liveFixture(t: TestContext, scenarioReply?: (input: Record<string, unknown>) => unknown | Promise<unknown>) {
   const { document, window: dom } = parseHTML(await readFile(new URL('../index.html', import.meta.url), 'utf8'));
@@ -12,7 +12,7 @@ export async function liveFixture(t: TestContext, scenarioReply?: (input: Record
   events.supabase = { createClient: () => ({ auth: { getUser: async () => ({ data: { user: null } }), onAuthStateChange: () => {} } }) };
   const word = { word: 'afspraak', type: 'zelfstandig naamwoord', meaning_nl: 'Een plan om iemand te zien.', meaning_en: 'appointment',
     examples: [{ nl: practiceUsage.example_nl, en: practiceUsage.example_en }], tips: '', fun_fact: null, usage: [practiceUsage],
-    scene: { version: 3, generatedAt: 1, sense: 'appointment', usage: practiceUsage.chunk, scenario: lessonScenario, moment: learningMoment } };
+    scene: { version: 4, generatedAt: 1, sense: 'appointment', usage: practiceUsage.chunk, scenario: lessonScenario, moment: learningMoment } };
   const storage = new Map<string, string>([['poortaal_word_cache_v4', JSON.stringify({ afspraak: word })],
     ['poortaal_history', JSON.stringify([{ word: 'afspraak', timestamp: 1, wordData: word }])]]);
   const track = { enabled: true, stop() {} };
@@ -45,6 +45,7 @@ export async function liveFixture(t: TestContext, scenarioReply?: (input: Record
     if (String(url).endsWith('/live-session')) return Response.json({ transport: { type: 'webrtc', sdp: 'answer' } });
     assert.ok(String(url).endsWith('/openai'));
     const input = JSON.parse(JSON.parse(init!.body as string).messages[1].content);
+    if (input.kind === 'learning-moment-review') return Response.json({ choices: [{ message: { content: JSON.stringify(approvedLearningReview) } }] });
     const raw = input.answer ? goodFeedback(input.situation as string, input.answer as string)
       : scenarioReply ? await scenarioReply(input) : input.kind === 'learning-moment' ? lessonScenario : scenario;
     const reply = input.kind === 'learning-moment' && raw && typeof raw === 'object'
