@@ -22,7 +22,9 @@ export const learningMoment: LearningMoment = {
     openingLine: 'Wanneer wil je langskomen?',
     example: 'Kan ik vrijdag een afspraak maken?' },
 };
-export const approvedLearningReview = { naturalDutch: true, coherentExchange: true, wordFitsContext: true, feedback: '' };
+export const approvedLearningReview = { naturalDutch: true, coherentExchange: true, wordFitsContext: true, feedback: '',
+  study: { partnerRole: 'person offering help', learnerRole: 'person requesting help', reason: 'The reply makes the requested arrangement.', coherent: true },
+  transfer: { partnerRole: 'person offering help', learnerRole: 'person requesting help', reason: 'The reply asks for an alternative arrangement.', coherent: true } };
 export const answer = 'Ik wil een afspraak maken. Kan ik morgen komen?';
 export function goodFeedback(situation = scenario.situation, quote = answer): StructuredFeedback {
   return { task: 'completed', target: 'correct', naturalness: 'natural', evidence: quote,

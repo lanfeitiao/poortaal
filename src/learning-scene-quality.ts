@@ -54,7 +54,13 @@ Reject clearly stilted Dutch, an incoherent reply, a synonym echo, or a target w
 Check who speaks, yes/no logic, timeline, and whether BOTH learner replies use the target naturally in the selected sense.
 The learner reply must achieve the English task, not the partner's task: receiving a confirmation does not itself confirm attendance. Translation must match the displayed reply exactly; do not accept added or missing information.
 The first hint must be a Dutch cue for that same learner action, without giving the target word or introducing new facts.
-Return ONLY JSON: {"naturalDutch":boolean,"coherentExchange":boolean,"wordFitsContext":boolean,"feedback":"brief concrete repair advice, or empty when all pass"}.` },
+First analyse each exchange: identify the partner's role, the learner's role, what the opening asks and whether the reply answers it. Infer ownership from the actual Dutch, not just the intended English task.
+For example, when the learner is a CUSTOMER seeking a vacuum part, a shop assistant asking "Heeft u dat stukje voor mijn stofzuiger nog?" swaps the roles. Mark that exchange incoherent; a shop assistant could instead ask "Voor welk apparaat zoekt u iets?".
+Reject a school-pupil role for the adult learner; for words equally natural at home and work, prefer family or everyday-life contexts.
+Return ONLY JSON with the role analyses BEFORE the verdicts:
+{"study":{"partnerRole":"...","learnerRole":"...","reason":"what was asked and how the reply responds","coherent":boolean},
+"transfer":{"partnerRole":"...","learnerRole":"...","reason":"what was asked and how the reply responds","coherent":boolean},
+"naturalDutch":boolean,"coherentExchange":boolean,"wordFitsContext":boolean,"feedback":"brief concrete repair advice, or empty when all pass"}.` },
     { role: 'user', content: JSON.stringify({ kind: 'learning-moment-review', word, meaning, scenario, moment }) },
   ], 0, 'gpt-4.1-mini');
   let verdict: Record<string, unknown>;
@@ -67,8 +73,13 @@ Return ONLY JSON: {"naturalDutch":boolean,"coherentExchange":boolean,"wordFitsCo
   if (checks.some(key => typeof verdict[key] !== 'boolean')) {
     throw new InvalidStructuredOutput('Scene quality: missing editorial checks');
   }
+  const exchanges = ['study', 'transfer'].map(key => verdict[key] as Record<string, unknown> | undefined);
+  if (exchanges.some(v => !v || typeof v.coherent !== 'boolean'
+    || ['partnerRole', 'learnerRole', 'reason'].some(key => typeof v[key] !== 'string' || !v[key].trim() || v[key].length > 600))) {
+    throw new InvalidStructuredOutput('Scene quality: missing speaker-role analysis');
+  }
   const feedback = text(verdict.feedback, 600, true);
-  if (checks.some(key => verdict[key] !== true)) {
+  if (checks.some(key => verdict[key] !== true) || exchanges.some(v => v!.coherent !== true)) {
     throw new InvalidStructuredOutput(`Scene quality: ${feedback || 'Rewrite both exchanges with natural Dutch, a coherent response and a suitable context for the target.'}`);
   }
 }

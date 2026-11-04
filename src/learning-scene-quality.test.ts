@@ -82,6 +82,8 @@ test('each editorial dimension can reject a draft and its feedback reaches the b
 
 test('rejected or malformed reviews never save a scene and stop after two drafts', async t => {
   for (const verdict of [{ ...approvedLearningReview, coherentExchange: false, feedback: 'The reply does not answer the question.' },
+    { ...approvedLearningReview, study: { ...approvedLearningReview.study, coherent: false }, feedback: 'Study roles are swapped.' },
+    { ...approvedLearningReview, transfer: { ...approvedLearningReview.transfer, coherent: false }, feedback: 'Transfer roles are swapped.' },
     { ...approvedLearningReview, naturalDutch: 'true' }, { naturalDutch: true }, 'not JSON']) {
     await t.test(JSON.stringify(verdict), async () => {
       const calls: string[] = [];
