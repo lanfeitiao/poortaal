@@ -65,3 +65,18 @@ test('an earlier incorrect attempt does not hide tutor modelling before a later 
     { role: 'assistant', content: 'De afspraak is morgen.' },
   ]), false);
 });
+
+test('restarting a dropped voice connection continues the saved turns without replaying the first opening', () => {
+  const s = { ...createSession('guest', 'afspraak', practiceUsage, false, false),
+    delivery: 'voice' as const, phase: 'answer' as const, scenario };
+  s.rounds[0] = {
+    ...s.rounds[0], draft: 'Ik wil een afspraak maken.',
+    turns: [
+      { role: 'assistant', content: 'Waarmee kan ik je helpen?' },
+      { role: 'user', content: 'Ik wil een afspraak maken.' },
+    ],
+  };
+  assert.equal(spokenEncounter(s).openingLine, 'Je kunt verder vertellen. Wat wil je nog toevoegen?');
+  assert.ok(voiceFlowPolicy(s).includes('Ik wil een afspraak maken.'));
+  assert.ok(voiceFlowPolicy(s).includes('Continue from it without erasing'));
+});
