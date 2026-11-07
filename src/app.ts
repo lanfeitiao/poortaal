@@ -347,7 +347,7 @@ function restoreReviewSession(): boolean {
       if (index < saved.index) missingBefore++;
       continue;
     }
-    const current = stats[word] || {};
+    const current: Partial<WordStats> = stats[word] || {};
     queue.push(currentDue.get(word) || {
       entry: { ...entry, wordData }, stats: current, level: current.level || 0,
       isDue: true, isWilting: false, overdueDays: 0,
@@ -357,7 +357,9 @@ function restoreReviewSession(): boolean {
   if (!queue.length) return false;
   reviewQueue = queue;
   reviewIndex = Math.min(queue.length, Math.max(0, saved.index - missingBefore));
-  reviewResults = { know: saved.know, again: saved.again };
+  // Removed history entries must not produce an impossible checkpoint.
+  const know = Math.min(saved.know, reviewIndex);
+  reviewResults = { know, again: Math.min(saved.again, reviewIndex - know) };
   reviewRevealed = saved.revealed;
   reviewSessionActive = true;
   currentReviewPrompt = null;
