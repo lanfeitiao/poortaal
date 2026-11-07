@@ -14,6 +14,7 @@ import { clearStructuredWord } from './structured-store';
 import { generateLearningScene, readLearningScene, sceneUsage, rememberSceneExposure, recentlyViewedScene } from './learning-scene';
 import { renderLearningScene } from './learning-scene-view';
 import { needsUsageReview, wordReview } from './word-learning';
+import { clearReviewCheckpoint, readReviewCheckpoint, writeReviewCheckpoint } from './review-session';
 import { createWordWriteQueue } from './word-write-queue';
 import { mergeCloudWordStats, saveWordWithVersion, supabaseWordStore } from './word-cloud-save';
 import {
@@ -134,8 +135,10 @@ async function syncFromCloud() {
     }
     localStorage.setItem('poortaal_word_stats', JSON.stringify(localStats));
     if (learningChanged) {
-      closeMicroReview(); resetReviewSessionIfActive();
-      if (window.location.hash.split('?')[0] === '#review') renderReviewHome();
+      closeMicroReview();
+      // Cloud updates may arrive after several review grades. Never discard the
+      // current queue merely because the saved word data changed.
+      if (!reviewSessionActive && window.location.hash.split('?')[0] === '#review') renderReviewHome();
     }
     updateReviewBadge();
     for (const word of dirtyUsageWords) {
@@ -177,7 +180,9 @@ async function syncFromCloud() {
 
     renderHistory();
     updateReviewBadge();
-    if (!reviewSessionActive && window.location.hash.split('?')[0] === '#review') renderReviewHome();
+    if (!reviewSessionActive && window.location.hash.split('?')[0] === '#review') {
+      if (!restoreReviewSession()) renderReviewHome();
+    }
   } catch (e) {
     console.error('Sync error:', e);
   } finally {
@@ -219,8 +224,8 @@ async function saveWordStatsToCloud(word: string, retry?: { before: WordExplanat
       if (currentWord?.toLowerCase().trim() === word.toLowerCase().trim() && cloud) {
         currentWordData = cloud; renderWordCard(cloud);
       }
-      closeMicroReview(); resetReviewSessionIfActive(); updateReviewBadge();
-      if (window.location.hash.split('?')[0] === '#review') renderReviewHome();
+      closeMicroReview(); updateReviewBadge();
+      if (!reviewSessionActive && window.location.hash.split('?')[0] === '#review') renderReviewHome();
     }
   }).catch(error => console.error('Save word error:', error));
 }
@@ -316,7 +321,57 @@ function renderReviewHome() {
   `;
 }
 
+function checkpointReviewSession() {
+  if (!reviewSessionActive) return;
+  writeReviewCheckpoint(learningOwner(), {
+    words: reviewQueue.map(item => item.entry.word),
+    index: reviewIndex,
+    know: reviewResults.know,
+    again: reviewResults.again,
+    revealed: reviewRevealed,
+  });
+}
+function restoreReviewSession(): boolean {
+  if (reviewSessionActive) return true;
+  const saved = readReviewCheckpoint(learningOwner());
+  if (!saved) return false;
+  const entries = new Map(searchHistory.map(entry => [entry.word, entry]));
+  const currentDue = new Map(getDueWords().map(item => [item.entry.word, item]));
+  const stats = getWordStats();
+  const queue: ReviewItem[] = [];
+  let missingBefore = 0;
+  for (const [index, word] of saved.words.entries()) {
+    const entry = entries.get(word);
+    const wordData = getCachedWord(word) || entry?.wordData;
+    if (!entry || !wordData) {
+      if (index < saved.index) missingBefore++;
+      continue;
+    }
+    const current: Partial<WordStats> = stats[word] || {};
+    queue.push(currentDue.get(word) || {
+      entry: { ...entry, wordData }, stats: current, level: current.level || 0,
+      isDue: true, isWilting: false, overdueDays: 0,
+    });
+  }
+  // History may still be arriving from cloud sync; keep the checkpoint until then.
+  if (!queue.length) return false;
+  reviewQueue = queue;
+  reviewIndex = Math.min(queue.length, Math.max(0, saved.index - missingBefore));
+  // Removed history entries must not produce an impossible checkpoint.
+  const know = Math.min(saved.know, reviewIndex);
+  reviewResults = { know, again: Math.min(saved.again, reviewIndex - know) };
+  reviewRevealed = saved.revealed;
+  reviewSessionActive = true;
+  currentReviewPrompt = null;
+  document.getElementById('reviewHomeSection')!.style.display = 'none';
+  document.getElementById('reviewSessionSection')!.style.display = '';
+  checkpointReviewSession();
+  renderReviewSession();
+  return true;
+}
+
 function startReviewSession() {
+  if (restoreReviewSession()) return;
   const due = getDueWords();
   if (due.length === 0) {
     renderReviewHome();
@@ -328,6 +383,7 @@ function startReviewSession() {
   reviewRevealed = false;
   reviewSessionActive = true;
   currentReviewPrompt = null;
+  checkpointReviewSession();
   document.getElementById('reviewHomeSection').style.display = 'none';
   document.getElementById('reviewSessionSection').style.display = '';
   renderReviewSession();
@@ -451,8 +507,9 @@ function attachReviewCardSwipe() {
 
 function onReviewTTS(e: Event, btn: HTMLElement) { e.stopPropagation(); playExTTS(btn, btn.dataset.word || ''); }
 function onReviewCardTap() {
-  if (reviewRevealed) return;
+  if (!reviewSessionActive || reviewRevealed) return;
   reviewRevealed = true;
+  checkpointReviewSession();
   const answer = document.getElementById('reviewCardAnswer');
   const hint = document.getElementById('reviewCardHint');
   if (answer) answer.classList.add('revealed');
@@ -476,6 +533,7 @@ function gradeAndAdvance(known: boolean) {
   reviewIndex++;
   currentReviewPrompt = null;
   reviewRevealed = false;
+  checkpointReviewSession();
   renderReviewSession();
 }
 function renderReviewSummary() {
@@ -497,7 +555,8 @@ function renderReviewSummary() {
   `;
 }
 function endReviewSessionToHome() {
-  reviewSessionActive = false; reviewQueue = []; reviewIndex = 0; reviewResults = { know: 0, again: 0 }; reviewRevealed = false; renderReviewHome();
+  clearReviewCheckpoint(learningOwner());
+  reviewSessionActive = false; reviewQueue = []; reviewIndex = 0; reviewResults = { know: 0, again: 0 }; reviewRevealed = false; currentReviewPrompt = null; renderReviewHome();
 }
 function exitReviewSession() {
   if (!reviewSessionActive) return;
@@ -530,7 +589,13 @@ function handleRoute() {
   document.getElementById('nav-review').classList.toggle('active', isReview);
   if (isPractice) { renderPracticeHistoryList(); if (!structuredPractice.session) restoreStructuredPractice(); }
   else { stopRealtimeEncounter(); showPracticePicker(); }
-  if (isReview) renderReviewHome(); else resetReviewSessionIfActive();
+  if (isReview) {
+    if (reviewSessionActive) {
+      document.getElementById('reviewHomeSection')!.style.display = 'none';
+      document.getElementById('reviewSessionSection')!.style.display = '';
+      renderReviewSession();
+    } else if (!restoreReviewSession()) renderReviewHome();
+  } else resetReviewSessionIfActive();
 }
 window.addEventListener('hashchange', handleRoute);
 
@@ -839,7 +904,7 @@ window.addEventListener('poortaal:learning-owner', () => {
   if (currentWordData) renderWordCard(currentWordData);
   updateReviewBadge();
   closeMicroReview(); resetReviewSessionIfActive();
-  if (window.location.hash.split('?')[0] === '#review') renderReviewHome();
+  if (window.location.hash.split('?')[0] === '#review' && !restoreReviewSession()) renderReviewHome();
   if (window.location.hash.split('?')[0] === '#practice') restoreStructuredPractice();
 });
 

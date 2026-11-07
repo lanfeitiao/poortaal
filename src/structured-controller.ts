@@ -1,9 +1,24 @@
 import { learningOwner } from './learning-store.ts';
+import { OpenAIRequestError } from './openai-client.ts';
 import { evaluateResponse, generateScenario, type CompleteChat } from './structured-ai.ts';
 import { advanceSession, createSession, currentRound, type StructuredSession } from './structured-session.ts';
 import { activeSession, hasPractised, leaveSession, readSessions, samePractice, saveSession, saveStructuredProgress } from './structured-store.ts';
 import type { WordUsage } from './word-usage.ts';
-import { validateStudiedScenario, type StudiedScenario } from './structured-contract.ts';
+import { InvalidStructuredOutput, validateStudiedScenario, type StudiedScenario } from './structured-contract.ts';
+
+export function practiceRequestErrorMessage(error: unknown, phase: 'prepare' | 'answer'): string {
+  const preserved = phase === 'answer' ? 'Your reply is saved.' : 'Your practice is saved.';
+  if (error instanceof OpenAIRequestError) {
+    if (error.kind === 'network') return `Connection interrupted. ${preserved} Try again.`;
+    if (error.status === 429) return `The AI service is busy (rate limit). ${preserved} Try again shortly.`;
+    if (error.status !== null && error.status >= 500) return `The AI service is temporarily unavailable. ${preserved} Try again.`;
+    if (error.status === 401 || error.status === 403) return `The AI service cannot authorize this request. ${preserved}`;
+  }
+  if (error instanceof InvalidStructuredOutput || error instanceof SyntaxError) {
+    return `Could not prepare a suitable Dutch ${phase === 'prepare' ? 'conversation' : 'response'}. ${preserved} Try again.`;
+  }
+  return `The request failed. ${preserved} Try again.`;
+}
 
 export class StructuredPractice {
   session: StructuredSession | null = null;
@@ -132,8 +147,16 @@ export class StructuredPractice {
           await run();
         });
       } else await run();
-    } catch {
-      if (current()) this.error = 'The request failed. Your reply is saved; try again.';
+    } catch (error) {
+      if (current()) {
+        // Report a diagnostic category without logging private learner replies.
+        console.warn('[Poortaal practice] request failed', {
+          phase: s.phase,
+          kind: error instanceof OpenAIRequestError ? error.kind : error instanceof Error ? error.name : 'unknown',
+          status: error instanceof OpenAIRequestError ? error.status : null,
+        });
+        this.error = practiceRequestErrorMessage(error, s.phase === 'prepare' ? 'prepare' : 'answer');
+      }
     } finally {
       if (current()) { this.busy = false; this.notify(); }
     }
