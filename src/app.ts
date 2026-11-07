@@ -92,6 +92,7 @@ function updateUserUI() {
 async function syncFromCloud() {
   if (!currentUser) return;
   const userId = currentUser.id;
+  const statsAtStart = getWordStats();
   const ind = document.getElementById('syncIndicator');
   ind.classList.add('syncing');
   try {
@@ -111,12 +112,16 @@ async function syncFromCloud() {
         const attemptsBefore = JSON.stringify(getWordAttempts(cw.word));
         if (cloudWordLearning(cw.word, cw.word_data, userId)) dirtyUsageWords.push(cw.word);
         if (JSON.stringify(getWordAttempts(cw.word)) !== attemptsBefore) learningChanged = true;
+        const local = localStats[cw.word];
+        // Grades entered while the download was in flight can be newer than the cloud snapshot.
+        const progress = local && JSON.stringify(local) !== JSON.stringify(statsAtStart[cw.word])
+          ? mergeCloudWordStats(cw, { ...local, last_seen: local.lastSeen }) : cw;
         localStats[cw.word] = {
-          lookups: cw.lookups || 0,
-          practices: cw.practices || 0,
-          reviews: cw.reviews || [],
-          level: cw.level || 0,
-          lastSeen: cw.last_seen || Date.now(),
+          lookups: progress.lookups || 0,
+          practices: progress.practices || 0,
+          reviews: progress.reviews || [],
+          level: progress.level || 0,
+          lastSeen: progress.last_seen || Date.now(),
         };
         const cloud = readSavedWordExplanation(cw.word_data);
         if (cloud) {
@@ -360,7 +365,7 @@ function restoreReviewSession(): boolean {
   // Removed history entries must not produce an impossible checkpoint.
   const know = Math.min(saved.know, reviewIndex);
   reviewResults = { know, again: Math.min(saved.again, reviewIndex - know) };
-  reviewRevealed = saved.revealed;
+  reviewRevealed = saved.revealed && queue[reviewIndex]?.entry.word === saved.words[saved.index];
   reviewSessionActive = true;
   currentReviewPrompt = null;
   document.getElementById('reviewHomeSection')!.style.display = 'none';
