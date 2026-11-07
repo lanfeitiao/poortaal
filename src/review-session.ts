@@ -19,12 +19,12 @@ export function readReviewCheckpoint(
     if (!Array.isArray(s.words) || !s.words.length || s.words.length > 200
       || !s.words.every(word => typeof word === 'string' && word.length > 0 && word.length <= 200)
       || new Set(s.words).size !== s.words.length
-      || !Number.isSafeInteger(s.index) || s.index! < 0 || s.index! > s.words.length
-      || !Number.isSafeInteger(s.know) || s.know! < 0
-      || !Number.isSafeInteger(s.again) || s.again! < 0
-      || s.know! + s.again! > s.index!
+      || typeof s.index !== 'number' || !Number.isSafeInteger(s.index) || s.index < 0 || s.index > s.words.length
+      || typeof s.know !== 'number' || !Number.isSafeInteger(s.know) || s.know < 0
+      || typeof s.again !== 'number' || !Number.isSafeInteger(s.again) || s.again < 0
+      || s.know + s.again > s.index
       || typeof s.revealed !== 'boolean') return null;
-    return { words: [...s.words], index: s.index!, know: s.know!, again: s.again!, revealed: s.revealed };
+    return { words: [...s.words], index: s.index, know: s.know, again: s.again, revealed: s.revealed };
   } catch { return null; }
 }
 
