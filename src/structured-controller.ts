@@ -155,7 +155,7 @@ export class StructuredPractice {
           kind: error instanceof OpenAIRequestError ? error.kind : error instanceof Error ? error.name : 'unknown',
           status: error instanceof OpenAIRequestError ? error.status : null,
         });
-        this.error = practiceRequestErrorMessage(error, s.phase);
+        this.error = practiceRequestErrorMessage(error, s.phase === 'prepare' ? 'prepare' : 'answer');
       }
     } finally {
       if (current()) { this.busy = false; this.notify(); }
