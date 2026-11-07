@@ -83,8 +83,12 @@ export class StructuredPractice {
   captureVoice(turns: NonNullable<StructuredSession['rounds'][number]['turns']>, helped = false, settled = false): void {
     const s = this.session;
     if (!s || s.delivery !== 'voice' || s.phase !== 'answer' || this.busy) return;
+    const round = currentRound(s);
     const draft = turns.filter(t => t.role === 'user').map(t => t.content).join('\n');
-    if (!draft.trim() && currentRound(s).draft.trim()) return;
+    if (!draft.trim() && round.draft.trim()) return;
+    // A repeated flush must preserve feedback retry state for the same reply.
+    if (!settled && draft === round.draft && (!helped || s.supportUsed)
+      && JSON.stringify(turns) === JSON.stringify(round.turns ?? [])) return;
     if (draft.length > 2000) { this.error = 'This round is long. Finish it and try a shorter reply.'; this.notify(); return; }
     this.mutate(() => ({ ...s, supportUsed: s.supportUsed || helped, pending: null,
       rounds: s.rounds.map((r, i) => i === s.round ? { ...r, draft, turns, voiceSettled: settled } : r) }));

@@ -192,6 +192,29 @@ test('a transient scenario failure keeps the active voice practice resumable', a
   assert.equal(p.session?.pending, null);
   assert.equal(p.error, '');
 });
+test('flushing an unchanged voice transcript on disconnect preserves the pending feedback retry', async () => {
+  const p = new StructuredPractice(noop, messages => {
+    if (JSON.parse(messages[1].content).answer) throw new OpenAIRequestError('network');
+    return chat(messages);
+  });
+  await p.start('afspraak', practiceUsage, false, { voice: true });
+  const turns = [{ role: 'user' as const, content: answer }];
+  p.captureVoice(turns, false, true);
+  await p.request();
+  assert.equal(p.session?.pending, 'feedback');
+
+  p.captureVoice(turns);
+  assert.equal(activeSession()?.pending, 'feedback');
+  assert.equal(activeSession()?.rounds[0].voiceSettled, true);
+  assert.match(p.error, /Connection interrupted/);
+
+  p.captureVoice(turns, false, true);
+  assert.equal(p.error, '');
+  await p.request();
+  p.captureVoice([...turns, { role: 'user', content: 'Het liefst in de ochtend.' }]);
+  assert.equal(activeSession()?.pending, null);
+  assert.equal(activeSession()?.rounds[0].voiceSettled, false);
+});
 test('practice errors distinguish rate limits, server failures and invalid scenes', () => {
   assert.match(practiceRequestErrorMessage(new OpenAIRequestError('http', { status: 429 }), 'prepare'), /rate limit/);
   assert.match(practiceRequestErrorMessage(new OpenAIRequestError('http', { status: 503 }), 'answer'), /reply is saved/);

@@ -60,13 +60,13 @@ function resetTranscriptState(): void { timelineTranscriptFragments.length = 0; 
 function renderEncounterIntro(): void {
   if (!session) return; const root = transcriptRoot(); if (!root) return; const encounter = session.encounter;
   microphoneReady = false; resetTranscriptState(); root.style.display = 'flex';
-  if (spokenSession()) {
+  const spoken = spokenSession();
+  if (spoken) {
     // An interrupted WebRTC session must not make the learner's earlier turns
     // disappear from the screen on reconnect.
-    const previousTurns = currentRound(spokenSession()!).turns || [];
+    const previousTurns = currentRound(spoken).turns ?? [];
     root.innerHTML = '';
     for (const turn of previousTurns) appendMessage(turn.role === 'user' ? 'user' : 'tutor', turn.content);
-    if (previousTurns.length) appendMessage('system', 'Reconnected — you can continue your conversation.');
     return;
   }
   root.innerHTML = `<div style="align-self:stretch;background:#fff;border:1px solid #DBEAFE;border-radius:14px;padding:14px 16px;margin-bottom:4px;"><div style="font-size:1.35rem;margin-bottom:4px;">${escapeHtml(encounter.emoji)} <strong>${escapeHtml(encounter.title)}</strong></div><div style="font-size:.9rem;color:#4B5563;margin-bottom:8px;">${escapeHtml(encounter.setup)}</div><div style="font-size:.82rem;color:#6B7280;">Try to use <strong>${escapeHtml(encounter.targetWord)}</strong> naturally.</div></div><div id="encounterSupport" style="align-self:stretch;"></div><div id="encounterActions" style="align-self:stretch;display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 8px;"></div>`;
@@ -245,6 +245,7 @@ function handleStateChange(state: RealtimeConnectionState): void {
     case 'connecting': setStatus('Connecting…'); break;
     case 'ready':
       setStatus('Starting the conversation…');
+      if (voicePrefix.length) appendMessage('system', 'Reconnected. You can continue your conversation.');
       try {
         client?.send({ type: 'session.instructions.append', event_id: 'encounter-opening', delegation_id: null,
           content: `Speak first now in Dutch with exactly this opening line, once, then listen silently: ${session?.encounter.openingLine || ''}` });
@@ -252,19 +253,19 @@ function handleStateChange(state: RealtimeConnectionState): void {
       break;
     case 'listening': microphoneReady = true; setVisualizer(true); setStatus('Listening…'); break;
     case 'error':
-    case 'closed': {
-      const wasSpoken = !!spokenSession();
-      // Save the last caption even when a disconnect arrives before the 1.2s
-      // transcript debounce. Reconnecting reuses the saved conversation.
-      stopRealtimeEncounter(false);
-      microphoneReady = false;
-      setVisualizer(false);
-      setButton(wasSpoken ? '↻ Reconnect conversation' : '🎙️ Start conversation');
-      setStatus(wasSpoken
-        ? 'Connection interrupted. Your words are saved; reconnect to continue.'
-        : 'Connection interrupted. You can start again.');
+    case 'closed':
+      showConnectionInterrupted();
       break;
-    }
+  }
+}
+function showConnectionInterrupted(): void {
+  // Save captions that arrived before the transcript debounce fired.
+  stopRealtimeEncounter(false);
+  if (spokenSession()?.phase === 'answer') {
+    setButton('↻ Reconnect conversation');
+    setStatus('Connection interrupted. Reconnect to continue your conversation.');
+  } else {
+    setStatus('Connection interrupted.');
   }
 }
 function refreshCompletionMessages(): void {
@@ -312,14 +313,11 @@ export async function toggleRealtimeEncounter(): Promise<void> {
   if (context?.helpUsed) session.evidence.maxSupportUsed = 'model';
   voicePrefix = spoken ? currentRound(spoken).turns?.map(t => ({ ...t })) || [] : [];
   handledVoiceTurn = ''; feedbackOffer = null;
-  client = new RealtimeClient({ apiBase: API_BASE, word, instructions: buildTutorInstructions(encounter) + (spoken ? '\n' + voiceFlowPolicy(spoken) : ''), backendInstructions: buildBackendInstructions(encounter), onEvent: handleRealtimeEvent, onStateChange: handleStateChange });
-  try { await client.connect(); } catch (error) {
+  const connection = new RealtimeClient({ apiBase: API_BASE, word, instructions: buildTutorInstructions(encounter) + (spoken ? '\n' + voiceFlowPolicy(spoken) : ''), backendInstructions: buildBackendInstructions(encounter), onEvent: handleRealtimeEvent, onStateChange: handleStateChange });
+  client = connection;
+  try { await connection.connect(); } catch (error) {
     console.error('GPT-Live connection failed:', error);
-    appendMessage('system', 'Could not connect. Your practice is saved.');
-    const wasSpoken = !!spokenSession();
-    stopRealtimeEncounter(false);
-    setButton(wasSpoken ? '↻ Reconnect conversation' : '🎙️ Start conversation');
-    setStatus('Could not connect. Please try again.');
+    if (client === connection) handleStateChange('error');
   }
 }
 async function finishRealtimeEncounter(): Promise<void> {
@@ -347,15 +345,14 @@ async function finishRealtimeEncounter(): Promise<void> {
   void finishPracticeFeedback(snapshot);
 }
 export function stopRealtimeEncounter(resetStatus = true, flushPending = true): void {
-  if (flushPending && spokenSession()?.owner === learningOwner()
-    && (voiceTurnTimer || timelineTranscriptFragments.length)) captureSpokenTurns();
+  if (flushPending && client && timelineTranscriptFragments.length) captureSpokenTurns();
   feedbackAudio?.pause(); feedbackAudio = null;
   if (voiceTurnTimer) clearTimeout(voiceTurnTimer); voiceTurnTimer = null;
   generationId += 1; generating = false; finishing = false;
   if (completionTimer && session?.evidence.successfulProduction && !completionShown) showCompletion();
   if (transcriptIdleTimer) clearTimeout(transcriptIdleTimer); transcriptIdleTimer = null;
   if (completionTimer) clearTimeout(completionTimer); completionTimer = null;
-  client?.disconnect(); client = null; active = false;
+  client?.disconnect(); client = null; active = false; microphoneReady = false;
   const button = el('voiceStartBtn') as HTMLButtonElement | null;
   if (button) button.disabled = false;
   setVisualizer(false); setButton('🎙️ Start conversation');
@@ -380,7 +377,8 @@ function spokenTurns() {
   }));
 }
 function captureSpokenTurns(settled = false): void {
-  const s = spokenSession(); if (!s || s.phase !== 'answer') return;
+  const s = spokenSession();
+  if (!s || s.phase !== 'answer' || s.owner !== learningOwner() || session?.encounter.id !== `${s.id}:${s.round}`) return;
   const turns = [...voicePrefix, ...spokenTurns()].slice(-40);
   structuredPractice.captureVoice(turns, heardTargetModel(s.word, turns), settled);
 }
@@ -410,7 +408,8 @@ async function finishSpokenRound(): Promise<void> {
     const settled = await waitForTranscriptIdle(() => lastCaptionReceivedAtMs, current);
     if (!current()) return;
     captureSpokenTurns(settled && !connectionFailed);
-    if (!settled || connectionFailed) { structuredPractice.showError('The connection was interrupted or your last words are not settled. Try this round again.'); return; }
+    if (connectionFailed) return;
+    if (!settled) { structuredPractice.showError('Your last words are still coming through. Try getting feedback again.'); return; }
     if (structuredPractice.error || !currentRound(spokenSession()!).draft.trim()) { structuredPractice.showError('No clear reply has been saved yet. Say your reply first.'); return; }
     await structuredPractice.request();
     if (current() && spokenSession()?.phase === 'feedback') {
@@ -420,7 +419,7 @@ async function finishSpokenRound(): Promise<void> {
   } catch {
     if (current()) structuredPractice.showError('Could not get feedback. Your reply is saved.');
   } finally {
-    if (current() && connectionFailed) { stopRealtimeEncounter(false); setStatus('Connection lost. Your practice is saved.'); }
+    if (current() && connectionFailed) showConnectionInterrupted();
     else if (current()) {
       finishing = false; if (button) button.disabled = false;
       currentClient.resumeInput(); microphoneReady = true;
@@ -463,7 +462,7 @@ async function handleVoiceAction(action: string): Promise<void> {
 window.addEventListener('poortaal:voice-action', event => { void handleVoiceAction((event as CustomEvent<string>).detail); });
 // Mobile browsers can suspend WebRTC without a normal close event.
 window.addEventListener('pagehide', () => {
-  if (spokenSession()?.phase === 'answer' && timelineTranscriptFragments.length) captureSpokenTurns();
+  if (client && timelineTranscriptFragments.length) captureSpokenTurns();
 });
 window.addEventListener('poortaal:practice-refreshed', () => {
   // The saved session already belongs to the other tab. Never flush old speech into it.
