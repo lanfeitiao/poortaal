@@ -28,14 +28,20 @@ test('a word-free Daily Chat can retry feedback and save a spoken recall card', 
   const button = (root: string, label: string) => [...f.document.querySelectorAll<HTMLButtonElement>(root + ' button')]
     .find(item => item.textContent === label);
   t.after(() => navigate('#practice'));
-  assert.ok(f.document.querySelector('#view-practice a[href="#daily-chat"]'));
+  assert.equal(f.document.querySelector('#view-practice a.daily-chat-entry[href="#daily-chat"]')
+    ?.querySelector('.daily-chat-entry-title')?.textContent, 'Daily Chat');
   navigate('#daily-chat');
   button('#dailyChatBody', 'Start conversation')!.click();
   await f.wait(() => Boolean(button('#dailyChatBody', 'Try again')));
   assert.ok(!f.document.getElementById('dailyChatBody')?.textContent?.includes('No clear expressions'));
   button('#dailyChatBody', 'Try again')!.click();
   await f.wait(() => Boolean(button('#dailyChatBody', 'End conversation')));
+  f.caption('tutor', 'Hoe was je dag?');
   f.caption('user', quote);
+  const transcript = f.document.querySelector('[aria-label="Conversation transcript"]')!;
+  assert.equal(transcript.querySelector('.tutor .daily-chat-speaker')?.textContent, 'Poortaal');
+  assert.equal(transcript.querySelector('.user .daily-chat-speaker')?.textContent, 'You');
+  assert.equal(transcript.querySelector('.user p')?.textContent, quote);
   button('#dailyChatBody', 'End conversation')!.click();
   await f.wait(() => Boolean(button('#dailyChatBody', 'Retry feedback')));
   button('#dailyChatBody', 'Retry feedback')!.click();

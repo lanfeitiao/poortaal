@@ -359,6 +359,26 @@ main { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
 .review-summary-stat { font-size: 1rem; color: var(--gray-700); margin: 0.25rem 0; }
 .review-summary-btn { display: block; width: 100%; padding: 0.85rem; background: var(--blue-600); color: #fff; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 1.5rem; }
 .review-summary-btn:hover { background: var(--blue-500); }
+.daily-chat-entry { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0.8rem; padding: 1rem; color: var(--gray-900); text-decoration: none; }
+.daily-chat-entry:hover { border-color: var(--blue-300); background: var(--blue-50); }
+.daily-chat-entry:focus-visible, .daily-chat-back:focus-visible, .daily-chat-transcript:focus-visible { outline: 2px solid var(--blue-600); outline-offset: 3px; }
+.daily-chat-entry-icon { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border-radius: 12px; background: var(--blue-100); }
+.daily-chat-entry-title { display: block; font-size: 1.075rem; font-weight: 700; }
+.daily-chat-entry-description { display: block; margin-top: 0.2rem; color: var(--gray-600); font-size: 0.85rem; line-height: 1.4; }
+.daily-chat-entry-arrow { color: var(--blue-700); font-size: 1.2rem; }
+.daily-chat-header { margin-bottom: 0.8rem; }
+.daily-chat-header h1 { font-size: 1.5rem; }
+.daily-chat-back { display: inline-flex; align-items: center; column-gap: 0.35rem; min-height: 44px; color: var(--blue-700); font-size: 0.875rem; font-weight: 600; text-decoration: none; }
+.daily-chat-panel { padding: 1rem; }
+.daily-chat-intro { color: var(--gray-600); line-height: 1.5; }
+.daily-chat-status { color: var(--gray-700); background: var(--gray-100); border-radius: 8px; padding: 0.6rem 0.75rem; font-size: 0.85rem; line-height: 1.4; }
+.daily-chat-transcript { max-height: 16rem; max-height: min(16rem, 38dvh); margin: 0.85rem 0 0; padding: 0.15rem; overscroll-behavior: contain; }
+.daily-chat-transcript:empty { display: none; }
+.daily-chat-transcript .chat-msg { display: grid; gap: 0.2rem; max-width: 90%; min-width: 0; overflow-wrap: anywhere; animation: none; }
+.daily-chat-speaker { font-size: 0.75rem; font-weight: 600; }
+.daily-chat-start, .daily-chat-end { display: block; width: 100%; margin-top: 1rem; font-weight: 600; }
+.daily-chat-end { border: 1px solid var(--blue-200); }
+
 </style>
 </head>
 <body>
@@ -394,10 +414,14 @@ main { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
   </div>
   <div id="view-practice" class="view">
     <div id="practicePickerSection">
-      <div class="card">
-        <h2>Daily Chat</h2>
-        <a class="use-button" href="#daily-chat">Open Daily Chat</a>
-      </div>
+      <a class="card daily-chat-entry" href="#daily-chat" aria-labelledby="dailyChatEntryTitle" aria-describedby="dailyChatEntryDescription">
+        <span class="daily-chat-entry-icon" aria-hidden="true">🗣️</span>
+        <span>
+          <span class="daily-chat-entry-title" id="dailyChatEntryTitle">Daily Chat</span>
+          <span class="daily-chat-entry-description" id="dailyChatEntryDescription">Talk about your day in Dutch</span>
+        </span>
+        <span class="daily-chat-entry-arrow" aria-hidden="true">→</span>
+      </a>
       <div class="practice-word-picker">
         <h2>Choose a word to practise</h2>
         <div class="search-box">
@@ -432,9 +456,11 @@ main { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
     </div>
   </div>
   <div id="view-daily-chat" class="view">
-    <a class="practice-back-btn" href="#practice">← Back to Practice</a>
-    <section class="card" aria-label="Daily Chat">
-      <h2>Daily Chat</h2>
+    <div class="daily-chat-header">
+      <a class="daily-chat-back" href="#practice" aria-label="Back to Practice"><span aria-hidden="true">←</span> Practice</a>
+      <h1 id="dailyChatTitle">Daily Chat</h1>
+    </div>
+    <section class="card daily-chat-panel" aria-labelledby="dailyChatTitle">
       <div id="dailyChatBody"></div>
     </section>
   </div>

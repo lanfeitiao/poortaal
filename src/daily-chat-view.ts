@@ -17,8 +17,8 @@ export function leaveDailyChat(reset = false): void {
 export function showDailyChat(apiBase: string): void {
   const panel = root();
   if (!panel || panel.hasChildNodes()) return;
-  line(panel, 'Talk about your day in Dutch.');
-  action(panel, 'Start conversation', () => start(apiBase, panel));
+  line(panel, 'Talk about your day in Dutch. Get feedback on useful expressions after you finish.').className = 'daily-chat-intro';
+  action(panel, 'Start conversation', () => start(apiBase, panel)).classList.add('daily-chat-start');
 }
 
 function start(apiBase: string, panel: HTMLElement): void {
@@ -46,10 +46,13 @@ function start(apiBase: string, panel: HTMLElement): void {
     }
   };
   const status = line(panel, 'Connecting…');
+  status.className = 'daily-chat-status';
   status.setAttribute('role', 'status');
   const transcript = line(panel, '', 'div');
-  transcript.className = 'chat-messages voice-transcript';
-  transcript.style.display = 'flex';
+  transcript.className = 'chat-messages daily-chat-transcript';
+  transcript.setAttribute('role', 'region');
+  transcript.setAttribute('aria-label', 'Conversation transcript');
+  transcript.tabIndex = 0;
   const startFailed = () => {
     if (!current() || voice !== connection) return;
     connection.close(); voice = null; end.remove();
@@ -60,11 +63,7 @@ function start(apiBase: string, panel: HTMLElement): void {
     status.textContent = text;
     end.textContent = 'End conversation';
   },
-    turns => transcript.replaceChildren(...turns.map(turn => {
-      const bubble = document.createElement('p');
-      bubble.textContent = (turn.role === 'user' ? 'You · ' : 'Poortaal · ') + turn.content;
-      return bubble;
-    })), () => {
+    turns => renderTranscript(transcript, turns), () => {
       if (connection.started) void feedback(connection.reviewTurns(false), 'The connection was interrupted.');
       else startFailed();
     });
@@ -74,7 +73,22 @@ function start(apiBase: string, panel: HTMLElement): void {
     end.disabled = true; status.textContent = 'Saving your last words…';
     void connection.finish().then(turns => feedback(turns));
   });
+  end.classList.add('daily-chat-end', 'secondary');
   void connection.connect().catch(() => {
     if (!connection.started) startFailed();
   });
+}
+
+function renderTranscript(transcript: HTMLElement, turns: ChatTurn[]): void {
+  const scrollTop = transcript.scrollTop;
+  const following = transcript.scrollHeight - transcript.clientHeight - scrollTop < 32;
+  transcript.replaceChildren(...turns.map(turn => {
+    const bubble = document.createElement('div');
+    const isLearner = turn.role === 'user';
+    bubble.className = 'chat-msg ' + (isLearner ? 'user' : 'tutor');
+    line(bubble, isLearner ? 'You' : 'Poortaal', 'span').className = 'daily-chat-speaker';
+    line(bubble, turn.content);
+    return bubble;
+  }));
+  transcript.scrollTop = following ? transcript.scrollHeight : scrollTop;
 }
