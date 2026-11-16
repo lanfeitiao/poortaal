@@ -85,7 +85,7 @@ test('GPT-6.1 Sol keeps medium reasoning and its completion cap across retries',
   }
 });
 
-test('retries HTTP 500 once and preserves the second failure', async () => {
+test('retries HTTP 500 twice and preserves the third failure', async () => {
   let calls = 0;
 
   await assert.rejects(
@@ -106,7 +106,7 @@ test('retries HTTP 500 once and preserves the second failure', async () => {
     },
   );
 
-  assert.equal(calls, 2);
+  assert.equal(calls, 3);
 });
 
 test('retries a network failure once and succeeds', async () => {
@@ -201,7 +201,7 @@ test('does not retry a non-retryable HTTP 400 failure', async () => {
   assert.equal(calls, 1);
 });
 
-test('preserves the final network failure after one retry', async () => {
+test('preserves the final network failure after bounded retries', async () => {
   let calls = 0;
   const firstError = new TypeError('first fetch failed');
   const finalError = new TypeError('second fetch failed');
@@ -225,5 +225,5 @@ test('preserves the final network failure after one retry', async () => {
     },
   );
 
-  assert.equal(calls, 2);
+  assert.equal(calls, 3);
 });

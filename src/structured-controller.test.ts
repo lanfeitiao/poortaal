@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { StructuredPractice } from './structured-controller.ts';
+import { StructuredPractice, practiceRequestErrorMessage } from './structured-controller.ts';
+import { OpenAIRequestError } from './openai-client.ts';
+import { InvalidStructuredOutput } from './structured-contract.ts';
 import { getWordAttempts, setLearningOwner } from './learning-store.ts';
 import { activeSession, clearStructuredWord, readSessions } from './structured-store.ts';
 import { answer, goodFeedback, lessonScenario, practiceUsage, scenario } from './structured-fixtures.ts';
@@ -171,4 +173,50 @@ test('changed dialogue with the same situation and task does not resume an older
   assert.notEqual(p.session!.id, first);
   assert.deepEqual(p.session!.studiedScenario, changed);
   assert.equal(readSessions().sessions.find(s => s.id === first)!.rounds[0].draft, answer);
+});
+
+test('a transient scenario failure keeps the active voice practice resumable', async () => {
+  let calls = 0;
+  const p = new StructuredPractice(noop, async messages => {
+    calls++;
+    if (calls === 1) throw new OpenAIRequestError('network');
+    return chat(messages);
+  });
+  await p.start('afspraak', practiceUsage, false, { voice: true });
+  assert.equal(p.session?.phase, 'prepare');
+  assert.equal(p.session?.pending, 'scenario');
+  assert.match(p.error, /Connection interrupted/);
+  await p.request();
+  assert.equal(calls, 2);
+  assert.equal(p.session?.phase, 'answer');
+  assert.equal(p.session?.pending, null);
+  assert.equal(p.error, '');
+});
+test('flushing an unchanged voice transcript on disconnect preserves the pending feedback retry', async () => {
+  const p = new StructuredPractice(noop, messages => {
+    if (JSON.parse(messages[1].content).answer) throw new OpenAIRequestError('network');
+    return chat(messages);
+  });
+  await p.start('afspraak', practiceUsage, false, { voice: true });
+  const turns = [{ role: 'user' as const, content: answer }];
+  p.captureVoice(turns, false, true);
+  await p.request();
+  assert.equal(p.session?.pending, 'feedback');
+
+  p.captureVoice(turns);
+  assert.equal(activeSession()?.pending, 'feedback');
+  assert.equal(activeSession()?.rounds[0].voiceSettled, true);
+  assert.match(p.error, /Connection interrupted/);
+
+  p.captureVoice(turns, false, true);
+  assert.equal(p.error, '');
+  await p.request();
+  p.captureVoice([...turns, { role: 'user', content: 'Het liefst in de ochtend.' }]);
+  assert.equal(activeSession()?.pending, null);
+  assert.equal(activeSession()?.rounds[0].voiceSettled, false);
+});
+test('practice errors distinguish rate limits, server failures and invalid scenes', () => {
+  assert.match(practiceRequestErrorMessage(new OpenAIRequestError('http', { status: 429 }), 'prepare'), /rate limit/);
+  assert.match(practiceRequestErrorMessage(new OpenAIRequestError('http', { status: 503 }), 'answer'), /reply is saved/);
+  assert.match(practiceRequestErrorMessage(new InvalidStructuredOutput('bad hints'), 'prepare'), /suitable Dutch conversation/);
 });

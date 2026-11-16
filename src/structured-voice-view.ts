@@ -6,7 +6,7 @@ const button = (action: string, label: string, busy: boolean) => `<button type="
 export function renderVoicePractice(s: StructuredSession, busy: boolean, error: string): string {
   const t = currentTask(s), r = currentRound(s);
   let body = '';
-  if (s.phase === 'prepare') body = `<p>Preparing a short conversation…</p>${button('load', 'Try again', busy)}`;
+  if (s.phase === 'prepare') body = `<p>${error ? 'Your conversation is not ready yet.' : 'Preparing a short conversation…'}</p>${button('load', 'Try again', busy)}`;
   if (s.phase === 'answer' && t) body = `<p class="structured-step">${s.round ? 'One variation' : 'Your situation'}</p>
     <p>${e(t.situation)}</p><p><strong>Your goal:</strong> ${e(t.task)}</p>
     ${t.hints.slice(0, r.hintsUsed).map((h, i) => `<p class="structured-tip">Hint ${i + 1}: ${e(h)}</p>`).join('')}

@@ -29,7 +29,7 @@ type OpenAIChatResponse = {
   }>;
 };
 
-const RETRY_DELAY_MS = 250;
+const RETRY_DELAYS_MS = [400, 1200] as const;
 
 function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -92,12 +92,14 @@ export async function requestOpenAIChat(
   fetchImpl: Fetcher = fetch,
   model = 'gpt-4o-mini',
 ): Promise<string> {
-  try {
-    return await requestOpenAIChatOnce(apiBase, messages, temperature, fetchImpl, model);
-  } catch (error) {
-    if (!isRetryableOpenAIRequestError(error)) throw error;
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await requestOpenAIChatOnce(apiBase, messages, temperature, fetchImpl, model);
+    } catch (error) {
+      // Generating chat text is read-only: a short bounded retry is safe for
+      // transient 429, 5xx and network failures, never for invalid requests.
+      if (attempt >= RETRY_DELAYS_MS.length || !isRetryableOpenAIRequestError(error)) throw error;
+      await delay(RETRY_DELAYS_MS[attempt]);
+    }
   }
-
-  await delay(RETRY_DELAY_MS);
-  return requestOpenAIChatOnce(apiBase, messages, temperature, fetchImpl, model);
 }
