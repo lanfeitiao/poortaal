@@ -6,6 +6,7 @@ type RealtimeClientOptions = {
   word: string;
   instructions: string;
   backendInstructions?: string;
+  learnerSpeaksFirst?: boolean;
   onEvent?: (event: RealtimeServerEvent) => void;
   onStateChange?: (state: RealtimeConnectionState) => void;
 };
@@ -26,7 +27,7 @@ export class RealtimeClient {
   async connect(): Promise<void> {
     const connectionId = ++this.connectionId;
     let readyReported = false;
-    let inputAvailable = false;
+    let inputAvailable = this.options.learnerSpeaksFirst === true;
     this.options.onStateChange?.('requesting-microphone');
     const localStream = await navigator.mediaDevices.getUserMedia({
       audio: {
@@ -44,11 +45,13 @@ export class RealtimeClient {
       return;
     }
     this.localStream = localStream;
-    this.openingGuard = new OpeningAudioGuard(localStream, () => {
-      if (connectionId !== this.connectionId) return;
-      inputAvailable = true;
-      if (readyReported) this.options.onStateChange?.('listening');
-    });
+    if (!inputAvailable) {
+      this.openingGuard = new OpeningAudioGuard(localStream, () => {
+        if (connectionId !== this.connectionId) return;
+        inputAvailable = true;
+        if (readyReported) this.options.onStateChange?.('listening');
+      });
+    }
     this.options.onStateChange?.('connecting');
 
     try {
