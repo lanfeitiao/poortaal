@@ -36,8 +36,11 @@ test('a word-free Daily Chat can retry feedback and save a spoken recall card', 
   assert.ok(!f.document.getElementById('dailyChatBody')?.textContent?.includes('No clear expressions'));
   button('#dailyChatBody', 'Try again')!.click();
   await f.wait(() => Boolean(button('#dailyChatBody', 'End conversation')));
-  f.caption('tutor', 'Hoe was je dag?');
+  assert.equal(f.document.querySelector('#dailyChatBody [role="status"]')?.textContent,
+    'Microphone on. Tell me about your day.');
+  assert.equal(f.track.enabled, true, 'Daily Chat can hear the learner before any greeting');
   f.caption('user', quote);
+  f.caption('tutor', 'Ja, natuurlijk.');
   const transcript = f.document.querySelector('[aria-label="Conversation transcript"]')!;
   assert.equal(transcript.querySelector('.tutor .daily-chat-speaker')?.textContent, 'Poortaal');
   assert.equal(transcript.querySelector('.user .daily-chat-speaker')?.textContent, 'You');

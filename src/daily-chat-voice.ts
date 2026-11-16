@@ -5,7 +5,7 @@ import { waitForTranscriptIdle } from './realtime/transcript-settle.ts';
 import type { ChatTurn } from './daily-chat-feedback.ts';
 
 const instructions = `You are a warm Dutch conversation partner for an A2–B1 learner.
-Open with one short Dutch question about their day. Follow details they actually mention.
+Wait for the learner to speak first, then follow details they actually mention.
 Use one or two short Dutch sentences and at most one follow-up question per turn.
 Let the learner speak most of the time. Allow thinking pauses and self-corrections.
 If they ask how to say something, offer one short Dutch phrasing and continue the topic.
@@ -25,14 +25,11 @@ export class DailyChatVoice {
   constructor(apiBase: string, update: (status: string) => void, render: (turns: ChatTurn[]) => void,
     interrupted: () => void) {
     this.client = new RealtimeClient({
-      apiBase, word: '', instructions, backendInstructions: instructions,
+      apiBase, word: '', instructions, backendInstructions: instructions, learnerSpeaksFirst: true,
       onStateChange: state => {
         if (this.closed) return;
-        if (state === 'ready' && !this.ending) {
-          this.established = true;
-          update('Connected. Waiting for the greeting…');
-        }
-        if (state === 'listening' && !this.ending) update('Microphone on. You can speak.');
+        if (state === 'ready') this.established = true;
+        if (state === 'listening' && !this.ending) update('Microphone on. Tell me about your day.');
         if (state === 'closed' || state === 'error') {
           this.close();
           if (!this.ending) interrupted();
