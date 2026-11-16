@@ -139,12 +139,7 @@ async function syncFromCloud() {
       renderWordCard(currentWordData);
     }
     localStorage.setItem('poortaal_word_stats', JSON.stringify(localStats));
-    if (learningChanged) {
-      closeMicroReview();
-      // Cloud updates may arrive after several review grades. Never discard the
-      // current queue merely because the saved word data changed.
-      if (!reviewSessionActive && window.location.hash.split('?')[0] === '#review') renderReviewHome();
-    }
+    if (learningChanged) closeMicroReview();
     updateReviewBadge();
     for (const word of dirtyUsageWords) {
       if (currentUser?.id !== userId) return;
@@ -185,9 +180,7 @@ async function syncFromCloud() {
 
     renderHistory();
     updateReviewBadge();
-    if (!reviewSessionActive && window.location.hash.split('?')[0] === '#review') {
-      if (!restoreReviewSession()) renderReviewHome();
-    }
+    renderReviewRoute();
   } catch (e) {
     console.error('Sync error:', e);
   } finally {
@@ -230,7 +223,7 @@ async function saveWordStatsToCloud(word: string, retry?: { before: WordExplanat
         currentWordData = cloud; renderWordCard(cloud);
       }
       closeMicroReview(); updateReviewBadge();
-      if (!reviewSessionActive && window.location.hash.split('?')[0] === '#review') renderReviewHome();
+      renderReviewRoute();
     }
   }).catch(error => console.error('Save word error:', error));
 }
@@ -246,7 +239,10 @@ async function saveHistoryToCloud(word: string, wordData?: WordExplanation | nul
 }
 
 async function initAuth() {
-  const { data: { user } } = await supabaseClient.auth.getUser();
+  const { data: { user } } = await supabaseClient.auth.getUser().catch((error: unknown) => {
+    console.error('Auth initialization error:', error);
+    return { data: { user: null } };
+  });
   if (user) {
     currentUser = user;
     setLearningOwner(user.id);
@@ -258,6 +254,8 @@ async function initAuth() {
     setLearningOwner(currentUser?.id || null);
     updateUserUI();
   });
+  reviewOwnerReady = true;
+  renderReviewRoute();
 }
 
 // --- State ---
@@ -271,6 +269,7 @@ if (storedHistory.some(item => typeof item === 'string')) {
 }
 let currentWord: string | null = null;
 let currentWordData: WordExplanation | null = null;
+let reviewOwnerReady = false;
 let reviewQueue: ReviewItem[] = [];
 let reviewIndex = 0;
 let reviewResults = { know: 0, again: 0 };
@@ -285,6 +284,15 @@ let microReviewPrompt: ReturnType<typeof wordReview> | null = null;
 // --- Routing ---
 function navigateTo(hash: string) {
   window.location.hash = hash;
+}
+
+function renderReviewRoute() {
+  if (window.location.hash.split('?')[0] !== '#review') return;
+  if (!reviewOwnerReady) {
+    document.getElementById('reviewHomeSection')!.innerHTML = '<div class="review-empty" role="status">Herhaling laden…</div>';
+    return;
+  }
+  if (!restoreReviewSession()) renderReviewHome();
 }
 
 function renderReviewHome() {
@@ -376,7 +384,7 @@ function restoreReviewSession(): boolean {
 }
 
 function startReviewSession() {
-  if (restoreReviewSession()) return;
+  if (!reviewOwnerReady || restoreReviewSession()) return;
   const due = getDueWords();
   if (due.length === 0) {
     renderReviewHome();
@@ -594,13 +602,7 @@ function handleRoute() {
   document.getElementById('nav-review').classList.toggle('active', isReview);
   if (isPractice) { renderPracticeHistoryList(); if (!structuredPractice.session) restoreStructuredPractice(); }
   else { stopRealtimeEncounter(); showPracticePicker(); }
-  if (isReview) {
-    if (reviewSessionActive) {
-      document.getElementById('reviewHomeSection')!.style.display = 'none';
-      document.getElementById('reviewSessionSection')!.style.display = '';
-      renderReviewSession();
-    } else if (!restoreReviewSession()) renderReviewHome();
-  } else resetReviewSessionIfActive();
+  if (isReview) renderReviewRoute(); else resetReviewSessionIfActive();
 }
 window.addEventListener('hashchange', handleRoute);
 
@@ -909,7 +911,7 @@ window.addEventListener('poortaal:learning-owner', () => {
   if (currentWordData) renderWordCard(currentWordData);
   updateReviewBadge();
   closeMicroReview(); resetReviewSessionIfActive();
-  if (window.location.hash.split('?')[0] === '#review' && !restoreReviewSession()) renderReviewHome();
+  renderReviewRoute();
   if (window.location.hash.split('?')[0] === '#practice') restoreStructuredPractice();
 });
 
