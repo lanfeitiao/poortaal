@@ -394,6 +394,10 @@ main { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
   </div>
   <div id="view-practice" class="view">
     <div id="practicePickerSection">
+      <div class="card">
+        <h2>Daily Chat</h2>
+        <a class="use-button" href="#daily-chat">Open Daily Chat</a>
+      </div>
       <div class="practice-word-picker">
         <h2>Choose a word to practise</h2>
         <div class="search-box">
@@ -426,6 +430,13 @@ main { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
       </div>
       <div id="practiceFeedback" class="card" aria-live="polite" hidden></div>
     </div>
+  </div>
+  <div id="view-daily-chat" class="view">
+    <a class="practice-back-btn" href="#practice">← Back to Practice</a>
+    <section class="card" aria-label="Daily Chat">
+      <h2>Daily Chat</h2>
+      <div id="dailyChatBody"></div>
+    </section>
   </div>
   <div id="view-review" class="view"><div id="reviewHomeSection"></div><div id="reviewSessionSection" style="display:none;"></div></div>
 </main>

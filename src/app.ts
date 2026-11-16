@@ -1,3 +1,6 @@
+import { readExpressions } from './daily-chat-store';
+import { leaveDailyChat, showDailyChat } from './daily-chat-view';
+import { appendExpressionReview } from './daily-chat-review';
 import {
   OpenAIRequestError,
   requestOpenAIChat,
@@ -304,13 +307,15 @@ function renderReviewHome() {
 
   const due = getDueWords();
   if (due.length === 0) {
+    const hasExpressions = readExpressions(learningOwner()).length > 0;
     home.innerHTML = `
       <div class="review-empty">
         <div class="review-empty-emoji">🌳</div>
-        <div class="review-empty-title">Alles fris voor vandaag</div>
-        <div class="review-empty-sub">Kom morgen terug</div>
+        <div class="review-empty-title">${hasExpressions ? 'Geen woorden om te herhalen' : 'Alles fris voor vandaag'}</div>
+        ${hasExpressions ? '' : '<div class="review-empty-sub">Kom morgen terug</div>'}
       </div>
     `;
+    appendExpressionReview(home);
     return;
   }
   const wilting = due.filter(d => d.isWilting).length;
@@ -332,6 +337,7 @@ function renderReviewHome() {
       <div class="review-start-meta">automatisch volgende</div>
     </div>
   `;
+  appendExpressionReview(home);
 }
 
 function checkpointReviewSession() {
@@ -593,18 +599,26 @@ function handleRoute() {
   const route = hash.split('?')[0];
   const isHome = route === '#home' || route === '' || route === '#';
   const isPractice = route === '#practice';
+  const isDailyChat = route === '#daily-chat';
+  document.getElementById('view-daily-chat')?.classList.toggle('active', isDailyChat);
+  if (isDailyChat) showDailyChat(API_BASE);
+  else leaveDailyChat();
   const isReview = route === '#review';
   document.getElementById('view-home').classList.toggle('active', isHome);
   document.getElementById('view-practice').classList.toggle('active', isPractice);
   document.getElementById('view-review').classList.toggle('active', isReview);
   document.getElementById('nav-home').classList.toggle('active', isHome);
-  document.getElementById('nav-practice').classList.toggle('active', isPractice);
+  document.getElementById('nav-practice').classList.toggle('active', isPractice || isDailyChat);
   document.getElementById('nav-review').classList.toggle('active', isReview);
   if (isPractice) { renderPracticeHistoryList(); if (!structuredPractice.session) restoreStructuredPractice(); }
   else { stopRealtimeEncounter(); showPracticePicker(); }
   if (isReview) renderReviewRoute(); else resetReviewSessionIfActive();
 }
 window.addEventListener('hashchange', handleRoute);
+window.addEventListener('pagehide', () => leaveDailyChat());
+window.addEventListener('pageshow', () => {
+  if (window.location.hash.split('?')[0] === '#daily-chat') showDailyChat(API_BASE);
+});
 
 // --- Daily Word ---
 const DAILY_EPOCH = new Date(2026, 0, 1);
@@ -907,6 +921,8 @@ function showPracticePicker(recordCompletion = true) {
   resetRealtimeEncounterUi(); switchPracticeMode('voice');
 }
 window.addEventListener('poortaal:learning-owner', () => {
+  leaveDailyChat(true);
+  if (window.location.hash.split('?')[0] === '#daily-chat') showDailyChat(API_BASE);
   stopRealtimeEncounter(); showPracticePicker(false);
   if (currentWordData) renderWordCard(currentWordData);
   updateReviewBadge();
