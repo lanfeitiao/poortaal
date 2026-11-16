@@ -18,6 +18,9 @@ export class DailyChatVoice {
   private lastCaption = -Infinity;
   private closed = false;
   private ending = false;
+  private established = false;
+
+  get started(): boolean { return this.established; }
 
   constructor(apiBase: string, update: (status: string) => void, render: (turns: ChatTurn[]) => void,
     interrupted: () => void) {
@@ -25,6 +28,10 @@ export class DailyChatVoice {
       apiBase, word: '', instructions, backendInstructions: instructions,
       onStateChange: state => {
         if (this.closed) return;
+        if (state === 'ready' && !this.ending) {
+          this.established = true;
+          update('Connected. Waiting for the greeting…');
+        }
         if (state === 'listening' && !this.ending) update('Microphone on. You can speak.');
         if (state === 'closed' || state === 'error') {
           this.close();

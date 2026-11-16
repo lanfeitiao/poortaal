@@ -50,21 +50,31 @@ function start(apiBase: string, panel: HTMLElement): void {
   const transcript = line(panel, '', 'div');
   transcript.className = 'chat-messages voice-transcript';
   transcript.style.display = 'flex';
-  const connection: DailyChatVoice = new DailyChatVoice(apiBase, text => { status.textContent = text; },
+  const startFailed = () => {
+    if (!current() || voice !== connection) return;
+    connection.close(); voice = null; end.remove();
+    status.textContent = 'Could not start the conversation. Check microphone access and try again.';
+    action(panel, 'Try again', () => start(apiBase, panel));
+  };
+  const connection: DailyChatVoice = new DailyChatVoice(apiBase, text => {
+    status.textContent = text;
+    end.textContent = 'End conversation';
+  },
     turns => transcript.replaceChildren(...turns.map(turn => {
       const bubble = document.createElement('p');
       bubble.textContent = (turn.role === 'user' ? 'You · ' : 'Poortaal · ') + turn.content;
       return bubble;
-    })), () => { void feedback(connection.reviewTurns(false), 'The connection was interrupted.'); });
+    })), () => {
+      if (connection.started) void feedback(connection.reviewTurns(false), 'The connection was interrupted.');
+      else startFailed();
+    });
   voice = connection;
-  const end = action(panel, 'End conversation', () => {
+  const end = action(panel, 'Cancel', () => {
+    if (!connection.started) { restart(); return; }
     end.disabled = true; status.textContent = 'Saving your last words…';
     void connection.finish().then(turns => feedback(turns));
   });
   void connection.connect().catch(() => {
-    if (!current() || voice !== connection || end.disabled) return;
-    connection.close(); voice = null; end.disabled = true;
-    status.textContent = 'Could not start the conversation. Check microphone access and try again.';
-    action(panel, 'Try again', restart);
+    if (!connection.started) startFailed();
   });
 }
