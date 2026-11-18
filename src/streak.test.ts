@@ -33,6 +33,21 @@ test('offline streak ranges merge in either upload order without bridging a miss
   const missed = { lastDate: '2026-11-20', count: 1 };
   assert.deepEqual(mergeStreak(older, missed), missed);
 });
+test('practice before sign-in is included in the one-time account claim', () => {
+  const s = storage();
+  s.setItem('poortaal_streak', JSON.stringify({ lastDate: '2026-11-17', count: 52 }));
+  writeStreak(null, advanceStreak(readStreak(null, s), '2026-11-18'), s);
+  migrateLegacyStreak('a', s); migrateLegacyStreak('b', s);
+  assert.deepEqual(readStreak('a', s), { lastDate: '2026-11-18', count: 53 });
+  assert.equal(readStreak(null, s).count, 0);
+  assert.equal(readStreak('b', s).count, 0);
+});
+test('new guest progress can migrate without an old-version record', () => {
+  const s = storage();
+  writeStreak(null, { lastDate: '2026-11-18', count: 3 }, s);
+  migrateLegacyStreak('a', s);
+  assert.equal(readStreak('a', s).count, 3);
+});
 test('a fresh browser restores the cloud count without replacing it with zero', async () => {
   const s = storage();
   const client = { rpc: async (name: string, args: unknown) => {
