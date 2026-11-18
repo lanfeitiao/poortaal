@@ -17,6 +17,7 @@ test('Amsterdam days preserve a restored streak through midnight and DST', () =>
 test('legacy data is retained and can migrate to only one account', () => {
   const s = storage();
   s.setItem('poortaal_streak', JSON.stringify({ lastDate: '2026-11-18', count: 52 }));
+  assert.equal(readStreak(null, s).count, 52, 'signed-out learners retain their unclaimed streak');
   migrateLegacyStreak('a', s); migrateLegacyStreak('b', s);
   assert.equal(readStreak('a', s).count, 52);
   assert.equal(readStreak('b', s).count, 0);

@@ -12,7 +12,9 @@ export function streakDay(now = new Date()): string {
 }
 export function readStreak(owner: string | null, storage: Storage = localStorage): Streak {
   try {
-    const value = JSON.parse(storage.getItem(key(owner)) || 'null');
+    const unclaimed = !owner && !storage.getItem('poortaal_streak_legacy_owner');
+    const value = JSON.parse(storage.getItem(key(owner))
+      || (unclaimed ? storage.getItem('poortaal_streak') : null) || 'null');
     return value && Number.isInteger(value.count) && value.count >= 0 && value.count <= 100000
       && (value.lastDate === null || /^\d{4}-\d{2}-\d{2}$/.test(value.lastDate)) ? value : empty();
   } catch { return empty(); }
