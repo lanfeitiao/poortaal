@@ -18,7 +18,8 @@ const kinds: readonly string[] = ['correction', 'naturalness', 'translation', 'u
 // Match Hoiland's quote grounding and Dutch sentence deduplication.
 const comparableText = (value: string) => value.normalize('NFC').toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
 const wordingText = (value: string) => value.normalize('NFC').toLocaleLowerCase()
-  .replace(/[^\p{L}\p{N}\s]/gu, '').replace(/\s+/g, ' ').trim();
+  .replace(/[‘’]/g, "'").replace(/[‐‑]/g, '-')
+  .match(/[\p{L}\p{N}]+(?:['-][\p{L}\p{N}]+)*/gu)?.join(' ') || '';
 
 export function readDailyFeedback(value: unknown): DailyFeedback | null {
   if (!value || typeof value !== 'object') return null;

@@ -62,6 +62,21 @@ test('unchanged learner wording cannot be presented as an improvement', () => {
   ]).length, 1, 'a real spelling improvement is not an unchanged sentence');
 });
 
+test('word-internal apostrophes and hyphens remain genuine spelling corrections', () => {
+  for (const [quote, dutch] of [
+    ['Ik heb twee autos.', "Ik heb twee auto's."],
+    ['Wij gaan meeeten.', 'Wij gaan mee-eten.'],
+  ]) {
+    assert.equal(validateDailyFeedback([{ ...card, quote, dutch }], [
+      { role: 'user', content: quote },
+    ]).length, 1);
+  }
+  const quote = 'Ik heb twee auto’s.';
+  assert.deepEqual(validateDailyFeedback([{ ...card, quote, dutch: "Ik heb twee auto's." }], [
+    { role: 'user', content: quote },
+  ]), [], 'a typographic apostrophe change is not a language improvement');
+});
+
 test('Daily Chat saves one expression per chat and schedules another review per learner', () => {
   const contents = new Map<string, string>();
   const storage = {
