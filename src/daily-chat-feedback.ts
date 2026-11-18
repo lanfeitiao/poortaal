@@ -1,5 +1,7 @@
 import { requestOpenAIChat } from './openai-client.ts';
 
+export const DAILY_CHAT_ANALYSIS_MODEL = 'gpt-5.6-terra';
+
 export type ChatTurn = { role: 'user' | 'assistant'; content: string };
 export type FeedbackKind = 'correction' | 'naturalness' | 'translation' | 'useful';
 export type DailyFeedback = {
@@ -81,7 +83,7 @@ export async function analyzeDailyChat(apiBase: string, turns: ChatTurn[]): Prom
   const raw = await requestOpenAIChat(apiBase, [
     { role: 'system', content: instructions },
     { role: 'user', content: JSON.stringify(turns) },
-  ], 0.2, fetch, 'gpt-5.6-terra');
+  ], 0.2, fetch, DAILY_CHAT_ANALYSIS_MODEL);
   const candidates: unknown = JSON.parse(raw.trim().replace(/^\x60{3}(?:json)?\s*|\s*\x60{3}$/gi, ''));
   const cards = validateDailyFeedback(candidates, turns);
   if (Array.isArray(candidates) && candidates.length && !cards.length) {

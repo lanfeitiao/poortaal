@@ -44,7 +44,11 @@ test('a word-free Daily Chat can retry feedback and save a spoken recall card', 
   t.after(() => navigate('#practice'));
   assert.equal(f.document.querySelector('#view-practice a.daily-chat-entry[href="#daily-chat"]')
     ?.querySelector('.daily-chat-entry-title')?.textContent, 'Daily Chat');
+  const build = f.document.createElement('meta');
+  build.name = 'poortaal-build'; build.content = '6644838'; f.document.head.append(build);
   navigate('#daily-chat');
+  assert.equal(f.document.querySelector('.daily-chat-version')?.textContent,
+    'Build 6644838 · Analysis model: gpt-5.6-terra');
   button('#dailyChatBody', 'Start conversation')!.click();
   await f.wait(() => Boolean(button('#dailyChatBody', 'Try again')));
   assert.ok(!f.document.getElementById('dailyChatBody')?.textContent?.includes('No clear expressions'));
@@ -63,6 +67,8 @@ test('a word-free Daily Chat can retry feedback and save a spoken recall card', 
   await f.wait(() => Boolean(button('#dailyChatBody', 'Retry feedback')));
   button('#dailyChatBody', 'Retry feedback')!.click();
   await f.wait(() => Boolean(button('#dailyChatBody', 'Save to Review')));
+  assert.equal(f.document.querySelector('.daily-chat-version')?.textContent,
+    'Build 6644838 · Analysis model: gpt-5.6-terra');
   assert.equal(connections, 2);
   button('#dailyChatBody', 'Save to Review')!.click();
   navigate('#review');

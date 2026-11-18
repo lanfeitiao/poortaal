@@ -1,5 +1,8 @@
 import { defineConfig } from 'vite';
 
+const commit = process.env.VERCEL_GIT_COMMIT_SHA || process.env.GITHUB_SHA || '';
+const buildVersion = /^[a-f0-9]{7,40}$/i.test(commit) ? commit.slice(0, 7) : 'local';
+
 const startupRecoveryScript = String.raw`
 (() => {
   const refreshParam = '__poortaal_refresh';
@@ -82,7 +85,7 @@ export default defineConfig({
       transformIndexHtml(html) {
         return html.replace(
           '<head>',
-          `<head>\n<script>${startupRecoveryScript}</script>`,
+          `<head>\n<meta name="poortaal-build" content="${buildVersion}">\n<script>${startupRecoveryScript}</script>`,
         );
       },
     },

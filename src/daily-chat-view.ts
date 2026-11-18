@@ -2,6 +2,7 @@ import { analyzeDailyChat, type ChatTurn } from './daily-chat-feedback.ts';
 import { action, line, renderCards } from './daily-chat-cards.ts';
 import { learningOwner } from './learning-store.ts';
 import { DailyChatVoice } from './daily-chat-voice.ts';
+import { renderDailyChatVersion } from './daily-chat-details.ts';
 
 const root = () => document.getElementById('dailyChatBody');
 let voice: DailyChatVoice | null = null;
@@ -18,6 +19,7 @@ export function showDailyChat(apiBase: string): void {
   const panel = root();
   if (!panel || panel.hasChildNodes()) return;
   line(panel, 'Talk about your day in Dutch. Get feedback on useful expressions after you finish.').className = 'daily-chat-intro';
+  renderDailyChatVersion(panel);
   action(panel, 'Start conversation', () => start(apiBase, panel)).classList.add('daily-chat-start');
 }
 
@@ -31,6 +33,7 @@ function start(apiBase: string, panel: HTMLElement): void {
     if (!current()) return;
     voice = null;
     panel.replaceChildren();
+    renderDailyChatVersion(panel);
     if (notice) line(panel, notice);
     const result = document.createElement('div');
     result.setAttribute('aria-live', 'polite'); panel.append(result);
@@ -45,6 +48,7 @@ function start(apiBase: string, panel: HTMLElement): void {
       action(result, 'Retry feedback', () => { void feedback(turns, notice); });
     }
   };
+  renderDailyChatVersion(panel);
   const status = line(panel, 'Connecting…');
   status.className = 'daily-chat-status';
   status.setAttribute('role', 'status');
