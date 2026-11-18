@@ -8,13 +8,18 @@ ALTER TABLE public.user_streak ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Read own streak" ON public.user_streak
   FOR SELECT TO authenticated USING (auth.uid() = user_id);
 REVOKE ALL ON public.user_streak FROM anon, authenticated;
-GRANT SELECT ON public.user_streak TO authenticated;
+GRANT SELECT, INSERT, UPDATE ON public.user_streak TO authenticated;
+CREATE POLICY "Insert own streak" ON public.user_streak
+  FOR INSERT TO authenticated WITH CHECK ((select auth.uid()) = user_id);
+CREATE POLICY "Update own streak" ON public.user_streak
+  FOR UPDATE TO authenticated USING ((select auth.uid()) = user_id)
+  WITH CHECK ((select auth.uid()) = user_id);
 
 CREATE OR REPLACE FUNCTION public.sync_learning_streak(
   p_local_date date DEFAULT NULL, p_local_count integer DEFAULT 0,
   p_practice boolean DEFAULT false
 ) RETURNS public.user_streak
-LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+LANGUAGE plpgsql SECURITY INVOKER SET search_path = '' AS $$
 DECLARE
   owner_id uuid := auth.uid();
   today date := (now() AT TIME ZONE 'Europe/Amsterdam')::date;
