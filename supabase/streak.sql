@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS public.user_streak (
 ALTER TABLE public.user_streak ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Read own streak" ON public.user_streak
   FOR SELECT TO authenticated USING (auth.uid() = user_id);
+REVOKE ALL ON public.user_streak FROM anon, authenticated;
+GRANT SELECT ON public.user_streak TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.sync_learning_streak(
   p_local_date date DEFAULT NULL, p_local_count integer DEFAULT 0,
@@ -41,5 +43,5 @@ BEGIN
   RETURN saved;
 END;
 $$;
-REVOKE ALL ON FUNCTION public.sync_learning_streak(date, integer, boolean) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.sync_learning_streak(date, integer, boolean) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.sync_learning_streak(date, integer, boolean) TO authenticated;
