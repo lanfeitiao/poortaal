@@ -33,6 +33,10 @@ test('Daily Chat grounds partner recasts and tolerates punctuation without inven
   assert.deepEqual(validateDailyFeedback([{ ...partner, quote: 'Verzonnen zin' }], turns), []);
   assert.deepEqual(validateDailyFeedback([{ ...partner, quote: '?!' }], turns), []);
   assert.deepEqual(validateDailyFeedback([{ ...partner, speaker: 'unknown' }], turns), []);
+  const accented = { ...card, quote: 'Zij heeft e\u0301e\u0301n appel.' };
+  assert.deepEqual(validateDailyFeedback([accented], [
+    { role: 'user', content: 'Zij heeft één appel.' },
+  ]), [accented]);
 });
 
 test('Daily Chat can shorten one grounded turn into multiple distinct cards', () => {

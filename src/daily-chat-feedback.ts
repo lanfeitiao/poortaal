@@ -13,7 +13,7 @@ export type DailyFeedback = {
 
 const kinds: readonly string[] = ['correction', 'naturalness', 'translation', 'useful'];
 // Match Hoiland's quote grounding and Dutch sentence deduplication.
-const comparableText = (value: string) => value.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
+const comparableText = (value: string) => value.normalize('NFC').toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
 
 export function readDailyFeedback(value: unknown): DailyFeedback | null {
   if (!value || typeof value !== 'object') return null;
