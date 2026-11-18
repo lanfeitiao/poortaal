@@ -1,6 +1,19 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { liveFixture } from './structured-live-fixture.ts';
+import { renderCards } from './daily-chat-cards.ts';
+
+test('Daily Chat credits a partner expression to Poortaal', async t => {
+  const f = await liveFixture(t);
+  const panel = f.document.getElementById('dailyChatBody')!;
+  renderCards(panel, [{
+    speaker: 'partner', kind: 'naturalness', quote: 'Ik werk op het kantoor.',
+    dutch: 'Ik werk op kantoor.', explanation: 'Omit het for the general workplace.',
+    situation: 'Tell someone where you normally study.',
+  }], 'owner', 'chat');
+  assert.ok(panel.textContent?.includes('Poortaal said “Ik werk op het kantoor.”'));
+  assert.ok(!panel.textContent?.includes('You said'));
+});
 
 test('a word-free Daily Chat can retry feedback and save a spoken recall card', async t => {
   const f = await liveFixture(t);
@@ -18,7 +31,8 @@ test('a word-free Daily Chat can retry feedback and save a spoken recall card', 
     assert.ok(String(url).endsWith('/openai'));
     const turns = JSON.parse(JSON.parse(init!.body as string).messages[1].content);
     assert.ok(turns.some((turn: { role: string; content: string }) => turn.role === 'user' && turn.content === quote));
-    const response = ++analysis === 1 ? {} : [{ kind: 'correction', quote, dutch, situation, explanation: 'Write meekomen as one word here.' }];
+    const feedback = { kind: 'correction', quote, dutch, situation, explanation: 'Write meekomen as one word here.' };
+    const response = ++analysis === 1 ? [{ ...feedback, quote: 'Not in this conversation' }] : [feedback];
     return Response.json({ choices: [{ message: { content: JSON.stringify(response) } }] });
   });
   const navigate = (hash: string) => {

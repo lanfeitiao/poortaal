@@ -8,18 +8,43 @@ const card: DailyFeedback = {
   explanation: 'Use mag to ask permission.', situation: 'Ask a parent if your son can join the picnic.',
 };
 
-test('Daily Chat keeps grounded learner quotes and caps distinct feedback at three', () => {
-  const variants = ['het is mooi', 'Wij zijn klaar', 'Wij gaan nu'].map(quote => ({
-    ...card, quote, dutch: quote, kind: 'useful',
+test('Daily Chat keeps grounded quotes and caps distinct feedback at eight', () => {
+  const variants = Array.from({ length: 9 }, (_, i) => ({
+    ...card, quote: `Ik heb ${i} appels.`, dutch: `Ik heb ${i} appels.`, kind: 'useful',
   }));
   const cards = validateDailyFeedback([
-    { ...card, quote: 'Can you join?' }, card, { ...card, dutch: 'Other wording.' },
+    { ...card, quote: 'Can you join?' }, card, { ...card, dutch: card.dutch.toUpperCase() },
     ...variants, null,
   ], [
     { role: 'assistant', content: 'Can you join?' },
     { role: 'user', content: [card.quote, ...variants.map(item => item.quote)].join(' ') },
   ]);
-  assert.deepEqual(cards.map(item => item.quote), [card.quote, variants[0].quote, variants[1].quote]);
+  assert.deepEqual(cards.map(item => item.quote), [card.quote, ...variants.slice(0, 7).map(item => item.quote)]);
+});
+
+test('Daily Chat grounds partner recasts and tolerates punctuation without inventing quotes', () => {
+  const partner = { ...card, speaker: 'partner', quote: 'mag mijn dochter ook meekomen!' };
+  const turns = [
+    { role: 'user' as const, content: card.quote },
+    { role: 'assistant' as const, content: `Je kunt zeggen: ${card.dutch}` },
+  ];
+  assert.deepEqual(validateDailyFeedback([partner], turns), [partner]);
+  assert.deepEqual(validateDailyFeedback([{ ...partner, speaker: 'learner' }], turns), []);
+  assert.deepEqual(validateDailyFeedback([{ ...partner, quote: 'Verzonnen zin' }], turns), []);
+  assert.deepEqual(validateDailyFeedback([{ ...partner, quote: '?!' }], turns), []);
+  assert.deepEqual(validateDailyFeedback([{ ...partner, speaker: 'unknown' }], turns), []);
+  const accented = { ...card, quote: 'Zij heeft e\u0301e\u0301n appel.' };
+  assert.deepEqual(validateDailyFeedback([accented], [
+    { role: 'user', content: 'Zij heeft één appel.' },
+  ]), [accented]);
+});
+
+test('Daily Chat can shorten one grounded turn into multiple distinct cards', () => {
+  const shorter = { ...card, dutch: 'Mag zij ook mee?' };
+  assert.equal(validateDailyFeedback([card, shorter], [{ role: 'user', content: card.quote }]).length, 2);
+  assert.deepEqual(validateDailyFeedback([card], [
+    { role: 'user', content: 'Mijn dochter' }, { role: 'user', content: 'ook mee komen?' },
+  ]), []);
 });
 
 test('Daily Chat saves one expression per chat and schedules another review per learner', () => {
@@ -33,6 +58,8 @@ test('Daily Chat saves one expression per chat and schedules another review per 
   saveExpression('first', 'chat-1', { ...card, dutch: 'Different answer' }, storage, 0);
   assert.deepEqual(readExpressions('first', storage), [{ id: 'chat-1', card, dueAt: 0, level: 0 }]);
   assert.deepEqual(readExpressions('second', storage), []);
+  saveExpression('second', 'chat-2', { ...card, speaker: 'partner' }, storage, 0);
+  assert.equal(readExpressions('second', storage)[0].card.speaker, 'partner');
   gradeExpression('first', 'chat-1', true, storage, 0);
   gradeExpression('first', 'chat-1', true, storage, 0);
   assert.equal(readExpressions('first', storage)[0].dueAt, day);
