@@ -47,6 +47,21 @@ test('Daily Chat can shorten one grounded turn into multiple distinct cards', ()
   ]), []);
 });
 
+test('unchanged learner wording cannot be presented as an improvement', () => {
+  const quote = 'Ik vind dat fijn.';
+  const unchanged = { ...card, quote, dutch: quote };
+  const turns = [{ role: 'user' as const, content: quote }];
+  assert.deepEqual(validateDailyFeedback([{ ...unchanged, kind: 'naturalness' }], turns), []);
+  assert.deepEqual(validateDailyFeedback([{ ...unchanged, dutch: 'ik vind dat fijn!' }], turns), []);
+  assert.equal(validateDailyFeedback([{ ...unchanged, kind: 'useful' }], turns).length, 1);
+  assert.equal(validateDailyFeedback([{ ...unchanged, kind: 'naturalness', speaker: 'partner' }], [
+    { role: 'assistant', content: quote },
+  ]).length, 1);
+  assert.equal(validateDailyFeedback([{ ...card, quote: 'Mag mijn dochter ook mee komen?' }], [
+    { role: 'user', content: 'Mag mijn dochter ook mee komen?' },
+  ]).length, 1, 'a real spelling improvement is not an unchanged sentence');
+});
+
 test('Daily Chat saves one expression per chat and schedules another review per learner', () => {
   const contents = new Map<string, string>();
   const storage = {
