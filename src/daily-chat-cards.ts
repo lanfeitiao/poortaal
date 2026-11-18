@@ -25,7 +25,8 @@ export function renderCards(panel: HTMLElement, cards: DailyFeedback[], owner: s
   const result = line(panel, '');
   for (const card of cards) {
     const item = line(panel, '', 'article'); item.className = 'card';
-    line(item, labels[card.kind], 'h3'); line(item, 'You said “' + card.quote + '”');
+    line(item, labels[card.kind], 'h3');
+    line(item, (card.speaker === 'partner' ? 'Poortaal said “' : 'You said “') + card.quote + '”');
     line(item, card.dutch, 'strong'); line(item, card.explanation);
     buttons.push(action(item, 'Save to Review', () => {
       if (owner !== learningOwner()) return;

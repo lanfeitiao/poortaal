@@ -4,6 +4,7 @@ export type ChatTurn = { role: 'user' | 'assistant'; content: string };
 export type FeedbackKind = 'correction' | 'naturalness' | 'translation' | 'useful';
 export type DailyFeedback = {
   kind: FeedbackKind;
+  speaker?: 'learner' | 'partner';
   quote: string;
   dutch: string;
   explanation: string;
@@ -11,13 +12,16 @@ export type DailyFeedback = {
 };
 
 const kinds: readonly string[] = ['correction', 'naturalness', 'translation', 'useful'];
-const normalize = (value: string) => value.normalize('NFC').replace(/\s+/g, ' ').trim();
+// Match Hoiland's quote grounding and Dutch sentence deduplication.
+const comparableText = (value: string) => value.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
 
 export function readDailyFeedback(value: unknown): DailyFeedback | null {
   if (!value || typeof value !== 'object') return null;
   const card = value as Record<string, unknown>;
   const kind = card.kind;
   if (typeof kind !== 'string' || !kinds.includes(kind)) return null;
+  const speaker = card.speaker;
+  if (speaker !== undefined && speaker !== 'learner' && speaker !== 'partner') return null;
   const field = (key: string, limit: number) => {
     const raw = card[key];
     return typeof raw === 'string' && raw.trim().length <= limit ? raw.trim() : '';
@@ -27,25 +31,24 @@ export function readDailyFeedback(value: unknown): DailyFeedback | null {
   const explanation = field('explanation', 300);
   const situation = field('situation', 420);
   if (!quote || !dutch || !explanation || !situation) return null;
-  return { kind: kind as FeedbackKind, quote, dutch, explanation, situation };
+  return { kind: kind as FeedbackKind, ...(speaker ? { speaker } : {}), quote, dutch, explanation, situation };
 }
 
 export function validateDailyFeedback(value: unknown, turns: ChatTurn[]): DailyFeedback[] {
   if (!Array.isArray(value)) throw new Error('Expected a list of Daily Chat feedback');
-  const learnerTurns = turns.filter(turn => turn.role === 'user').map(turn => normalize(turn.content));
   const dutchSeen = new Set<string>();
-  const quotesSeen = new Set<string>();
   const cards: DailyFeedback[] = [];
   for (const raw of value) {
     const card = readDailyFeedback(raw);
     if (!card) continue;
-    const quote = normalize(card.quote);
-    const dutch = normalize(card.dutch).toLowerCase().replace(/[.!?]+$/, '');
-    if (dutchSeen.has(dutch) || quotesSeen.has(quote) || !learnerTurns.some(turn => turn.includes(quote))) continue;
+    const quote = comparableText(card.quote);
+    const dutch = comparableText(card.dutch);
+    const role = card.speaker === 'partner' ? 'assistant' : 'user';
+    if (!quote || !dutch || dutchSeen.has(dutch)
+      || !turns.some(turn => turn.role === role && comparableText(turn.content).includes(quote))) continue;
     dutchSeen.add(dutch);
-    quotesSeen.add(quote);
     cards.push(card);
-    if (cards.length === 3) break;
+    if (cards.length === 8) break;
   }
   return cards;
 }

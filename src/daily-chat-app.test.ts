@@ -1,6 +1,19 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { liveFixture } from './structured-live-fixture.ts';
+import { renderCards } from './daily-chat-cards.ts';
+
+test('Daily Chat credits a partner expression to Poortaal', async t => {
+  const f = await liveFixture(t);
+  const panel = f.document.getElementById('dailyChatBody')!;
+  renderCards(panel, [{
+    speaker: 'partner', kind: 'naturalness', quote: 'Ik werk op het kantoor.',
+    dutch: 'Ik werk op kantoor.', explanation: 'Omit het for the general workplace.',
+    situation: 'Tell someone where you normally study.',
+  }], 'owner', 'chat');
+  assert.ok(panel.textContent?.includes('Poortaal said “Ik werk op het kantoor.”'));
+  assert.ok(!panel.textContent?.includes('You said'));
+});
 
 test('a word-free Daily Chat can retry feedback and save a spoken recall card', async t => {
   const f = await liveFixture(t);
