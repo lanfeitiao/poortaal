@@ -20,6 +20,19 @@ export function readStreak(owner: string | null, storage: Storage = localStorage
 export function writeStreak(owner: string | null, value: Streak, storage: Storage = localStorage): void {
   storage.setItem(key(owner), JSON.stringify(value));
 }
+export function migrateLegacyStreak(owner: string, storage: Storage = localStorage): void {
+  const claimed = storage.getItem('poortaal_streak_legacy_owner');
+  if (claimed && claimed !== owner) return;
+  const raw = storage.getItem('poortaal_streak');
+  if (!raw) return;
+  try {
+    const value = JSON.parse(raw);
+    if (!Number.isInteger(value?.count) || value.count < 0 || value.count > 100000
+      || typeof value.lastDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value.lastDate)) return;
+    writeStreak(owner, mergeStreak(readStreak(owner, storage), value), storage);
+    storage.setItem('poortaal_streak_legacy_owner', owner);
+  } catch { /* Keep the original record untouched if migration fails. */ }
+}
 export function mergeStreak(a: Streak, b: Streak): Streak {
   if (!a.lastDate) return b;
   if (!b.lastDate) return a;

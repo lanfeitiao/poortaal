@@ -1,4 +1,5 @@
 import { readExpressions } from './daily-chat-store';
+import { advanceStreak, migrateLegacyStreak, readStreak, syncStreak, writeStreak } from './streak';
 import { leaveDailyChat, showDailyChat } from './daily-chat-view';
 import { appendExpressionReview } from './daily-chat-review';
 import {
@@ -88,6 +89,26 @@ function updateUserUI() {
   } else {
     info.style.display = 'none';
     btn.style.display = '';
+  }
+  if (currentUser) void syncAccountStreak();
+  refreshStreakBadge();
+}
+
+function refreshStreakBadge() {
+  const badge = document.querySelector('.streak-badge');
+  if (badge) badge.textContent = '\u{1F333} Dag ' + getStreak().count;
+}
+async function syncAccountStreak(practice = false): Promise<void> {
+  const owner = currentUser?.id;
+  if (!owner) return;
+  const active = () => currentUser?.id === owner;
+  migrateLegacyStreak(owner);
+  try {
+    await queueWordWrite(owner, '__account_streak__', () => syncStreak(supabaseClient, owner, active, practice));
+    if (active()) refreshStreakBadge();
+  } catch {
+    if (active()) document.querySelector('.streak-badge')?.setAttribute('title',
+      'Streak saved on this device. Account sync failed; sign in again or retry later.');
   }
 }
 
@@ -633,12 +654,12 @@ function seededShuffle<T>(arr: T[], seed: number): T[] {
 function getTodayWord(words: DailyWord[]): DailyWord {
   const absoluteDay = getAbsoluteDay(); const cycle = Math.floor(absoluteDay / words.length); const effectiveList = cycle === 0 ? words : seededShuffle(words, cycle); return effectiveList[absoluteDay % words.length];
 }
-function getStreak(): { lastDate: string | null; count: number } { try { return JSON.parse(localStorage.getItem('poortaal_streak') || 'null') || { lastDate: null, count: 0 }; } catch { return { lastDate: null, count: 0 }; } }
+function getStreak(): { lastDate: string | null; count: number } { return readStreak(currentUser?.id || null); }
 function updateStreak() {
-  const streak = getStreak(); const today = new Date().toISOString().slice(0, 10); if (streak.lastDate === today) return streak;
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-  const newStreak = { lastDate: today, count: streak.lastDate === yesterday ? streak.count + 1 : 1 };
-  localStorage.setItem('poortaal_streak', JSON.stringify(newStreak)); return newStreak;
+  const value = advanceStreak(getStreak());
+  writeStreak(currentUser?.id || null, value);
+  void syncAccountStreak(true);
+  return value;
 }
 function renderDailyWord(word: DailyWord) {
   const container = document.getElementById('dailyWordContainer'); const streak = getStreak(); const streakCount = streak.count || 0;
