@@ -1,6 +1,7 @@
 import { requestOpenAIChat } from './openai-client.ts';
 
 export const DAILY_CHAT_ANALYSIS_MODEL = 'gpt-5.6-terra';
+export type DailyChatAnalysis = { candidates: number; retained: number };
 
 export type ChatTurn = { role: 'user' | 'assistant'; content: string };
 export type FeedbackKind = 'correction' | 'naturalness' | 'translation' | 'useful';
@@ -84,7 +85,8 @@ Use kind correction for a clear error, naturalness for an optional alternative, 
 Put the normalized Dutch sentence in dutch. In explanation, briefly explain a correction (e.g. "op werk → op het werk") or give the natural English meaning. Skip pronunciation judgments and uncertain recognition without supporting context.
 Write a concrete English situation that elicits the same construction with a different detail. Do not show the Dutch answer in the situation.`;
 
-export async function analyzeDailyChat(apiBase: string, turns: ChatTurn[]): Promise<DailyFeedback[]> {
+export async function analyzeDailyChat(apiBase: string, turns: ChatTurn[],
+  report?: (analysis: DailyChatAnalysis) => void): Promise<DailyFeedback[]> {
   if (!turns.some(turn => turn.role === 'user' && turn.content.trim())) return [];
   const raw = await requestOpenAIChat(apiBase, [
     { role: 'system', content: instructions },
@@ -92,6 +94,7 @@ export async function analyzeDailyChat(apiBase: string, turns: ChatTurn[]): Prom
   ], 0.2, fetch, DAILY_CHAT_ANALYSIS_MODEL);
   const candidates: unknown = JSON.parse(raw.trim().replace(/^\x60{3}(?:json)?\s*|\s*\x60{3}$/gi, ''));
   const cards = validateDailyFeedback(candidates, turns);
+  report?.({ candidates: (candidates as unknown[]).length, retained: cards.length });
   if (Array.isArray(candidates) && candidates.length && !cards.length) {
     throw new Error('Daily Chat feedback could not be grounded in the conversation');
   }

@@ -65,10 +65,18 @@ test('a word-free Daily Chat can retry feedback and save a spoken recall card', 
   assert.equal(transcript.querySelector('.user p')?.textContent, quote);
   button('#dailyChatBody', 'End conversation')!.click();
   await f.wait(() => Boolean(button('#dailyChatBody', 'Retry feedback')));
+  assert.ok(f.document.getElementById('dailyChatBody')?.textContent?.includes('Model proposed 1 · Kept 0'));
   button('#dailyChatBody', 'Retry feedback')!.click();
   await f.wait(() => Boolean(button('#dailyChatBody', 'Save to Review')));
   assert.equal(f.document.querySelector('.daily-chat-version')?.textContent,
     'Build 6644838 · Analysis model: gpt-5.6-terra');
+  const details = f.document.querySelector('#dailyChatBody details')!;
+  assert.ok(details.textContent?.includes('Your turns: 1 · Poortaal turns: 1'));
+  assert.ok(details.textContent?.includes('Model proposed 1 · Kept 1'));
+  assert.ok(details.textContent?.includes(quote));
+  button('#dailyChatBody', 'Analyze again')!.click();
+  await f.wait(() => Boolean(button('#dailyChatBody', 'Save to Review')));
+  assert.equal(analysis, 3);
   assert.equal(connections, 2);
   button('#dailyChatBody', 'Save to Review')!.click();
   navigate('#review');

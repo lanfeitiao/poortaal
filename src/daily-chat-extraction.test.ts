@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { analyzeDailyChat, type ChatTurn, type DailyFeedback } from './daily-chat-feedback.ts';
+import { analyzeDailyChat, type ChatTurn, type DailyChatAnalysis, type DailyFeedback } from './daily-chat-feedback.ts';
 
 test('Daily Chat uses the Hoiland extraction model and retains a supplied Dutch recast', async t => {
   const turns: ChatTurn[] = [
@@ -31,7 +31,10 @@ test('discarded candidates fail for retry while a genuine empty selection remain
   t.mock.method(globalThis, 'fetch', async () => Response.json({
     choices: [{ message: { content: JSON.stringify(responses.shift()) } }],
   }));
-  await assert.rejects(analyzeDailyChat('https://example.test', turns), /could not be grounded/);
-  assert.deepEqual(await analyzeDailyChat('https://example.test', turns), []);
+  const reports: DailyChatAnalysis[] = [];
+  const report = (analysis: DailyChatAnalysis) => { reports.push(analysis); };
+  await assert.rejects(analyzeDailyChat('https://example.test', turns, report), /could not be grounded/);
+  assert.deepEqual(await analyzeDailyChat('https://example.test', turns, report), []);
+  assert.deepEqual(reports, [{ candidates: 1, retained: 0 }, { candidates: 0, retained: 0 }]);
   await assert.rejects(analyzeDailyChat('https://example.test', turns), /Expected a list/);
 });

@@ -1,8 +1,8 @@
-import { analyzeDailyChat, type ChatTurn } from './daily-chat-feedback.ts';
+import { analyzeDailyChat, type ChatTurn, type DailyChatAnalysis } from './daily-chat-feedback.ts';
 import { action, line, renderCards } from './daily-chat-cards.ts';
 import { learningOwner } from './learning-store.ts';
 import { DailyChatVoice } from './daily-chat-voice.ts';
-import { renderDailyChatVersion } from './daily-chat-details.ts';
+import { renderDailyChatDetails, renderDailyChatVersion } from './daily-chat-details.ts';
 
 const root = () => document.getElementById('dailyChatBody');
 let voice: DailyChatVoice | null = null;
@@ -39,14 +39,19 @@ function start(apiBase: string, panel: HTMLElement): void {
     result.setAttribute('aria-live', 'polite'); panel.append(result);
     line(result, 'Reviewing your conversation…');
     action(panel, 'New conversation', restart);
+    let analysis: DailyChatAnalysis | undefined;
+    const reviewing = () => current() && panel.contains(result);
     try {
-      const cards = await analyzeDailyChat(apiBase, turns);
-      if (current()) renderCards(result, cards, owner, id);
+      const cards = await analyzeDailyChat(apiBase, turns, value => { analysis = value; });
+      if (!reviewing()) return;
+      renderCards(result, cards, owner, id);
+      action(result, 'Analyze again', () => { void feedback(turns, notice); }).classList.add('secondary');
     } catch {
-      if (!current()) return;
+      if (!reviewing()) return;
       result.textContent = 'Feedback could not load.';
       action(result, 'Retry feedback', () => { void feedback(turns, notice); });
     }
+    if (reviewing()) renderDailyChatDetails(panel, turns, analysis);
   };
   renderDailyChatVersion(panel);
   const status = line(panel, 'Connecting…');
