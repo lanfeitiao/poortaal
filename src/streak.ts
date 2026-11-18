@@ -34,9 +34,14 @@ export function migrateLegacyStreak(owner: string, storage: Storage = localStora
   } catch { /* Keep the original record untouched if migration fails. */ }
 }
 export function mergeStreak(a: Streak, b: Streak): Streak {
-  if (!a.lastDate) return b;
-  if (!b.lastDate) return a;
-  if (a.lastDate === b.lastDate) return { lastDate: a.lastDate, count: Math.max(a.count, b.count) };
+  if (!a.lastDate || !a.count) return b;
+  if (!b.lastDate || !b.count) return a;
+  const endA = Date.parse(a.lastDate) / 86400000, endB = Date.parse(b.lastDate) / 86400000;
+  const startA = endA - a.count + 1, startB = endB - b.count + 1;
+  if (startA <= endB + 1 && startB <= endA + 1) {
+    return { lastDate: a.lastDate > b.lastDate ? a.lastDate : b.lastDate,
+      count: Math.max(endA, endB) - Math.min(startA, startB) + 1 };
+  }
   return a.lastDate > b.lastDate ? a : b;
 }
 export function advanceStreak(value: Streak, day = streakDay()): Streak {

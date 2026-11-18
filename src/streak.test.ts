@@ -23,6 +23,15 @@ test('legacy data is retained and can migrate to only one account', () => {
   assert.equal(readStreak(null, s).count, 0);
   assert.ok(s.getItem('poortaal_streak'));
 });
+test('offline streak ranges merge in either upload order without bridging a missed day', () => {
+  const older = { lastDate: '2026-11-17', count: 50 };
+  const offline = { lastDate: '2026-11-19', count: 2 };
+  const expected = { lastDate: '2026-11-19', count: 52 };
+  assert.deepEqual(mergeStreak(older, offline), expected);
+  assert.deepEqual(mergeStreak(offline, older), expected);
+  const missed = { lastDate: '2026-11-20', count: 1 };
+  assert.deepEqual(mergeStreak(older, missed), missed);
+});
 test('a fresh browser restores the cloud count without replacing it with zero', async () => {
   const s = storage();
   const client = { rpc: async (name: string, args: unknown) => {

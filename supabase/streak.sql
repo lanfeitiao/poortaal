@@ -31,12 +31,15 @@ BEGIN
   INSERT INTO public.user_streak(user_id) VALUES(owner_id) ON CONFLICT DO NOTHING;
   SELECT * INTO saved FROM public.user_streak WHERE user_id = owner_id FOR UPDATE;
   IF p_local_date IS NOT NULL AND p_local_count > 0 THEN
-    IF saved.last_date IS NULL OR p_local_date > saved.last_date THEN
-      saved.count := greatest(p_local_count,
-        CASE WHEN p_local_date = saved.last_date + 1 THEN saved.count + 1 ELSE 1 END);
+    IF saved.last_date IS NOT NULL AND saved.count > 0
+      AND p_local_date - (p_local_count - 1) <= saved.last_date + 1
+      AND saved.last_date - (saved.count - 1) <= p_local_date + 1 THEN
+      saved.count := greatest(p_local_date, saved.last_date)
+        - least(p_local_date - (p_local_count - 1), saved.last_date - (saved.count - 1)) + 1;
+      saved.last_date := greatest(p_local_date, saved.last_date);
+    ELSIF saved.last_date IS NULL OR p_local_date > saved.last_date THEN
+      saved.count := p_local_count;
       saved.last_date := p_local_date;
-    ELSIF p_local_date = saved.last_date THEN
-      saved.count := greatest(saved.count, p_local_count);
     END IF;
   END IF;
   IF p_practice AND saved.last_date IS DISTINCT FROM today THEN
