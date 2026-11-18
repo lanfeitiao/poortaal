@@ -21,3 +21,17 @@ test('Daily Chat uses the Hoiland extraction model and retains a supplied Dutch 
   });
   assert.deepEqual(await analyzeDailyChat('https://example.test', turns), [card]);
 });
+
+test('discarded candidates fail for retry while a genuine empty selection remains valid', async t => {
+  const turns: ChatTurn[] = [{ role: 'user', content: 'Ik ga naar huis.' }];
+  const responses = [[{
+    kind: 'useful', quote: 'An invented quote', dutch: 'Ik ga naar huis.',
+    explanation: 'Heading home.', situation: 'Tell someone you are heading to school.',
+  }], [], {}];
+  t.mock.method(globalThis, 'fetch', async () => Response.json({
+    choices: [{ message: { content: JSON.stringify(responses.shift()) } }],
+  }));
+  await assert.rejects(analyzeDailyChat('https://example.test', turns), /could not be grounded/);
+  assert.deepEqual(await analyzeDailyChat('https://example.test', turns), []);
+  await assert.rejects(analyzeDailyChat('https://example.test', turns), /Expected a list/);
+});

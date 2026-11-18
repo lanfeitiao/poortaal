@@ -31,7 +31,8 @@ test('a word-free Daily Chat can retry feedback and save a spoken recall card', 
     assert.ok(String(url).endsWith('/openai'));
     const turns = JSON.parse(JSON.parse(init!.body as string).messages[1].content);
     assert.ok(turns.some((turn: { role: string; content: string }) => turn.role === 'user' && turn.content === quote));
-    const response = ++analysis === 1 ? {} : [{ kind: 'correction', quote, dutch, situation, explanation: 'Write meekomen as one word here.' }];
+    const feedback = { kind: 'correction', quote, dutch, situation, explanation: 'Write meekomen as one word here.' };
+    const response = ++analysis === 1 ? [{ ...feedback, quote: 'Not in this conversation' }] : [feedback];
     return Response.json({ choices: [{ message: { content: JSON.stringify(response) } }] });
   });
   const navigate = (hash: string) => {

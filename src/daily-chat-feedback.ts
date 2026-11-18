@@ -82,5 +82,10 @@ export async function analyzeDailyChat(apiBase: string, turns: ChatTurn[]): Prom
     { role: 'system', content: instructions },
     { role: 'user', content: JSON.stringify(turns) },
   ], 0.2, fetch, 'gpt-5.6-terra');
-  return validateDailyFeedback(JSON.parse(raw.trim().replace(/^\x60{3}(?:json)?\s*|\s*\x60{3}$/gi, '')), turns);
+  const candidates: unknown = JSON.parse(raw.trim().replace(/^\x60{3}(?:json)?\s*|\s*\x60{3}$/gi, ''));
+  const cards = validateDailyFeedback(candidates, turns);
+  if (Array.isArray(candidates) && candidates.length && !cards.length) {
+    throw new Error('Daily Chat feedback could not be grounded in the conversation');
+  }
+  return cards;
 }
