@@ -22,19 +22,30 @@ test('Daily Chat uses the Hoiland extraction model and retains a supplied Dutch 
   assert.deepEqual(await analyzeDailyChat('https://example.test', turns), [card]);
 });
 
-test('discarded candidates fail for retry while a genuine empty selection remains valid', async t => {
+test('Daily Chat rechecks empty and unusable results with the same transcript', async t => {
   const turns: ChatTurn[] = [{ role: 'user', content: 'Ik ga naar huis.' }];
-  const responses = [[{
-    kind: 'useful', quote: 'An invented quote', dutch: 'Ik ga naar huis.',
+  const card: DailyFeedback = {
+    kind: 'useful', quote: turns[0].content, dutch: 'Ik ga naar huis.',
     explanation: 'Heading home.', situation: 'Tell someone you are heading to school.',
-  }], [], {}];
-  t.mock.method(globalThis, 'fetch', async () => Response.json({
-    choices: [{ message: { content: JSON.stringify(responses.shift()) } }],
-  }));
+  };
+  const invalid = [{ ...card, quote: 'An invented quote' }];
+  const responses: unknown[] = [[], [card], invalid, [card], {}, [card], [], [], invalid, invalid, {}, {}];
+  const prompts: string[] = [];
+  t.mock.method(globalThis, 'fetch', async (_url, init) => {
+    const body = JSON.parse(init!.body as string);
+    assert.deepEqual(JSON.parse(body.messages[1].content), turns);
+    prompts.push(body.messages[0].content);
+    return Response.json({ choices: [{ message: { content: JSON.stringify(responses.shift()) } }] });
+  });
   const reports: DailyChatAnalysis[] = [];
   const report = (analysis: DailyChatAnalysis) => { reports.push(analysis); };
+  assert.deepEqual(await analyzeDailyChat('https://example.test', turns, report), [card]);
+  assert.deepEqual(await analyzeDailyChat('https://example.test', turns, report), [card]);
+  assert.deepEqual(await analyzeDailyChat('https://example.test', turns, report), [card]);
+  assert.deepEqual(await analyzeDailyChat('https://example.test', turns), []);
   await assert.rejects(analyzeDailyChat('https://example.test', turns, report), /could not be grounded/);
-  assert.deepEqual(await analyzeDailyChat('https://example.test', turns, report), []);
-  assert.deepEqual(reports, [{ candidates: 1, retained: 0 }, { candidates: 0, retained: 0 }]);
   await assert.rejects(analyzeDailyChat('https://example.test', turns), /Expected a list/);
+  assert.deepEqual(reports.map(item => item.retained), [0, 1, 0, 1, 1, 0, 0]);
+  assert.ok(prompts[1].includes('Look again for a correction'));
+  assert.equal(responses.length, 0);
 });

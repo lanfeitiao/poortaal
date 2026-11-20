@@ -1,4 +1,4 @@
-import { requestOpenAIChat } from './openai-client.ts';
+import { OpenAIRequestError, requestOpenAIChat } from './openai-client.ts';
 
 export const DAILY_CHAT_ANALYSIS_MODEL = 'gpt-5.6-terra';
 export type DailyChatAnalysis = { candidates: number; retained: number };
@@ -86,11 +86,13 @@ Use kind correction for a clear error, naturalness for an optional alternative, 
 Put the normalized Dutch sentence in dutch. In explanation, briefly explain a correction (e.g. "op werk → op het werk") or give the natural English meaning. Skip pronunciation judgments and uncertain recognition without supporting context.
 Write a concrete English situation that elicits the same construction with a different detail. Do not show the Dutch answer in the situation.`;
 
-export async function analyzeDailyChat(apiBase: string, turns: ChatTurn[],
+const recheckInstructions = `${instructions}
+Look again for a correction or a phrase the learner needed to express their idea. If useful feedback is supported by a turn, return even a single card. Copy a short exact quote and double-check its speaker before returning it.`;
+
+async function requestDailyFeedback(apiBase: string, turns: ChatTurn[], prompt: string,
   report?: (analysis: DailyChatAnalysis) => void): Promise<DailyFeedback[]> {
-  if (!turns.some(turn => turn.role === 'user' && turn.content.trim())) return [];
   const raw = await requestOpenAIChat(apiBase, [
-    { role: 'system', content: instructions },
+    { role: 'system', content: prompt },
     { role: 'user', content: JSON.stringify(turns) },
   ], 0.2, fetch, DAILY_CHAT_ANALYSIS_MODEL);
   const candidates: unknown = JSON.parse(raw.trim().replace(/^\x60{3}(?:json)?\s*|\s*\x60{3}$/gi, ''));
@@ -100,4 +102,17 @@ export async function analyzeDailyChat(apiBase: string, turns: ChatTurn[],
     throw new Error('Daily Chat feedback could not be grounded in the conversation');
   }
   return cards;
+}
+
+export async function analyzeDailyChat(apiBase: string, turns: ChatTurn[],
+  report?: (analysis: DailyChatAnalysis) => void): Promise<DailyFeedback[]> {
+  if (!turns.some(turn => turn.role === 'user' && turn.content.trim())) return [];
+  try {
+    const cards = await requestDailyFeedback(apiBase, turns, instructions, report);
+    if (cards.length) return cards;
+  } catch (error) {
+    // The shared client already retries transient transport and HTTP errors.
+    if (error instanceof OpenAIRequestError) throw error;
+  }
+  return requestDailyFeedback(apiBase, turns, recheckInstructions, report);
 }

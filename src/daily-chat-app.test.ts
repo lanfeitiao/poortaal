@@ -32,7 +32,7 @@ test('a word-free Daily Chat can retry feedback and save a spoken recall card', 
     const turns = JSON.parse(JSON.parse(init!.body as string).messages[1].content);
     assert.ok(turns.some((turn: { role: string; content: string }) => turn.role === 'user' && turn.content === quote));
     const feedback = { kind: 'correction', quote, dutch, situation, explanation: 'Write meekomen as one word here.' };
-    const response = ++analysis === 1 ? [{ ...feedback, quote: 'Not in this conversation' }] : [feedback];
+    const response = ++analysis <= 2 ? [{ ...feedback, quote: 'Not in this conversation' }] : [feedback];
     return Response.json({ choices: [{ message: { content: JSON.stringify(response) } }] });
   });
   const navigate = (hash: string) => {
@@ -76,7 +76,7 @@ test('a word-free Daily Chat can retry feedback and save a spoken recall card', 
   assert.ok(details.textContent?.includes(quote));
   button('#dailyChatBody', 'Analyze again')!.click();
   await f.wait(() => Boolean(button('#dailyChatBody', 'Save to Review')));
-  assert.equal(analysis, 3);
+  assert.equal(analysis, 4);
   assert.equal(connections, 2);
   button('#dailyChatBody', 'Save to Review')!.click();
   navigate('#review');
