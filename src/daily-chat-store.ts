@@ -1,4 +1,4 @@
-import { readDailyFeedback, type DailyFeedback } from './daily-chat-feedback.ts';
+import { expressionKey, readDailyFeedback, type DailyFeedback } from './daily-chat-feedback.ts';
 
 export type SavedExpression = { id: string; card: DailyFeedback; dueAt: number; level: number };
 type ExpressionStorage = Pick<Storage, 'getItem' | 'setItem'>;
@@ -21,10 +21,11 @@ export function readExpressions(owner: string, storage: ExpressionStorage = loca
   }
 }
 
-export function saveExpression(owner: string, id: string, card: DailyFeedback, storage: ExpressionStorage = localStorage, now = Date.now()): void {
+export function saveExpression(owner: string, card: DailyFeedback, storage: ExpressionStorage = localStorage, now = Date.now()): void {
   const saved = readExpressions(owner, storage);
-  if (saved.some(item => item.id === id)) return;
-  saved.push({ id, card, dueAt: now, level: 0 });
+  const expression = expressionKey(card.dutch);
+  if (saved.some(item => expressionKey(item.card.dutch) === expression)) return;
+  saved.push({ id: crypto.randomUUID(), card, dueAt: now, level: 0 });
   storage.setItem(key(owner), JSON.stringify(saved));
 }
 

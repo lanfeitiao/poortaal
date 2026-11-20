@@ -1,5 +1,5 @@
-import type { DailyFeedback } from './daily-chat-feedback.ts';
-import { saveExpression } from './daily-chat-store.ts';
+import { expressionKey, type DailyFeedback } from './daily-chat-feedback.ts';
+import { readExpressions, saveExpression } from './daily-chat-store.ts';
 import { learningOwner } from './learning-store.ts';
 
 const labels = { correction: 'Correction', naturalness: 'More natural', translation: 'How to say it in Dutch', useful: 'Worth reusing' };
@@ -18,23 +18,36 @@ export function action(parent: HTMLElement, label: string, click: () => void): H
   return button;
 }
 
-export function renderCards(panel: HTMLElement, cards: DailyFeedback[], owner: string, id: string): void {
+export function renderCards(panel: HTMLElement, cards: DailyFeedback[], owner: string): void {
   panel.replaceChildren();
-  if (!cards.length) line(panel, 'No clear expressions to review from this chat.');
-  const buttons: HTMLButtonElement[] = [];
-  const result = line(panel, '');
+  if (!cards.length) {
+    line(panel, 'No clear expressions to review from this chat.');
+    return;
+  }
+  line(panel, 'Save any sentence to practise saying it in a new situation under Herhalen.').className = 'daily-chat-intro';
+  const saved = new Set(readExpressions(owner).map(entry => expressionKey(entry.card.dutch)));
   for (const card of cards) {
     const item = line(panel, '', 'article'); item.className = 'card';
     line(item, labels[card.kind], 'h3');
     line(item, (card.speaker === 'partner' ? 'Poortaal said “' : 'You said “') + card.quote + '”');
     line(item, card.dutch, 'strong'); line(item, card.explanation);
-    buttons.push(action(item, 'Save to Review', () => {
+    const showSaved = () => {
+      button.disabled = true;
+      button.textContent = 'Saved to Review';
+      status.replaceChildren();
+      const link = line(status, 'Open Daily Chat review', 'a') as HTMLAnchorElement;
+      link.href = '#review?daily-chat';
+      link.className = 'daily-chat-link';
+    };
+    const button = action(item, 'Save to Review', () => {
       if (owner !== learningOwner()) return;
       try {
-        saveExpression(owner, id, card);
-        for (const button of buttons) button.disabled = true;
-        result.textContent = 'Saved to Review.';
-      } catch { result.textContent = 'Could not save. Try again.'; }
-    }));
+        saveExpression(owner, card);
+        showSaved();
+      } catch { status.textContent = 'Could not save this sentence. Try again.'; }
+    });
+    const status = line(item, '', 'div');
+    status.setAttribute('role', 'status');
+    if (saved.has(expressionKey(card.dutch))) showSaved();
   }
 }

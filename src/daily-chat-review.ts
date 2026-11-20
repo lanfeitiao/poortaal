@@ -4,19 +4,19 @@ import { learningOwner } from './learning-store.ts';
 
 let revealed: { owner: string; id: string } | null = null;
 
-export function appendExpressionReview(home: HTMLElement): void {
+export function appendExpressionReview(home: HTMLElement, showEmpty = false): void {
   const owner = learningOwner();
   const saved = readExpressions(owner);
-  if (!saved.length) return;
+  if (!saved.length && !showEmpty) return;
   const section = line(home, '', 'section');
   section.className = 'card';
   const render = () => {
     section.replaceChildren();
     line(section, 'Daily Chat expressions', 'h2');
-    const card = readExpressions(owner)
-      .filter(entry => entry.dueAt <= Date.now()).sort((a, b) => a.dueAt - b.dueAt)[0];
+    const expressions = readExpressions(owner);
+    const card = expressions.filter(entry => entry.dueAt <= Date.now()).sort((a, b) => a.dueAt - b.dueAt)[0];
     if (!card) {
-      line(section, 'No expressions due right now.');
+      line(section, expressions.length ? 'No expressions due right now.' : 'Save a sentence from Daily Chat to practise it here.');
       return;
     }
     line(section, card.card.situation);
