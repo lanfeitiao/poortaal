@@ -10,7 +10,7 @@ test('Daily Chat credits a partner expression to Poortaal', async t => {
     speaker: 'partner', kind: 'naturalness', quote: 'Ik werk op het kantoor.',
     dutch: 'Ik werk op kantoor.', explanation: 'Omit het for the general workplace.',
     situation: 'Tell someone where you normally study.',
-  }], 'owner', 'chat');
+  }], 'owner');
   assert.ok(panel.textContent?.includes('Poortaal said “Ik werk op het kantoor.”'));
   assert.ok(!panel.textContent?.includes('You said'));
 });

@@ -17,7 +17,7 @@ export type DailyFeedback = {
 const kinds: readonly string[] = ['correction', 'naturalness', 'translation', 'useful'];
 // Match Hoiland's quote grounding and Dutch sentence deduplication.
 const comparableText = (value: string) => value.normalize('NFC').toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
-const wordingText = (value: string) => value.normalize('NFC').toLocaleLowerCase()
+export const expressionKey = (value: string) => value.normalize('NFC').toLocaleLowerCase()
   .replace(/[‘’]/g, "'").replace(/[‐‑]/g, '-')
   .match(/[\p{L}\p{N}]+(?:['-][\p{L}\p{N}]+)*/gu)?.join(' ') || '';
 
@@ -51,7 +51,7 @@ export function validateDailyFeedback(value: unknown, turns: ChatTurn[]): DailyF
     const dutch = comparableText(card.dutch);
     const role = card.speaker === 'partner' ? 'assistant' : 'user';
     if (role === 'user' && (card.kind === 'correction' || card.kind === 'naturalness')
-      && wordingText(card.quote) === wordingText(card.dutch)) continue;
+      && expressionKey(card.quote) === expressionKey(card.dutch)) continue;
     if (!quote || !dutch || dutchSeen.has(dutch)
       || !turns.some(turn => turn.role === role && comparableText(turn.content).includes(quote))) continue;
     dutchSeen.add(dutch);

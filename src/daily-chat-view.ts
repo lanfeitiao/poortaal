@@ -26,7 +26,7 @@ export function showDailyChat(apiBase: string): void {
 function start(apiBase: string, panel: HTMLElement): void {
   leaveDailyChat(true);
   const ticket = revision;
-  const owner = learningOwner(), id = crypto.randomUUID();
+  const owner = learningOwner();
   const current = () => revision === ticket && learningOwner() === owner;
   const restart = () => { leaveDailyChat(true); showDailyChat(apiBase); };
   const feedback = async (turns: ChatTurn[], notice = '') => {
@@ -44,7 +44,7 @@ function start(apiBase: string, panel: HTMLElement): void {
     try {
       const cards = await analyzeDailyChat(apiBase, turns, value => { analysis = value; });
       if (!reviewing()) return;
-      renderCards(result, cards, owner, id);
+      renderCards(result, cards, owner);
       action(result, 'Analyze again', () => { void feedback(turns, notice); }).classList.add('secondary');
     } catch {
       if (!reviewing()) return;

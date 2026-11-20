@@ -77,25 +77,29 @@ test('word-internal apostrophes and hyphens remain genuine spelling corrections'
   ]), [], 'a typographic apostrophe change is not a language improvement');
 });
 
-test('Daily Chat saves one expression per chat and schedules another review per learner', () => {
+test('Daily Chat saves distinct sentences per learner and preserves an existing review schedule', () => {
   const contents = new Map<string, string>();
   const storage = {
     getItem: (name: string) => contents.get(name) ?? null,
     setItem: (name: string, value: string) => { contents.set(name, value); },
   };
   const day = 86_400_000;
-  saveExpression('first', 'chat-1', card, storage, 0);
-  saveExpression('first', 'chat-1', { ...card, dutch: 'Different answer' }, storage, 0);
-  assert.deepEqual(readExpressions('first', storage), [{ id: 'chat-1', card, dueAt: 0, level: 0 }]);
+  const oldCard = { id: 'legacy-chat-id', card, dueAt: 0, level: 0 };
+  storage.setItem('poortaal_daily_chat_review:first', JSON.stringify([oldCard]));
+  saveExpression('first', { ...card, dutch: 'Mag zij ook mee?' }, storage, 0);
+  assert.deepEqual(readExpressions('first', storage)[0], oldCard);
+  assert.equal(readExpressions('first', storage).length, 2);
   assert.deepEqual(readExpressions('second', storage), []);
-  saveExpression('second', 'chat-2', { ...card, speaker: 'partner' }, storage, 0);
+  saveExpression('second', { ...card, speaker: 'partner' }, storage, 0);
   assert.equal(readExpressions('second', storage)[0].card.speaker, 'partner');
-  gradeExpression('first', 'chat-1', true, storage, 0);
-  gradeExpression('first', 'chat-1', true, storage, 0);
+  gradeExpression('first', oldCard.id, true, storage, 0);
+  gradeExpression('first', oldCard.id, true, storage, 0);
+  saveExpression('first', { ...card, dutch: card.dutch.toUpperCase().replace('?', '!') }, storage, 1);
+  assert.equal(readExpressions('first', storage).length, 2);
   assert.equal(readExpressions('first', storage)[0].dueAt, day);
-  gradeExpression('first', 'chat-1', true, storage, day);
+  gradeExpression('first', oldCard.id, true, storage, day);
   assert.equal(readExpressions('first', storage)[0].dueAt, 4 * day);
-  gradeExpression('first', 'chat-1', false, storage, 4 * day);
+  gradeExpression('first', oldCard.id, false, storage, 4 * day);
   assert.equal(readExpressions('first', storage)[0].level, 0);
   assert.equal(readExpressions('first', storage)[0].dueAt, 5 * day);
 });
