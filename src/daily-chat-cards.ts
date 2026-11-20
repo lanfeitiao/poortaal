@@ -34,7 +34,10 @@ export function renderCards(panel: HTMLElement, cards: DailyFeedback[], owner: s
     const showSaved = () => {
       button.disabled = true;
       button.textContent = 'Saved to Review';
-      status.textContent = 'Find this sentence under Daily Chat expressions.';
+      status.replaceChildren();
+      const link = line(status, 'Open Daily Chat review', 'a') as HTMLAnchorElement;
+      link.href = '#review?daily-chat';
+      link.className = 'daily-chat-link';
     };
     const button = action(item, 'Save to Review', () => {
       if (owner !== learningOwner()) return;
@@ -43,7 +46,7 @@ export function renderCards(panel: HTMLElement, cards: DailyFeedback[], owner: s
         showSaved();
       } catch { status.textContent = 'Could not save this sentence. Try again.'; }
     });
-    const status = line(item, '');
+    const status = line(item, '', 'div');
     status.setAttribute('role', 'status');
     if (saved.has(expressionKey(card.dutch))) showSaved();
   }

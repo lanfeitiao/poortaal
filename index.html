@@ -361,14 +361,14 @@ main { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
 .review-summary-btn:hover { background: var(--blue-500); }
 .daily-chat-entry { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0.8rem; padding: 1rem; color: var(--gray-900); text-decoration: none; }
 .daily-chat-entry:hover { border-color: var(--blue-300); background: var(--blue-50); }
-.daily-chat-entry:focus-visible, .daily-chat-back:focus-visible, .daily-chat-transcript:focus-visible { outline: 2px solid var(--blue-600); outline-offset: 3px; }
+.daily-chat-entry:focus-visible, .daily-chat-link:focus-visible, .daily-chat-transcript:focus-visible { outline: 2px solid var(--blue-600); outline-offset: 3px; }
 .daily-chat-entry-icon { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border-radius: 12px; background: var(--blue-100); }
 .daily-chat-entry-title { display: block; font-size: 1.075rem; font-weight: 700; }
 .daily-chat-entry-description { display: block; margin-top: 0.2rem; color: var(--gray-600); font-size: 0.85rem; line-height: 1.4; }
 .daily-chat-entry-arrow { color: var(--blue-700); font-size: 1.2rem; }
 .daily-chat-header { margin-bottom: 0.8rem; }
 .daily-chat-header h1 { font-size: 1.5rem; }
-.daily-chat-back { display: inline-flex; align-items: center; column-gap: 0.35rem; min-height: 44px; color: var(--blue-700); font-size: 0.875rem; font-weight: 600; text-decoration: none; }
+.daily-chat-link { display: inline-flex; align-items: center; column-gap: 0.35rem; min-height: 44px; color: var(--blue-700); font-size: 0.875rem; font-weight: 600; text-decoration: none; }
 .daily-chat-panel { padding: 1rem; }
 .daily-chat-intro { color: var(--gray-600); line-height: 1.5; }
 .daily-chat-version { color: var(--gray-600); font-size: 0.75rem; overflow-wrap: anywhere; margin: 0.5rem 0; }
@@ -458,7 +458,7 @@ main { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
   </div>
   <div id="view-daily-chat" class="view">
     <div class="daily-chat-header">
-      <a class="daily-chat-back" href="#practice" aria-label="Back to Practice"><span aria-hidden="true">←</span> Practice</a>
+      <a class="daily-chat-link" href="#practice" aria-label="Back to Practice"><span aria-hidden="true">←</span> Practice</a>
       <h1 id="dailyChatTitle">Daily Chat</h1>
     </div>
     <section class="card daily-chat-panel" aria-labelledby="dailyChatTitle">

@@ -10,5 +10,5 @@
 
 - Start a conversation from Practice without choosing a word. Verify that waiting or restarting never leaves the microphone active.
 - End after a learner turn and confirm that feedback includes the final usable clause. Retry analysis after a failed request.
-- Save an expression, open Review and say a response to the new situation before revealing the example. Confirm the schedule survives reload and is isolated to the learner on this browser.
+- Save an expression and open Daily Chat review from the card. Say a response to the new situation before revealing the example. Confirm the schedule survives reload and is isolated to the learner on this browser.
 - Run frontend tests and build in GitHub Actions. Check a real microphone on iPhone (speaker and headphones).

@@ -311,20 +311,30 @@ function navigateTo(hash: string) {
 }
 
 function renderReviewRoute() {
-  if (window.location.hash.split('?')[0] !== '#review') return;
+  const [route, section] = window.location.hash.split('?', 2);
+  if (route !== '#review') return;
   if (!reviewOwnerReady) {
     document.getElementById('reviewHomeSection')!.innerHTML = '<div class="review-empty" role="status">Herhaling laden…</div>';
     return;
   }
-  if (!restoreReviewSession()) renderReviewHome();
+  if (section === 'daily-chat') {
+    resetReviewSessionIfActive();
+    renderReviewHome(true);
+  } else if (!restoreReviewSession()) renderReviewHome();
 }
 
-function renderReviewHome() {
+function renderReviewHome(expressionsOnly = false) {
   const home = document.getElementById('reviewHomeSection');
   const session = document.getElementById('reviewSessionSection');
   if (!home || !session) return;
   home.style.display = '';
   session.style.display = 'none';
+
+  if (expressionsOnly) {
+    home.innerHTML = '<a href="#review" class="daily-chat-link">← Herhalen</a>';
+    appendExpressionReview(home, true);
+    return;
+  }
 
   const due = getDueWords();
   if (due.length === 0) {
@@ -633,7 +643,10 @@ function handleRoute() {
   document.getElementById('nav-review').classList.toggle('active', isReview);
   if (isPractice) { renderPracticeHistoryList(); if (!structuredPractice.session) restoreStructuredPractice(); }
   else { stopRealtimeEncounter(); showPracticePicker(); }
-  if (isReview) renderReviewRoute(); else resetReviewSessionIfActive();
+  if (isReview) {
+    renderReviewRoute();
+    if (hash === '#review?daily-chat') window.scrollTo?.(0, 0);
+  } else resetReviewSessionIfActive();
 }
 window.addEventListener('hashchange', handleRoute);
 window.addEventListener('pagehide', () => leaveDailyChat());
