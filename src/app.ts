@@ -529,22 +529,21 @@ function attachReviewCardSwipe() {
     const rot = dx / 20;
     card.style.transform = `translateX(${dx}px) rotate(${rot}deg)`;
   });
-  const commitOrReset = () => {
+  const commitOrReset = (event: PointerEvent) => {
     if (!dragging) return;
     dragging = false;
-    if (!reviewRevealed) { reset(); return; }
-    const threshold = 80;
-    if (dx > threshold) {
-      card.classList.add('swipe-anim');
-      card.style.transform = 'translateX(120%) rotate(20deg)';
-      setTimeout(() => gradeAndAdvance(true), 200);
-    } else if (dx < -threshold) {
-      card.classList.add('swipe-anim');
-      card.style.transform = 'translateX(-120%) rotate(-20deg)';
-      setTimeout(() => gradeAndAdvance(false), 200);
-    } else {
+    if (event.type === 'pointercancel' || !reviewRevealed || Math.abs(dx) <= 80) {
       reset();
+      return;
     }
+    const known = dx > 0;
+    card.classList.add('swipe-anim');
+    card.style.transform = known ? 'translateX(120%) rotate(20deg)' : 'translateX(-120%) rotate(-20deg)';
+    setTimeout(() => {
+      if (document.getElementById('reviewFrontCard') !== card) return;
+      gradeAndAdvance(known);
+      if (card.isConnected) reset();
+    }, 200);
   };
   card.addEventListener('pointerup', commitOrReset);
   card.addEventListener('pointercancel', commitOrReset);
