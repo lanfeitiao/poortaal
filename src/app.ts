@@ -337,20 +337,18 @@ function renderReviewHome(expressionsOnly = false) {
     return;
   }
 
-  const due = getDueWords();
+  const due = getDueReviewItems();
   if (due.length === 0) {
-    const hasExpressions = readExpressions(learningOwner()).length > 0;
     home.innerHTML = `
       <div class="review-empty">
         <div class="review-empty-emoji">🌳</div>
-        <div class="review-empty-title">${hasExpressions ? 'Geen woorden om te herhalen' : 'Alles fris voor vandaag'}</div>
-        ${hasExpressions ? '' : '<div class="review-empty-sub">Kom morgen terug</div>'}
+        <div class="review-empty-title">Alles fris voor vandaag</div>
+        <div class="review-empty-sub">Kom morgen terug</div>
       </div>
     `;
-    appendExpressionReview(home);
     return;
   }
-  const wilting = due.filter(d => d.isWilting).length;
+  const wilting = due.filter(item => item.kind === 'word' && item.isWilting).length;
   const today = due.length - wilting;
   const breakdownParts: string[] = [];
   if (wilting > 0) breakdownParts.push(`🥀 ${wilting} verwelkt`);
@@ -359,17 +357,15 @@ function renderReviewHome(expressionsOnly = false) {
   home.innerHTML = `
     <div class="review-home">
       <h1>Herhalen</h1>
-      <div class="review-sub">${due.length} ${due.length === 1 ? 'woord' : 'woorden'} vandaag</div>
       <div class="review-count-card">
         <div class="review-count-num">${due.length}</div>
-        <div class="review-count-label">${due.length === 1 ? 'WOORD VANDAAG' : 'WOORDEN VANDAAG'}</div>
+        <div class="review-count-label">Vandaag te herhalen</div>
         <div class="review-count-breakdown">${breakdown}</div>
       </div>
       <button class="review-start-btn" data-action="start-review">▶ Begin herhaling</button>
       <div class="review-start-meta">automatisch volgende</div>
     </div>
   `;
-  appendExpressionReview(home);
 }
 
 function checkpointReviewSession() {
@@ -427,7 +423,7 @@ function restoreReviewSession(): boolean {
 
 function startReviewSession() {
   if (!reviewOwnerReady || restoreReviewSession()) return;
-  const due = getDueWords();
+  const due = getDueReviewItems();
   if (due.length === 0) {
     renderReviewHome();
     return;
@@ -594,7 +590,7 @@ function gradeAndAdvance(known: boolean) {
   if (known) reviewResults.know++;
   else reviewResults.again++;
   updateReviewBadge();
-  renderHistory();
+  if (item.kind === 'word') renderHistory();
   reviewIndex++;
   currentReviewPrompt = null;
   reviewRevealed = false;
@@ -609,13 +605,13 @@ function renderReviewSummary() {
   const lines: string[] = [];
   if (know > 0) lines.push(`<div class="review-summary-stat">🌳 ${know} wist je</div>`);
   if (again > 0) lines.push(`<div class="review-summary-stat">🥀 ${again} opnieuw</div>`);
-  if (lines.length === 0) lines.push('<div class="review-summary-stat">Geen woorden beoordeeld</div>');
+  if (lines.length === 0) lines.push('<div class="review-summary-stat">Geen kaarten beoordeeld</div>');
   root.innerHTML = `
     <div class="review-summary">
       <div class="review-summary-emoji">🌳</div>
       <div class="review-summary-title">Klaar!</div>
       ${lines.join('')}
-      <button class="review-summary-btn" data-action="end-review">Tot morgen</button>
+      <button class="review-summary-btn" data-action="end-review">Naar Herhalen</button>
     </div>
   `;
 }
@@ -749,7 +745,27 @@ function getDueWords(): WordReviewItem[] {
       isWilting: dueDay < today && level < 4, overdueDays: Math.max(0, Math.round((today - dueDay) / 86400000)) };
   }).filter(x => x.isDue).sort((a, b) => b.overdueDays - a.overdueDays);
 }
-function updateReviewBadge() { const badge = document.getElementById('navReviewBadge'); if (!badge) return; const due = getDueWords(); badge.hidden = due.length === 0; badge.textContent = String(due.length); }
+function getDueReviewItems(): ReviewItem[] {
+  const words = getDueWords();
+  const now = Date.now();
+  const expressions = readExpressions(learningOwner())
+    .filter(item => item.dueAt <= now)
+    .sort((a, b) => a.dueAt - b.dueAt)
+    .map(item => ({ ...item, kind: 'expression' as const }));
+  const queue: ReviewItem[] = [];
+  for (const [index, word] of words.entries()) {
+    queue.push(word);
+    if (index < expressions.length) queue.push(expressions[index]);
+  }
+  return queue.concat(expressions.slice(words.length));
+}
+function updateReviewBadge() {
+  const badge = document.getElementById('navReviewBadge');
+  if (!badge) return;
+  const count = getDueReviewItems().length;
+  badge.hidden = count === 0;
+  badge.textContent = String(count);
+}
 function renderHistory() {
   const list = document.getElementById('historyList'); const summaryEl = document.getElementById('historySummary'); if (searchHistory.length === 0) { list.innerHTML = '<div class="history-empty">Nog geen woorden opgezocht</div>'; summaryEl.innerHTML = ''; return; }
   const counts: Record<PlantStageKey, number> = { strong: 0, growing: 0, sprout: 0, seed: 0, wilting: 0 };
