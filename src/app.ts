@@ -374,7 +374,7 @@ function renderReviewHome(expressionsOnly = false) {
 function checkpointReviewSession() {
   if (!reviewSessionActive) return;
   writeReviewCheckpoint(learningOwner(), {
-    words: reviewQueue.map(item => item.entry.word),
+    cards: reviewQueue.map(item => ({ kind: 'word', id: item.entry.word })),
     index: reviewIndex,
     know: reviewResults.know,
     again: reviewResults.again,
@@ -390,10 +390,10 @@ function restoreReviewSession(): boolean {
   const stats = getWordStats();
   const queue: ReviewItem[] = [];
   let missingBefore = 0;
-  for (const [index, word] of saved.words.entries()) {
+  for (const [index, { kind, id: word }] of saved.cards.entries()) {
     const entry = entries.get(word);
     const wordData = getCachedWord(word) || entry?.wordData;
-    if (!entry || !wordData) {
+    if (kind !== 'word' || !entry || !wordData) {
       if (index < saved.index) missingBefore++;
       continue;
     }
@@ -410,7 +410,7 @@ function restoreReviewSession(): boolean {
   // Removed history entries must not produce an impossible checkpoint.
   const know = Math.min(saved.know, reviewIndex);
   reviewResults = { know, again: Math.min(saved.again, reviewIndex - know) };
-  reviewRevealed = saved.revealed && queue[reviewIndex]?.entry.word === saved.words[saved.index];
+  reviewRevealed = saved.revealed && queue[reviewIndex]?.entry.word === saved.cards[saved.index]?.id;
   reviewSessionActive = true;
   currentReviewPrompt = null;
   document.getElementById('reviewHomeSection')!.style.display = 'none';
