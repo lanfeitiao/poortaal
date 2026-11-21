@@ -1,7 +1,6 @@
 import { gradeExpression, readExpressions, type SavedExpression } from './daily-chat-store';
 import { advanceStreak, migrateLegacyStreak, readStreak, syncStreak, writeStreak } from './streak';
 import { leaveDailyChat, showDailyChat } from './daily-chat-view';
-import { appendExpressionReview } from './daily-chat-review';
 import {
   OpenAIRequestError,
   requestOpenAIChat,
@@ -312,30 +311,21 @@ function navigateTo(hash: string) {
 }
 
 function renderReviewRoute() {
-  const [route, section] = window.location.hash.split('?', 2);
+  const [route] = window.location.hash.split('?', 1);
   if (route !== '#review') return;
   if (!reviewOwnerReady) {
     document.getElementById('reviewHomeSection')!.innerHTML = '<div class="review-empty" role="status">Herhaling laden…</div>';
     return;
   }
-  if (section === 'daily-chat') {
-    resetReviewSessionIfActive();
-    renderReviewHome(true);
-  } else if (!restoreReviewSession()) renderReviewHome();
+  if (!restoreReviewSession()) renderReviewHome();
 }
 
-function renderReviewHome(expressionsOnly = false) {
+function renderReviewHome() {
   const home = document.getElementById('reviewHomeSection');
   const session = document.getElementById('reviewSessionSection');
   if (!home || !session) return;
   home.style.display = '';
   session.style.display = 'none';
-
-  if (expressionsOnly) {
-    home.innerHTML = '<a href="#review" class="daily-chat-link">← Herhalen</a>';
-    appendExpressionReview(home, true);
-    return;
-  }
 
   const due = getDueReviewItems();
   if (due.length === 0) {
@@ -656,10 +646,11 @@ function handleRoute() {
   else { stopRealtimeEncounter(); showPracticePicker(); }
   if (isReview) {
     renderReviewRoute();
-    if (hash === '#review?daily-chat') window.scrollTo?.(0, 0);
+    window.scrollTo?.(0, 0);
   } else resetReviewSessionIfActive();
 }
 window.addEventListener('hashchange', handleRoute);
+window.addEventListener('poortaal:expression-saved', updateReviewBadge);
 window.addEventListener('pagehide', () => leaveDailyChat());
 window.addEventListener('pageshow', () => {
   if (window.location.hash.split('?')[0] === '#daily-chat') showDailyChat(API_BASE);

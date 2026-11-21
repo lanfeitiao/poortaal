@@ -35,8 +35,8 @@ export function renderCards(panel: HTMLElement, cards: DailyFeedback[], owner: s
       button.disabled = true;
       button.textContent = 'Saved to Review';
       status.replaceChildren();
-      const link = line(status, 'Open Daily Chat review', 'a') as HTMLAnchorElement;
-      link.href = '#review?daily-chat';
+      const link = line(status, 'Open Review', 'a') as HTMLAnchorElement;
+      link.href = '#review';
       link.className = 'daily-chat-link';
     };
     const button = action(item, 'Save to Review', () => {
@@ -44,6 +44,7 @@ export function renderCards(panel: HTMLElement, cards: DailyFeedback[], owner: s
       try {
         saveExpression(owner, card);
         showSaved();
+        window.dispatchEvent(new Event('poortaal:expression-saved'));
       } catch { status.textContent = 'Could not save this sentence. Try again.'; }
     });
     const status = line(item, '', 'div');

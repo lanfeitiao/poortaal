@@ -15,7 +15,7 @@ test('Daily Chat credits a partner expression to Poortaal', async t => {
   assert.ok(!panel.textContent?.includes('You said'));
 });
 
-test('Daily Chat can retry feedback, save individual cards and open recall with word review paused', async t => {
+test('Daily Chat can retry feedback, save individual cards and resume Review', async t => {
   const f = await liveFixture(t);
   const quote = 'Mag mijn dochter ook mee komen?';
   const dutch = 'Mag mijn dochter ook meekomen?';
@@ -104,20 +104,9 @@ test('Daily Chat can retry feedback, save individual cards and open recall with 
   button(second, 'Save to Review')!.click();
   assert.deepEqual(saved(), [dutch, secondDutch]);
   const reviewLink = f.document.querySelector(`${first} a`)!;
-  assert.equal(reviewLink.textContent, 'Open Daily Chat review');
+  assert.equal(reviewLink.textContent, 'Open Review');
+  assert.equal(reviewLink.getAttribute('href'), '#review');
   navigate(reviewLink.getAttribute('href')!);
-  assert.equal(f.document.getElementById('reviewSessionSection')?.style.display, 'none');
-  const review = f.document.getElementById('reviewHomeSection')!;
-  assert.ok(review.textContent?.includes(situation));
-  assert.ok(!review.textContent?.includes(dutch));
-  button('#reviewHomeSection', 'Reveal a possible reply')!.click();
-  assert.ok(review.textContent?.includes(dutch));
-  button('#reviewHomeSection', 'Got it')!.click();
-  button('#reviewHomeSection', 'Reveal a possible reply')!.click();
-  assert.ok(review.textContent?.includes(secondDutch));
-  button('#reviewHomeSection', 'Again')!.click();
-  assert.ok(review.textContent?.includes('No expressions due right now.'));
-  navigate('#review');
   assert.ok(f.document.getElementById('reviewCardAnswer')?.classList.contains('revealed'));
   assert.equal(f.storage.get('poortaal_review_session:guest'), checkpoint);
 });
