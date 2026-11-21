@@ -1,7 +1,6 @@
-import { readExpressions } from './daily-chat-store';
+import { gradeExpression, readExpressions, type SavedExpression } from './daily-chat-store';
 import { advanceStreak, migrateLegacyStreak, readStreak, syncStreak, writeStreak } from './streak';
 import { leaveDailyChat, showDailyChat } from './daily-chat-view';
-import { appendExpressionReview } from './daily-chat-review';
 import {
   OpenAIRequestError,
   requestOpenAIChat,
@@ -37,7 +36,8 @@ type WordStatsMap = Record<string, WordStats>;
 type PlantStageKey = 'strong' | 'growing' | 'sprout' | 'seed' | 'wilting';
 type PlantStage = { emoji: string; label: string; key: PlantStageKey; hint: string };
 type HistoryEntry = { word: string; timestamp: number; wordData?: WordExplanation };
-type ReviewItem = { entry: HistoryEntry; stats: Partial<WordStats>; level: number; isDue: boolean; isWilting: boolean; overdueDays: number };
+type WordReviewItem = { kind: 'word'; id: string; entry: HistoryEntry; stats: Partial<WordStats>; level: number; isDue: boolean; isWilting: boolean; overdueDays: number };
+type ReviewItem = WordReviewItem | (SavedExpression & { kind: 'expression' });
 type DailyWord = { word: string; category: string; teaser: string };
 type CloudWord = { word: string; lookups?: number; practices?: number; reviews?: number[]; level?: number; last_seen?: number; word_data?: unknown };
 type CloudHistoryEntry = { word: string; timestamp?: number; word_data?: unknown };
@@ -311,45 +311,34 @@ function navigateTo(hash: string) {
 }
 
 function renderReviewRoute() {
-  const [route, section] = window.location.hash.split('?', 2);
+  const [route] = window.location.hash.split('?', 1);
   if (route !== '#review') return;
   if (!reviewOwnerReady) {
     document.getElementById('reviewHomeSection')!.innerHTML = '<div class="review-empty" role="status">Herhaling laden…</div>';
     return;
   }
-  if (section === 'daily-chat') {
-    resetReviewSessionIfActive();
-    renderReviewHome(true);
-  } else if (!restoreReviewSession()) renderReviewHome();
+  if (!restoreReviewSession()) renderReviewHome();
 }
 
-function renderReviewHome(expressionsOnly = false) {
+function renderReviewHome() {
   const home = document.getElementById('reviewHomeSection');
   const session = document.getElementById('reviewSessionSection');
   if (!home || !session) return;
   home.style.display = '';
   session.style.display = 'none';
 
-  if (expressionsOnly) {
-    home.innerHTML = '<a href="#review" class="daily-chat-link">← Herhalen</a>';
-    appendExpressionReview(home, true);
-    return;
-  }
-
-  const due = getDueWords();
+  const due = getDueReviewItems();
   if (due.length === 0) {
-    const hasExpressions = readExpressions(learningOwner()).length > 0;
     home.innerHTML = `
       <div class="review-empty">
         <div class="review-empty-emoji">🌳</div>
-        <div class="review-empty-title">${hasExpressions ? 'Geen woorden om te herhalen' : 'Alles fris voor vandaag'}</div>
-        ${hasExpressions ? '' : '<div class="review-empty-sub">Kom morgen terug</div>'}
+        <div class="review-empty-title">Alles fris voor vandaag</div>
+        <div class="review-empty-sub">Kom morgen terug</div>
       </div>
     `;
-    appendExpressionReview(home);
     return;
   }
-  const wilting = due.filter(d => d.isWilting).length;
+  const wilting = due.filter(item => item.kind === 'word' && item.isWilting).length;
   const today = due.length - wilting;
   const breakdownParts: string[] = [];
   if (wilting > 0) breakdownParts.push(`🥀 ${wilting} verwelkt`);
@@ -358,23 +347,21 @@ function renderReviewHome(expressionsOnly = false) {
   home.innerHTML = `
     <div class="review-home">
       <h1>Herhalen</h1>
-      <div class="review-sub">${due.length} ${due.length === 1 ? 'woord' : 'woorden'} vandaag</div>
       <div class="review-count-card">
         <div class="review-count-num">${due.length}</div>
-        <div class="review-count-label">${due.length === 1 ? 'WOORD VANDAAG' : 'WOORDEN VANDAAG'}</div>
+        <div class="review-count-label">Vandaag te herhalen</div>
         <div class="review-count-breakdown">${breakdown}</div>
       </div>
       <button class="review-start-btn" data-action="start-review">▶ Begin herhaling</button>
       <div class="review-start-meta">automatisch volgende</div>
     </div>
   `;
-  appendExpressionReview(home);
 }
 
 function checkpointReviewSession() {
   if (!reviewSessionActive) return;
   writeReviewCheckpoint(learningOwner(), {
-    words: reviewQueue.map(item => item.entry.word),
+    cards: reviewQueue.map(({ kind, id }) => ({ kind, id })),
     index: reviewIndex,
     know: reviewResults.know,
     again: reviewResults.again,
@@ -387,21 +374,23 @@ function restoreReviewSession(): boolean {
   if (!saved) return false;
   const entries = new Map(searchHistory.map(entry => [entry.word, entry]));
   const currentDue = new Map(getDueWords().map(item => [item.entry.word, item]));
+  const expressions = new Map(readExpressions(learningOwner()).map(item => [item.id, { ...item, kind: 'expression' as const }]));
   const stats = getWordStats();
   const queue: ReviewItem[] = [];
   let missingBefore = 0;
-  for (const [index, word] of saved.words.entries()) {
-    const entry = entries.get(word);
-    const wordData = getCachedWord(word) || entry?.wordData;
-    if (!entry || !wordData) {
-      if (index < saved.index) missingBefore++;
-      continue;
+  for (const [index, { kind, id }] of saved.cards.entries()) {
+    let item: ReviewItem | undefined = kind === 'word' ? currentDue.get(id) : expressions.get(id);
+    if (!item && kind === 'word') {
+      const entry = entries.get(id);
+      const wordData = entry && (getCachedWord(id) || entry.wordData);
+      const current: Partial<WordStats> = stats[id] || {};
+      if (entry && wordData) item = {
+        kind, id, entry: { ...entry, wordData }, stats: current, level: current.level || 0,
+        isDue: false, isWilting: false, overdueDays: 0,
+      };
     }
-    const current: Partial<WordStats> = stats[word] || {};
-    queue.push(currentDue.get(word) || {
-      entry: { ...entry, wordData }, stats: current, level: current.level || 0,
-      isDue: true, isWilting: false, overdueDays: 0,
-    });
+    if (item) queue.push(item);
+    else if (index < saved.index) missingBefore++;
   }
   // History may still be arriving from cloud sync; keep the checkpoint until then.
   if (!queue.length) return false;
@@ -410,7 +399,9 @@ function restoreReviewSession(): boolean {
   // Removed history entries must not produce an impossible checkpoint.
   const know = Math.min(saved.know, reviewIndex);
   reviewResults = { know, again: Math.min(saved.again, reviewIndex - know) };
-  reviewRevealed = saved.revealed && queue[reviewIndex]?.entry.word === saved.words[saved.index];
+  const resumed = queue[reviewIndex];
+  const previous = saved.cards[saved.index];
+  reviewRevealed = saved.revealed && !!resumed && resumed.kind === previous?.kind && resumed.id === previous.id;
   reviewSessionActive = true;
   currentReviewPrompt = null;
   document.getElementById('reviewHomeSection')!.style.display = 'none';
@@ -422,7 +413,7 @@ function restoreReviewSession(): boolean {
 
 function startReviewSession() {
   if (!reviewOwnerReady || restoreReviewSession()) return;
-  const due = getDueWords();
+  const due = getDueReviewItems();
   if (due.length === 0) {
     renderReviewHome();
     return;
@@ -447,20 +438,24 @@ function renderReviewSession() {
     return;
   }
   const item = reviewQueue[reviewIndex];
-  const data = getCachedWord(item.entry.word) || item.entry.wordData!;
-  if (data.usage === undefined) void loadWordUsage(data);
-  const review = currentReviewPrompt ||= wordReview(data, item.level, item.stats.reviews?.length || 0, getWordAttempts(item.entry.word));
-  const word = item.entry.word;
+  const data = item.kind === 'word' ? getCachedWord(item.id) || item.entry.wordData! : null;
+  if (item.kind === 'word' && data) {
+    if (data.usage === undefined) void loadWordUsage(data);
+    currentReviewPrompt ||= wordReview(data, item.level, item.stats.reviews?.length || 0, getWordAttempts(item.id));
+  }
+  const review = currentReviewPrompt;
+  const expression = item.kind === 'expression' ? item.card : null;
+  const meaningPrompt = review?.kind === 'meaning';
   const total = reviewQueue.length;
   const pct = Math.round((reviewIndex / total) * 100);
-  const pill = item.isWilting
+  const pill = item.kind === 'word' && item.isWilting
     ? `<span class="review-stage-pill">🥀 ${item.overdueDays}d te laat</span>`
-    : `<span class="review-stage-pill fresh">🌿 vandaag</span>`;
-  const meaningNl = escapeHtml(review.nl || '');
-  const meaningEn = escapeHtml(review.en || '');
-  const safeWord = escapeHtml(word);
-  const safeType = escapeHtml(data.type || '');
-  const contextLine = 'openingLine' in review && typeof review.openingLine === 'string' ? review.openingLine : null;
+    : `<span class="review-stage-pill fresh">${expression ? 'Daily Chat' : '🌿 vandaag'}</span>`;
+  const meaningNl = escapeHtml(expression?.dutch ?? review?.nl ?? '');
+  const meaningEn = escapeHtml(expression?.explanation ?? review?.en ?? '');
+  const safeWord = escapeHtml(item.kind === 'word' ? item.id : '');
+  const safeType = escapeHtml(data?.type || '');
+  const contextLine = review && 'openingLine' in review ? review.openingLine : null;
   const revealedClass = reviewRevealed ? 'revealed' : '';
   const actionsDisabled = reviewRevealed ? '' : 'disabled';
   const back2 = reviewIndex + 2 < total ? '<div class="review-card back-2"></div>' : '';
@@ -478,24 +473,24 @@ function renderReviewSession() {
         ${back1}
         <div class="review-card front" id="reviewFrontCard" data-action="review-card-tap">
           ${pill}
-          <div class="review-card-word">${safeWord}</div>
+          ${data ? `<div class="review-card-word">${safeWord}</div>` : ''}
           ${safeType ? `<div class="review-card-type">${safeType}</div>` : ''}
-          <div class="review-card-task">${escapeHtml(review.prompt)}</div>
-          ${contextLine ? `<div class="review-context-partner"><span>Other person</span><p>${escapeHtml(contextLine)}</p></div>
-            <div class="review-context-question">What would you say in Dutch?</div>` : ''}
-          <button class="tts-btn review-tts-btn" data-action="review-tts" data-word="${safeWord.replace(/"/g, '&quot;')}" title="Uitspraak beluisteren">🔊</button>
-          <div class="review-card-hint" id="reviewCardHint" ${reviewRevealed ? 'hidden' : ''}>${review.kind === 'meaning' ? 'tik om te onthullen' : 'probeer eerst zelf · tik voor een voorbeeld'}</div>
+          <div class="review-card-task">${escapeHtml(expression?.situation ?? review?.prompt ?? '')}</div>
+          ${contextLine ? `<div class="review-context-partner"><span>Other person</span><p>${escapeHtml(contextLine)}</p></div>` : ''}
+          ${contextLine || expression ? '<div class="review-context-question">What would you say in Dutch?</div>' : ''}
+          ${data ? `<button class="tts-btn review-tts-btn" data-action="review-tts" data-word="${safeWord}" title="Uitspraak beluisteren">🔊</button>` : ''}
+          <div class="review-card-hint" id="reviewCardHint" ${reviewRevealed ? 'hidden' : ''}>${meaningPrompt ? 'tik om te onthullen' : 'probeer eerst zelf · tik voor een voorbeeld'}</div>
           <div class="review-card-answer ${revealedClass}" id="reviewCardAnswer">
             <div class="answer-nl">${meaningNl}</div>
             ${meaningEn ? `<div class="answer-en">${meaningEn}</div>` : ''}
-            ${review.usage && !contextLine ? `<div class="use-frame">${escapeHtml(review.usage.frame)}</div>` : ''}
-            ${review.usage || contextLine ? '<div class="example-en">One possible answer — other natural replies can also be correct.</div>' : ''}
+            ${review?.usage && !contextLine ? `<div class="use-frame">${escapeHtml(review.usage.frame)}</div>` : ''}
+            ${review?.usage || contextLine || expression ? '<div class="example-en">One possible answer — other natural replies can also be correct.</div>' : ''}
           </div>
         </div>
       </div>
       <div class="review-actions">
         <button class="review-btn-again" id="reviewBtnAgain" data-action="grade-review" data-known="false" ${actionsDisabled}>Opnieuw</button>
-        <button class="review-btn-know" id="reviewBtnKnow" data-action="grade-review" data-known="true" ${actionsDisabled}>${review.kind === 'meaning' ? 'Wist ik!' : 'Dat lukte!'}</button>
+        <button class="review-btn-know" id="reviewBtnKnow" data-action="grade-review" data-known="true" ${actionsDisabled}>${meaningPrompt ? 'Wist ik!' : 'Dat lukte!'}</button>
       </div>
     </div>
   `;
@@ -534,22 +529,21 @@ function attachReviewCardSwipe() {
     const rot = dx / 20;
     card.style.transform = `translateX(${dx}px) rotate(${rot}deg)`;
   });
-  const commitOrReset = () => {
+  const commitOrReset = (event: PointerEvent) => {
     if (!dragging) return;
     dragging = false;
-    if (!reviewRevealed) { reset(); return; }
-    const threshold = 80;
-    if (dx > threshold) {
-      card.classList.add('swipe-anim');
-      card.style.transform = 'translateX(120%) rotate(20deg)';
-      setTimeout(() => gradeAndAdvance(true), 200);
-    } else if (dx < -threshold) {
-      card.classList.add('swipe-anim');
-      card.style.transform = 'translateX(-120%) rotate(-20deg)';
-      setTimeout(() => gradeAndAdvance(false), 200);
-    } else {
+    if (event.type === 'pointercancel' || !reviewRevealed || Math.abs(dx) <= 80) {
       reset();
+      return;
     }
+    const known = dx > 0;
+    card.classList.add('swipe-anim');
+    card.style.transform = known ? 'translateX(120%) rotate(20deg)' : 'translateX(-120%) rotate(-20deg)';
+    setTimeout(() => {
+      if (document.getElementById('reviewFrontCard') !== card) return;
+      gradeAndAdvance(known);
+      if (card.isConnected) reset();
+    }, 200);
   };
   card.addEventListener('pointerup', commitOrReset);
   card.addEventListener('pointercancel', commitOrReset);
@@ -573,13 +567,19 @@ function gradeAndAdvance(known: boolean) {
   if (!reviewSessionActive || !reviewRevealed) return;
   const item = reviewQueue[reviewIndex];
   if (!item) return;
-  const word = item.entry.word;
-  if (known) { reviewResults.know++; updateWordStats(word, 'review'); }
-  else { reviewResults.again++; updateWordStats(word, 'review_again'); }
-  if (currentReviewPrompt?.usage) recordWordAttempt({ id: crypto.randomUUID(), at: Date.now(), word,
-    chunk: currentReviewPrompt.usage.chunk, outcome: known ? 'self-reviewed' : 'needs-practice', source: 'review' });
+  if (item.kind === 'expression') {
+    try { gradeExpression(learningOwner(), item.id, known); }
+    catch { showToast('Kon de herhaling niet opslaan. Probeer opnieuw.'); return; }
+  } else {
+    const word = item.id;
+    updateWordStats(word, known ? 'review' : 'review_again');
+    if (currentReviewPrompt?.usage) recordWordAttempt({ id: crypto.randomUUID(), at: Date.now(), word,
+      chunk: currentReviewPrompt.usage.chunk, outcome: known ? 'self-reviewed' : 'needs-practice', source: 'review' });
+  }
+  if (known) reviewResults.know++;
+  else reviewResults.again++;
   updateReviewBadge();
-  renderHistory();
+  if (item.kind === 'word') renderHistory();
   reviewIndex++;
   currentReviewPrompt = null;
   reviewRevealed = false;
@@ -594,13 +594,13 @@ function renderReviewSummary() {
   const lines: string[] = [];
   if (know > 0) lines.push(`<div class="review-summary-stat">🌳 ${know} wist je</div>`);
   if (again > 0) lines.push(`<div class="review-summary-stat">🥀 ${again} opnieuw</div>`);
-  if (lines.length === 0) lines.push('<div class="review-summary-stat">Geen woorden beoordeeld</div>');
+  if (lines.length === 0) lines.push('<div class="review-summary-stat">Geen kaarten beoordeeld</div>');
   root.innerHTML = `
     <div class="review-summary">
       <div class="review-summary-emoji">🌳</div>
       <div class="review-summary-title">Klaar!</div>
       ${lines.join('')}
-      <button class="review-summary-btn" data-action="end-review">Tot morgen</button>
+      <button class="review-summary-btn" data-action="end-review">Naar Herhalen</button>
     </div>
   `;
 }
@@ -645,10 +645,11 @@ function handleRoute() {
   else { stopRealtimeEncounter(); showPracticePicker(); }
   if (isReview) {
     renderReviewRoute();
-    if (hash === '#review?daily-chat') window.scrollTo?.(0, 0);
+    window.scrollTo?.(0, 0);
   } else resetReviewSessionIfActive();
 }
 window.addEventListener('hashchange', handleRoute);
+window.addEventListener('poortaal:expression-saved', updateReviewBadge);
 window.addEventListener('pagehide', () => leaveDailyChat());
 window.addEventListener('pageshow', () => {
   if (window.location.hash.split('?')[0] === '#daily-chat') showDailyChat(API_BASE);
@@ -723,18 +724,38 @@ function getPlantStage(word: string): PlantStage {
   const stats = getWordStats()[word.toLowerCase().trim()]; if (!stats) return { emoji: '🌱', label: 'Zaaisel', key: 'seed', hint: '' }; const level = stats.level || 0; const lastSeen = stats.lastSeen || 0; const nextInterval = getNextInterval(level); const today = startOfDay(Date.now()); const dueDay = startOfDay(lastSeen + nextInterval * 86400000); const overdueDays = Math.max(0, Math.round((today - dueDay) / 86400000)); const daysLeft = Math.max(0, Math.round((dueDay - today) / 86400000)); const overdue = dueDay < today; const dueTodayHint = 'Herhaal vandaag!';
   if (overdue && level < 4) return { emoji: '🥀', label: 'Verwelkt', key: 'wilting', hint: `${overdueDays}d te laat` }; if (level >= 4) return { emoji: '🌳', label: 'Sterk', key: 'strong', hint: 'Goed gedaan!' }; if (level >= 3) return { emoji: '🪴', label: 'Groeiend', key: 'growing', hint: daysLeft === 0 ? dueTodayHint : `${daysLeft}d tot herhaling` }; if (level >= 1) return { emoji: '🌿', label: 'Kiempje', key: 'sprout', hint: daysLeft === 0 ? dueTodayHint : `${daysLeft}d tot herhaling` }; const hasPracticed = stats.practices > 0 || stats.reviews.length > 0; const seedHint = hasPracticed ? (daysLeft > 0 ? `${daysLeft}d tot herhaling` : dueTodayHint) : 'Oefen om te groeien'; return { emoji: '🌱', label: 'Zaaisel', key: 'seed', hint: seedHint };
 }
-function getDueWords(): ReviewItem[] {
+function getDueWords(): WordReviewItem[] {
   const stats = getWordStats(); const today = startOfDay(Date.now());
   return searchHistory.filter(entry => entry.wordData).map(entry => {
     const s: Partial<WordStats> = stats[entry.word] || {}; const level = s.level || 0;
     const dueDay = startOfDay((s.lastSeen || 0) + getNextInterval(level) * 86400000);
     const data = getCachedWord(entry.word) || entry.wordData!;
     const usageDue = needsUsageReview(data, getWordAttempts(entry.word));
-    return { entry, stats: s, level, isDue: usageDue || (dueDay <= today && level < 4),
+    return { kind: 'word' as const, id: entry.word, entry, stats: s, level, isDue: usageDue || (dueDay <= today && level < 4),
       isWilting: dueDay < today && level < 4, overdueDays: Math.max(0, Math.round((today - dueDay) / 86400000)) };
   }).filter(x => x.isDue).sort((a, b) => b.overdueDays - a.overdueDays);
 }
-function updateReviewBadge() { const badge = document.getElementById('navReviewBadge'); if (!badge) return; const due = getDueWords(); badge.hidden = due.length === 0; badge.textContent = String(due.length); }
+function getDueReviewItems(): ReviewItem[] {
+  const words = getDueWords();
+  const now = Date.now();
+  const expressions = readExpressions(learningOwner())
+    .filter(item => item.dueAt <= now)
+    .sort((a, b) => a.dueAt - b.dueAt)
+    .map(item => ({ ...item, kind: 'expression' as const }));
+  const queue: ReviewItem[] = [];
+  for (const [index, word] of words.entries()) {
+    queue.push(word);
+    if (index < expressions.length) queue.push(expressions[index]);
+  }
+  return queue.concat(expressions.slice(words.length));
+}
+function updateReviewBadge() {
+  const badge = document.getElementById('navReviewBadge');
+  if (!badge) return;
+  const count = getDueReviewItems().length;
+  badge.hidden = count === 0;
+  badge.textContent = String(count);
+}
 function renderHistory() {
   const list = document.getElementById('historyList'); const summaryEl = document.getElementById('historySummary'); if (searchHistory.length === 0) { list.innerHTML = '<div class="history-empty">Nog geen woorden opgezocht</div>'; summaryEl.innerHTML = ''; return; }
   const counts: Record<PlantStageKey, number> = { strong: 0, growing: 0, sprout: 0, seed: 0, wilting: 0 };
