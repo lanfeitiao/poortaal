@@ -3,6 +3,8 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { parseHTML } from 'linkedom';
 import { build } from 'vite';
+import { practiceUsage } from './structured-fixtures.ts';
+import { liveFixture } from './structured-live-fixture.ts';
 
 test('Review continues with card ten and then thirteen after two cloud updates', async t => {
   const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
@@ -115,4 +117,48 @@ test('Review continues with card ten and then thirteen after two cloud updates',
   click('[data-action="end-review"]');
   assert.ok(!storage.has('poortaal_review_session:learner'));
   await new Promise(setImmediate);
+});
+
+test('Review plays the complete example sentence and keeps the current card', async t => {
+  const f = await liveFixture(t);
+  const speech: Record<string, string>[] = [];
+  let played = false;
+  t.mock.method(globalThis, 'fetch', async url => {
+    const { pathname, searchParams } = new URL(String(url));
+    speech.push({ path: pathname, ...Object.fromEntries(searchParams) });
+    return new Response('audio', { headers: { 'Content-Type': 'audio/mpeg' } });
+  });
+  Object.defineProperty(globalThis, 'Audio', { configurable: true, value: class {
+    onended?: () => void;
+    async play() { played = true; this.onended?.(); }
+  } });
+  t.after(() => Reflect.deleteProperty(globalThis, 'Audio'));
+  f.storage.set('poortaal_word_stats', JSON.stringify({ afspraak: { level: 1, lastSeen: 1, reviews: [1] } }));
+  (f.events.location as { hash: string }).hash = '#review';
+  f.events.dispatchEvent(new Event('hashchange'));
+  await f.wait(() => Boolean(f.document.querySelector('[data-action="start-review"]')));
+  f.click('[data-action="start-review"]');
+  const answer = f.document.getElementById('reviewCardAnswer')!;
+  assert.ok(!answer.classList.contains('revealed'));
+  f.click('#reviewFrontCard');
+  assert.equal(answer.querySelector('.review-example span')?.textContent, practiceUsage.example_nl);
+  assert.ok(!answer.textContent?.includes('One possible answer'));
+
+  const card = f.document.getElementById('reviewFrontCard')!;
+  let captured = false;
+  card.setPointerCapture = () => { captured = true; };
+  const speaker = answer.querySelector<HTMLButtonElement>('.review-example button')!;
+  speaker.dispatchEvent(new f.document.defaultView!.Event('pointerdown', { bubbles: true }));
+  assert.equal(captured, false);
+  Object.defineProperty(f.document, 'activeElement', { value: speaker });
+  for (const key of ['Enter', ' ']) {
+    const activate = Object.assign(new Event('keydown', { cancelable: true }), { key });
+    f.events.dispatchEvent(activate);
+    assert.equal(activate.defaultPrevented, false);
+  }
+  speaker.click();
+  await f.wait(() => played);
+  assert.deepEqual(speech, [{ path: '/tts', q: practiceUsage.example_nl, tl: 'nl' }]);
+  assert.ok(answer.classList.contains('revealed'));
+  assert.equal(f.document.getElementById('reviewFrontCard'), card);
 });
