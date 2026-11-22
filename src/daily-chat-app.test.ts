@@ -15,7 +15,7 @@ test('Daily Chat credits a partner expression to Poortaal', async t => {
   assert.ok(!panel.textContent?.includes('You said'));
 });
 
-test('Daily Chat can retry feedback, save individual cards and open recall with word review paused', async t => {
+test('Daily Chat can retry feedback, save individual cards and resume Review', async t => {
   const f = await liveFixture(t);
   const quote = 'Mag mijn dochter ook mee komen?';
   const dutch = 'Mag mijn dochter ook meekomen?';
@@ -97,27 +97,59 @@ test('Daily Chat can retry feedback, save individual cards and open recall with 
   assert.equal(button(first, 'Saved to Review')?.disabled, true);
   assert.equal(button(second, 'Save to Review')?.disabled, false);
   assert.deepEqual(saved(), [dutch]);
+  const badge = f.document.getElementById('navReviewBadge')!;
+  assert.equal(badge.textContent, '2');
   button('#dailyChatBody', 'Analyze again')!.click();
   await f.wait(() => Boolean(button(first, 'Saved to Review')));
   assert.equal(analysis, 4);
   assert.equal(connections, 2);
   button(second, 'Save to Review')!.click();
   assert.deepEqual(saved(), [dutch, secondDutch]);
+  assert.equal(badge.textContent, '3');
   const reviewLink = f.document.querySelector(`${first} a`)!;
-  assert.equal(reviewLink.textContent, 'Open Daily Chat review');
+  assert.equal(reviewLink.textContent, 'Open Review');
+  assert.equal(reviewLink.getAttribute('href'), '#review');
   navigate(reviewLink.getAttribute('href')!);
-  assert.equal(f.document.getElementById('reviewSessionSection')?.style.display, 'none');
-  const review = f.document.getElementById('reviewHomeSection')!;
-  assert.ok(review.textContent?.includes(situation));
-  assert.ok(!review.textContent?.includes(dutch));
-  button('#reviewHomeSection', 'Reveal a possible reply')!.click();
-  assert.ok(review.textContent?.includes(dutch));
-  button('#reviewHomeSection', 'Got it')!.click();
-  button('#reviewHomeSection', 'Reveal a possible reply')!.click();
-  assert.ok(review.textContent?.includes(secondDutch));
-  button('#reviewHomeSection', 'Again')!.click();
-  assert.ok(review.textContent?.includes('No expressions due right now.'));
-  navigate('#review');
   assert.ok(f.document.getElementById('reviewCardAnswer')?.classList.contains('revealed'));
   assert.equal(f.storage.get('poortaal_review_session:guest'), checkpoint);
+
+  f.events.confirm = () => true;
+  f.click('[data-action="exit-review"]');
+  assert.equal(f.document.querySelector('.review-count-num')?.textContent, '3');
+  f.click('[data-action="start-review"]');
+  assert.equal(f.document.querySelector('.review-progress-text')?.textContent, '1 / 3');
+  assert.equal(f.document.querySelector('.review-card-word')?.textContent, 'afspraak');
+  f.click('#reviewFrontCard');
+  f.click('#reviewBtnKnow');
+
+  assert.equal(f.document.querySelector('.review-progress-text')?.textContent, '2 / 3');
+  assert.equal(f.document.querySelector('.review-card-task')?.textContent, situation);
+  assert.ok(!f.document.getElementById('reviewCardAnswer')?.classList.contains('revealed'));
+  assert.ok(f.document.getElementById('reviewBtnKnow')?.hasAttribute('disabled'));
+  f.click('#reviewFrontCard');
+  assert.equal(f.document.querySelector('#reviewCardAnswer.revealed .answer-nl')?.textContent, dutch);
+  assert.equal(f.document.querySelector('#reviewCardAnswer .answer-en')?.textContent, 'Write meekomen as one word here.');
+  f.click('#reviewBtnKnow');
+  assert.equal(f.document.querySelector('.review-progress-text')?.textContent, '3 / 3');
+  f.click('#reviewFrontCard');
+  assert.equal(f.document.querySelector('#reviewCardAnswer.revealed .answer-nl')?.textContent, secondDutch);
+  f.click('#reviewBtnAgain');
+
+  assert.deepEqual([...f.document.querySelectorAll('.review-summary-stat')].map(stat => stat.textContent),
+    ['🌳 2 wist je', '🥀 1 opnieuw']);
+  const expressions = JSON.parse(f.storage.get('poortaal_daily_chat_review:guest')!);
+  assert.equal(expressions[0].level, 1);
+  assert.equal(expressions[1].level, 0);
+  assert.ok(expressions.every((item: { dueAt: number }) => item.dueAt > Date.now()));
+  assert.ok(badge.hidden);
+  f.click('[data-action="end-review"]');
+  assert.equal(f.document.querySelector('.review-empty-title')?.textContent, 'Alles fris voor vandaag');
+
+  expressions[1].dueAt = 0;
+  f.storage.set('poortaal_daily_chat_review:guest', JSON.stringify(expressions));
+  navigate('#review?daily-chat');
+  assert.equal(f.document.querySelector('.review-count-num')?.textContent, '1');
+  f.click('[data-action="start-review"]');
+  assert.equal(f.document.querySelector('.review-progress-text')?.textContent, '1 / 1');
+  assert.equal(f.document.querySelector('.review-card-task')?.textContent, expressions[1].card.situation);
 });
