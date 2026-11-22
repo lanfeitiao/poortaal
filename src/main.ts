@@ -62,10 +62,6 @@ function handleActionClick(event: MouseEvent) {
     case 'review-card-tap':
       onReviewCardTap();
       break;
-    case 'review-tts':
-      event.stopPropagation();
-      void playExTTS(target, word || '');
-      break;
     case 'grade-review':
       gradeAndAdvance(booleanData(target.dataset.known));
       break;
@@ -144,11 +140,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.addEventListener('click', handleActionClick);
-
-  document.addEventListener('pointerdown', event => {
-    const target = (event.target as HTMLElement | null)?.closest<HTMLElement>('[data-action="review-tts"]');
-    if (target) event.stopPropagation();
-  }, true);
 });
 
 window.dispatchEvent(new Event('poortaal:booted'));

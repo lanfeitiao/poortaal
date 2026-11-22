@@ -430,6 +430,12 @@ function startReviewSession() {
   renderReviewSession();
 }
 
+function renderReviewExample(sentence: string) {
+  const text = escapeHtml(sentence);
+  return `<div class="example-nl review-example"><span class="answer-nl" lang="nl">${text}</span>
+    <button type="button" class="ex-tts-btn" data-action="play-example-tts" data-text="${text}" aria-label="Voorbeeldzin beluisteren" title="Voorbeeldzin beluisteren">🔊</button></div>`;
+}
+
 function renderReviewSession() {
   const root = document.getElementById('reviewSessionSection');
   if (!root) return;
@@ -451,8 +457,10 @@ function renderReviewSession() {
   const pill = item.kind === 'word' && item.isWilting
     ? `<span class="review-stage-pill">🥀 ${item.overdueDays}d te laat</span>`
     : `<span class="review-stage-pill fresh">${expression ? 'Daily Chat' : '🌿 vandaag'}</span>`;
-  const meaningNl = escapeHtml(expression?.dutch ?? review?.nl ?? '');
-  const meaningEn = escapeHtml(expression?.explanation ?? review?.en ?? '');
+  const answerNl = expression?.dutch ?? review?.nl ?? '';
+  const answerEn = escapeHtml(expression?.explanation ?? review?.en ?? '');
+  const sentenceAnswer = Boolean(expression) || review?.kind === 'context' || review?.kind === 'output';
+  const example = review?.kind === 'chunk' ? review.usage?.example_nl : '';
   const safeWord = escapeHtml(item.kind === 'word' ? item.id : '');
   const safeType = escapeHtml(data?.type || '');
   const contextLine = review && 'openingLine' in review ? review.openingLine : null;
@@ -478,13 +486,12 @@ function renderReviewSession() {
           <div class="review-card-task">${escapeHtml(expression?.situation ?? review?.prompt ?? '')}</div>
           ${contextLine ? `<div class="review-context-partner"><span>Other person</span><p>${escapeHtml(contextLine)}</p></div>` : ''}
           ${contextLine || expression ? '<div class="review-context-question">What would you say in Dutch?</div>' : ''}
-          ${data ? `<button class="tts-btn review-tts-btn" data-action="review-tts" data-word="${safeWord}" title="Uitspraak beluisteren">🔊</button>` : ''}
+          ${data ? `<button type="button" class="tts-btn review-tts-btn" data-action="play-example-tts" data-text="${safeWord}" aria-label="Woord beluisteren" title="Uitspraak beluisteren">🔊</button>` : ''}
           <div class="review-card-hint" id="reviewCardHint" ${reviewRevealed ? 'hidden' : ''}>${meaningPrompt ? 'tik om te onthullen' : 'probeer eerst zelf · tik voor een voorbeeld'}</div>
           <div class="review-card-answer ${revealedClass}" id="reviewCardAnswer">
-            <div class="answer-nl">${meaningNl}</div>
-            ${meaningEn ? `<div class="answer-en">${meaningEn}</div>` : ''}
-            ${review?.usage && !contextLine ? `<div class="use-frame">${escapeHtml(review.usage.frame)}</div>` : ''}
-            ${review?.usage || contextLine || expression ? '<div class="example-en">One possible answer — other natural replies can also be correct.</div>' : ''}
+            ${sentenceAnswer ? renderReviewExample(answerNl) : `<div class="answer-nl" lang="nl">${escapeHtml(answerNl)}</div>`}
+            ${answerEn ? `<div class="answer-en">${answerEn}</div>` : ''}
+            ${example ? `<div class="use-frame">${renderReviewExample(example)}</div>` : ''}
           </div>
         </div>
       </div>
@@ -507,7 +514,7 @@ function attachReviewCardSwipe() {
     setTimeout(() => card.classList.remove('swipe-anim'), 200);
   };
   card.addEventListener('pointerdown', e => {
-    if (!reviewRevealed) return;
+    if (!reviewRevealed || (e.target as Element | null)?.closest('button')) return;
     startX = e.clientX;
     startY = e.clientY;
     dx = 0;
@@ -549,7 +556,6 @@ function attachReviewCardSwipe() {
   card.addEventListener('pointercancel', commitOrReset);
 }
 
-function onReviewTTS(e: Event, btn: HTMLElement) { e.stopPropagation(); playExTTS(btn, btn.dataset.word || ''); }
 function onReviewCardTap() {
   if (!reviewSessionActive || reviewRevealed) return;
   reviewRevealed = true;
@@ -695,10 +701,18 @@ document.addEventListener('DOMContentLoaded', () => {
   handleRoute(); window.addEventListener('keydown', onReviewKeydown);
 });
 function onReviewKeydown(e: KeyboardEvent) {
-  if (!reviewSessionActive) return; const tag = (document.activeElement && document.activeElement.tagName) || ''; if (tag === 'INPUT' || tag === 'TEXTAREA') return; if (reviewIndex >= reviewQueue.length) return;
-  if (e.key === ' ' || e.code === 'Space') { e.preventDefault(); onReviewCardTap(); }
-  else if (e.key === 'Enter' || e.key === 'ArrowRight') { if (!reviewRevealed) return; e.preventDefault(); gradeAndAdvance(true); }
-  else if (e.key === 'ArrowLeft') { if (!reviewRevealed) return; e.preventDefault(); gradeAndAdvance(false); }
+  if (!reviewSessionActive || reviewIndex >= reviewQueue.length) return;
+  const focused = document.activeElement;
+  if (focused?.matches('input, textarea')) return;
+  const revealKey = e.key === ' ' || e.code === 'Space';
+  if ((revealKey || e.key === 'Enter') && focused?.closest('#reviewFrontCard button')) return;
+  if (revealKey) {
+    e.preventDefault();
+    onReviewCardTap();
+  } else if (reviewRevealed && ['Enter', 'ArrowRight', 'ArrowLeft'].includes(e.key)) {
+    e.preventDefault();
+    gradeAndAdvance(e.key !== 'ArrowLeft');
+  }
 }
 
 // --- TTS ---
