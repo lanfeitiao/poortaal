@@ -140,7 +140,10 @@ test('Review plays the complete example sentence and keeps the current card', as
   f.click('[data-action="start-review"]');
   const answer = f.document.getElementById('reviewCardAnswer')!;
   assert.ok(!answer.classList.contains('revealed'));
+  assert.equal(f.document.querySelector('.review-card-task')?.textContent,
+    `How would you say this in Dutch? “${practiceUsage.example_en}”`);
   f.click('#reviewFrontCard');
+  assert.equal(answer.querySelectorAll('.review-example').length, 1);
   assert.equal(answer.querySelector('.review-example span')?.textContent, practiceUsage.example_nl);
   assert.ok(!answer.textContent?.includes('One possible answer'));
 

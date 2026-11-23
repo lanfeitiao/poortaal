@@ -460,7 +460,6 @@ function renderReviewSession() {
   const answerNl = expression?.dutch ?? review?.nl ?? '';
   const answerEn = escapeHtml(expression?.explanation ?? review?.en ?? '');
   const sentenceAnswer = Boolean(expression) || review?.kind === 'context' || review?.kind === 'output';
-  const example = review?.kind === 'chunk' ? review.usage?.example_nl : '';
   const safeWord = escapeHtml(item.kind === 'word' ? item.id : '');
   const safeType = escapeHtml(data?.type || '');
   const contextLine = review && 'openingLine' in review ? review.openingLine : null;
@@ -491,7 +490,6 @@ function renderReviewSession() {
           <div class="review-card-answer ${revealedClass}" id="reviewCardAnswer">
             ${sentenceAnswer ? renderReviewExample(answerNl) : `<div class="answer-nl" lang="nl">${escapeHtml(answerNl)}</div>`}
             ${answerEn ? `<div class="answer-en">${answerEn}</div>` : ''}
-            ${example ? `<div class="use-frame">${renderReviewExample(example)}</div>` : ''}
           </div>
         </div>
       </div>

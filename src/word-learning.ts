@@ -76,25 +76,18 @@ export function wordReview(data: WordExplanation, level: number, reviews: number
   const lesson = allowContext ? readLearningScene(data.scene, data) : undefined;
   const recalled = lesson && (!use || lesson.usage === usageKey(use.chunk))
     ? lesson.moment.transfer : undefined;
-  const contextReview = () => recalled && ({
-    kind: 'context' as const,
-    prompt: recalled.situation,
-    openingLine: recalled.openingLine,
-    nl: recalled.example,
-    en: '',
-    ...(use ? { usage: use } : {}),
-  });
-  if ((!use && (!recalled || level === 0 || reviews % 3 === 0))
-    || (use && !pending && (level === 0 || reviews % 3 === 0))) {
-    return { kind: 'meaning', prompt: 'Wat betekent dit woord?', nl: data.meaning_nl, en: data.meaning_en };
+  const meaningDue = !pending && (level === 0 || reviews % 3 === 0);
+  if (recalled && !meaningDue && (!use || pending || level !== 1)) {
+    return {
+      kind: 'context' as const, prompt: recalled.situation, openingLine: recalled.openingLine,
+      nl: recalled.example, en: '', ...(use ? { usage: use } : {}),
+    };
   }
-  if (use && !pending && level === 1) {
-    return { kind: 'chunk', usage: use, prompt: `Hoe zeg je: ${use.meaning_en}?`, nl: use.chunk, en: use.meaning_en };
+  if (!use || meaningDue) {
+    return { kind: 'meaning' as const, prompt: 'Wat betekent dit woord?', nl: data.meaning_nl, en: data.meaning_en };
   }
-  // At review time, vary the lesson context rather than copying its original reply.
-  // Without a valid matching scene, keep the existing translation/meaning review.
-  const transfer = contextReview();
-  if (transfer) return transfer;
-  if (!use) return { kind: 'meaning', prompt: 'Wat betekent dit woord?', nl: data.meaning_nl, en: data.meaning_en };
-  return { kind: 'output', usage: use, prompt: `How would you say this in Dutch? “${use.example_en}”`, nl: use.example_nl, en: use.example_en };
+  return {
+    kind: 'output' as const, usage: use, prompt: `How would you say this in Dutch? “${use.example_en}”`,
+    nl: use.example_nl, en: use.note ?? '',
+  };
 }
