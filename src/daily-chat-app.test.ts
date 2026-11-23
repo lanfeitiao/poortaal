@@ -19,8 +19,9 @@ test('Daily Chat can retry feedback, save individual cards and resume Review', a
   const f = await liveFixture(t);
   const quote = 'Mag mijn dochter ook mee komen?';
   const dutch = 'Mag mijn dochter ook meekomen?';
-  const situation = 'Ask a parent if your son can come to the picnic.';
-  const secondDutch = 'Dat komt helemaal goed.';
+  const english = 'Can my daughter come along too?';
+  const secondDutch = 'Mijn zoon vroeg waar zijn knuffel is.';
+  const oldPrompt = 'Fill in the missing word. “Mijn zoon vroeg … zijn knuffel is.”';
   let connections = 0, analysis = 0;
   t.mock.method(globalThis, 'fetch', async (url, init) => {
     if (String(url).endsWith('/live-session')) {
@@ -32,9 +33,9 @@ test('Daily Chat can retry feedback, save individual cards and resume Review', a
     assert.ok(String(url).endsWith('/openai'));
     const turns = JSON.parse(JSON.parse(init!.body as string).messages[1].content);
     assert.ok(turns.some((turn: { role: string; content: string }) => turn.role === 'user' && turn.content === quote));
-    const feedback = { kind: 'correction', quote, dutch, situation, explanation: 'Write meekomen as one word here.' };
+    const feedback = { kind: 'correction', quote, dutch, english, explanation: 'Write meekomen as one word here.' };
     const second = { kind: 'useful', speaker: 'partner', quote: secondDutch, dutch: secondDutch,
-      explanation: 'Reassure someone.', situation: 'Tell someone that the arrangements will work out.' };
+      explanation: 'Use vroeg waar to report a question.', situation: 'Explain that your child asked about a missing lunchbox.' };
     const response = ++analysis <= 2 ? [{ ...feedback, quote: 'Not in this conversation' }] : [feedback, second];
     return Response.json({ choices: [{ message: { content: JSON.stringify(response) } }] });
   });
@@ -123,7 +124,7 @@ test('Daily Chat can retry feedback, save individual cards and resume Review', a
   f.click('#reviewBtnKnow');
 
   assert.equal(f.document.querySelector('.review-progress-text')?.textContent, '2 / 3');
-  assert.equal(f.document.querySelector('.review-card-task')?.textContent, situation);
+  assert.equal(f.document.querySelector('.review-card-task')?.textContent, `How would you say this in Dutch? “${english}”`);
   assert.ok(!f.document.getElementById('reviewCardAnswer')?.classList.contains('revealed'));
   assert.ok(f.document.getElementById('reviewBtnKnow')?.hasAttribute('disabled'));
   f.click('#reviewFrontCard');
@@ -131,8 +132,11 @@ test('Daily Chat can retry feedback, save individual cards and resume Review', a
   assert.equal(f.document.querySelector('#reviewCardAnswer .answer-en')?.textContent, 'Write meekomen as one word here.');
   f.click('#reviewBtnKnow');
   assert.equal(f.document.querySelector('.review-progress-text')?.textContent, '3 / 3');
+  assert.equal(f.document.querySelector('.review-card-task')?.textContent, oldPrompt);
+  assert.ok(!f.document.getElementById('reviewCardAnswer')?.classList.contains('revealed'));
   f.click('#reviewFrontCard');
   assert.equal(f.document.querySelector('#reviewCardAnswer.revealed .answer-nl')?.textContent, secondDutch);
+  assert.equal(f.document.querySelector('#reviewCardAnswer button')?.getAttribute('data-text'), secondDutch);
   f.click('#reviewBtnAgain');
 
   assert.deepEqual([...f.document.querySelectorAll('.review-summary-stat')].map(stat => stat.textContent),
@@ -151,5 +155,5 @@ test('Daily Chat can retry feedback, save individual cards and resume Review', a
   assert.equal(f.document.querySelector('.review-count-num')?.textContent, '1');
   f.click('[data-action="start-review"]');
   assert.equal(f.document.querySelector('.review-progress-text')?.textContent, '1 / 1');
-  assert.equal(f.document.querySelector('.review-card-task')?.textContent, expressions[1].card.situation);
+  assert.equal(f.document.querySelector('.review-card-task')?.textContent, oldPrompt);
 });

@@ -47,6 +47,13 @@ test('Daily Chat can shorten one grounded turn into multiple distinct cards', ()
   ]), []);
 });
 
+test('Daily Chat discards a cue that gives away the Dutch sentence', () => {
+  const [feedback] = validateDailyFeedback([{ ...card, english: `Say “${card.dutch}”` }], [
+    { role: 'user', content: card.quote },
+  ]);
+  assert.deepEqual(feedback, card);
+});
+
 test('unchanged learner wording cannot be presented as an improvement', () => {
   const quote = 'Ik vind dat fijn.';
   const unchanged = { ...card, quote, dutch: quote };

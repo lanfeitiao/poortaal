@@ -1,4 +1,5 @@
 import { gradeExpression, readExpressions, type SavedExpression } from './daily-chat-store';
+import { dailyReviewPrompt } from './daily-chat-feedback';
 import { advanceStreak, migrateLegacyStreak, readStreak, syncStreak, writeStreak } from './streak';
 import { leaveDailyChat, showDailyChat } from './daily-chat-view';
 import {
@@ -451,6 +452,7 @@ function renderReviewSession() {
   }
   const review = currentReviewPrompt;
   const expression = item.kind === 'expression' ? item.card : null;
+  const prompt = expression ? dailyReviewPrompt(expression) : review?.prompt ?? '';
   const meaningPrompt = review?.kind === 'meaning';
   const total = reviewQueue.length;
   const pct = Math.round((reviewIndex / total) * 100);
@@ -482,9 +484,9 @@ function renderReviewSession() {
           ${pill}
           ${data ? `<div class="review-card-word">${safeWord}</div>` : ''}
           ${safeType ? `<div class="review-card-type">${safeType}</div>` : ''}
-          <div class="review-card-task">${escapeHtml(expression?.situation ?? review?.prompt ?? '')}</div>
+          <div class="review-card-task">${escapeHtml(prompt)}</div>
           ${contextLine ? `<div class="review-context-partner"><span>Other person</span><p>${escapeHtml(contextLine)}</p></div>` : ''}
-          ${contextLine || expression ? '<div class="review-context-question">What would you say in Dutch?</div>' : ''}
+          ${contextLine ? '<div class="review-context-question">What would you say in Dutch?</div>' : ''}
           ${data ? `<button type="button" class="tts-btn review-tts-btn" data-action="play-example-tts" data-text="${safeWord}" aria-label="Woord beluisteren" title="Uitspraak beluisteren">🔊</button>` : ''}
           <div class="review-card-hint" id="reviewCardHint" ${reviewRevealed ? 'hidden' : ''}>${meaningPrompt ? 'tik om te onthullen' : 'probeer eerst zelf · tik voor een voorbeeld'}</div>
           <div class="review-card-answer ${revealedClass}" id="reviewCardAnswer">
