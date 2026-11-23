@@ -47,13 +47,16 @@ export function readDailyFeedback(value: unknown): DailyFeedback | null {
   };
 }
 
-export function dailyReviewPrompt(card: DailyFeedback): string {
-  if (card.english) return `How would you say this in Dutch? “${card.english}”`;
+export function dailyReviewText(card: DailyFeedback) {
+  if (card.english) {
+    const sameAsPrompt = comparableText(card.explanation) === comparableText(card.english);
+    return { prompt: `How would you say this in Dutch? “${card.english}”`, note: sameAsPrompt ? '' : card.explanation };
+  }
   // Older cards saved a separate situation that could change the details of the Dutch sentence.
   const words = [...card.dutch.matchAll(/[\p{L}\p{M}\p{N}]+(?:['’‐‑-][\p{L}\p{M}\p{N}]+)*/gu)];
   const word = words[Math.floor((words.length - 1) / 2)];
   const cue = word ? `${card.dutch.slice(0, word.index)}…${card.dutch.slice(word.index + word[0].length)}` : '…';
-  return `Fill in the missing word. “${cue}”`;
+  return { prompt: `Fill in the missing word. “${cue}”`, note: card.explanation };
 }
 
 export function validateDailyFeedback(value: unknown, turns: ChatTurn[]): DailyFeedback[] {

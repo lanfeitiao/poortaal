@@ -1,5 +1,5 @@
 import { gradeExpression, readExpressions, type SavedExpression } from './daily-chat-store';
-import { dailyReviewPrompt } from './daily-chat-feedback';
+import { dailyReviewText } from './daily-chat-feedback';
 import { advanceStreak, migrateLegacyStreak, readStreak, syncStreak, writeStreak } from './streak';
 import { leaveDailyChat, showDailyChat } from './daily-chat-view';
 import {
@@ -452,7 +452,8 @@ function renderReviewSession() {
   }
   const review = currentReviewPrompt;
   const expression = item.kind === 'expression' ? item.card : null;
-  const prompt = expression ? dailyReviewPrompt(expression) : review?.prompt ?? '';
+  const expressionText = expression && dailyReviewText(expression);
+  const prompt = expressionText?.prompt ?? review?.prompt ?? '';
   const meaningPrompt = review?.kind === 'meaning';
   const total = reviewQueue.length;
   const pct = Math.round((reviewIndex / total) * 100);
@@ -460,7 +461,7 @@ function renderReviewSession() {
     ? `<span class="review-stage-pill">🥀 ${item.overdueDays}d te laat</span>`
     : `<span class="review-stage-pill fresh">${expression ? 'Daily Chat' : '🌿 vandaag'}</span>`;
   const answerNl = expression?.dutch ?? review?.nl ?? '';
-  const answerEn = escapeHtml(expression?.explanation ?? review?.en ?? '');
+  const answerEn = escapeHtml(expressionText?.note ?? review?.en ?? '');
   const sentenceAnswer = Boolean(expression) || review?.kind === 'context' || review?.kind === 'output';
   const safeWord = escapeHtml(item.kind === 'word' ? item.id : '');
   const safeType = escapeHtml(data?.type || '');
