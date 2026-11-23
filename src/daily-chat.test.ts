@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { validateDailyFeedback, type DailyFeedback } from './daily-chat-feedback.ts';
+import { dailyReviewText, validateDailyFeedback, type DailyFeedback } from './daily-chat-feedback.ts';
 import { gradeExpression, readExpressions, saveExpression } from './daily-chat-store.ts';
 
 const card: DailyFeedback = {
@@ -45,6 +45,21 @@ test('Daily Chat can shorten one grounded turn into multiple distinct cards', ()
   assert.deepEqual(validateDailyFeedback([card], [
     { role: 'user', content: 'Mijn dochter' }, { role: 'user', content: 'ook mee komen?' },
   ]), []);
+});
+
+test('Daily Chat discards a cue that gives away the Dutch sentence', () => {
+  const [feedback] = validateDailyFeedback([{ ...card, english: `Say “${card.dutch}”` }], [
+    { role: 'user', content: card.quote },
+  ]);
+  assert.deepEqual(feedback, card);
+});
+
+test('Daily Chat shows a translation used as the review cue only once', () => {
+  const english = 'Can my daughter come along too?';
+  assert.deepEqual(dailyReviewText({ ...card, english, explanation: 'Can my daughter come along too' }), {
+    prompt: `How would you say this in Dutch? “${english}”`, note: '',
+  });
+  assert.equal(dailyReviewText({ ...card, english }).note, card.explanation);
 });
 
 test('unchanged learner wording cannot be presented as an improvement', () => {

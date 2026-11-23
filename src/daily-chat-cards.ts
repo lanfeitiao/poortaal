@@ -24,7 +24,7 @@ export function renderCards(panel: HTMLElement, cards: DailyFeedback[], owner: s
     line(panel, 'No clear expressions to review from this chat.');
     return;
   }
-  line(panel, 'Save any sentence to practise saying it in a new situation under Herhalen.').className = 'daily-chat-intro';
+  line(panel, 'Save any sentence to practise it later in Herhalen.').className = 'daily-chat-intro';
   const saved = new Set(readExpressions(owner).map(entry => expressionKey(entry.card.dutch)));
   for (const card of cards) {
     const item = line(panel, '', 'article'); item.className = 'card';

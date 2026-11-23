@@ -10,12 +10,13 @@ test('Daily Chat uses the Hoiland extraction model and retains a supplied Dutch 
   const card: DailyFeedback = {
     speaker: 'partner', kind: 'naturalness', quote: 'Mag mijn dochter ook meekomen?',
     dutch: 'Mag mijn dochter ook meekomen?', explanation: 'Ask permission with mag.',
-    situation: 'Ask whether your son can join the picnic.',
+    english: 'Can my daughter come along too?',
   };
   t.mock.method(globalThis, 'fetch', async (_url, init) => {
     const body = JSON.parse(init!.body as string);
     assert.equal(body.model, 'gpt-5.6-terra');
     assert.equal(body.reasoning_effort, 'low');
+    assert.match(body.messages[0].content, /English translation of the exact sentence in dutch/);
     assert.deepEqual(JSON.parse(body.messages[1].content), turns);
     return Response.json({ choices: [{ message: { content: JSON.stringify([card]) } }] });
   });

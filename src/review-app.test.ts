@@ -44,10 +44,11 @@ test('Review continues with card ten and then thirteen after two cloud updates',
   const code = output.find(chunk => chunk.type === 'chunk');
   assert.ok(code && 'code' in code);
   const appModule = `data:text/javascript;base64,${Buffer.from(code.code).toString('base64')}`;
+  const scrollTo = t.mock.fn();
 
   async function bootReview() {
     const { document, window: dom } = parseHTML(html);
-    const events = Object.assign(new EventTarget(), { location, supabase });
+    const events = Object.assign(new EventTarget(), { location, supabase, scrollTo });
     for (const [key, value] of Object.entries({ document, window: events, MutationObserver: dom.MutationObserver,
       CSS: { escape: (value: string) => value },
       localStorage: { getItem: (k: string) => storage.get(k) ?? null,
@@ -77,8 +78,11 @@ test('Review continues with card ten and then thirteen after two cloud updates',
     }
   };
   click('[data-action="start-review"]');
+  scrollTo.mock.resetCalls();
   gradeCards(1, 9);
   assertCard(10);
+  assert.equal(scrollTo.mock.callCount(), 9);
+  assert.deepEqual(scrollTo.mock.calls.at(-1)?.arguments, [0, 0]);
   // Let the writes finish before releasing a download that predates those grades.
   await new Promise(setImmediate);
   cloudHistory.resolve({ data: history.map(({ word, timestamp, wordData }) => ({ word, timestamp, word_data: wordData })), error: null });
@@ -140,7 +144,10 @@ test('Review plays the complete example sentence and keeps the current card', as
   f.click('[data-action="start-review"]');
   const answer = f.document.getElementById('reviewCardAnswer')!;
   assert.ok(!answer.classList.contains('revealed'));
+  assert.equal(f.document.querySelector('.review-card-task')?.textContent,
+    `How would you say this in Dutch? “${practiceUsage.example_en}”`);
   f.click('#reviewFrontCard');
+  assert.equal(answer.querySelectorAll('.review-example').length, 1);
   assert.equal(answer.querySelector('.review-example span')?.textContent, practiceUsage.example_nl);
   assert.ok(!answer.textContent?.includes('One possible answer'));
 

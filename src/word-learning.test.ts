@@ -13,12 +13,24 @@ test('words without attached uses keep their original meaning review', () => {
   assert.equal(wordReview({ ...word, usage: undefined }, 2, 4, []).kind, 'meaning');
   assert.equal(wordReview(word, 0, 0, []).kind, 'meaning');
 });
-test('familiar words move from collocation recall to a situation without separate entries', () => {
-  assert.equal(wordReview(word, 1, 1, []).kind, 'chunk');
-  const review = wordReview(word, 2, 2, []);
+test('sentence review keeps the selected word usage for grading', () => {
+  const review = wordReview(word, 1, 1, []);
   assert.equal(review.kind, 'output');
-  assert.equal(review.usage?.chunk, make.chunk);
-  assert.ok(review.prompt.includes(make.example_en));
+  assert.equal(review.usage?.chunk, move.chunk);
+  assert.ok(review.prompt.includes(move.example_en));
+});
+test('a saved pattern asks for its concrete example sentence', () => {
+  const use = {
+    ...make, kind: 'pattern' as const, chunk: 'het lukt [om] [iets] te [doen]',
+    meaning_en: 'This structure lets you communicate about achieving something.',
+    note: 'Use het lukt om before an action you manage to do.',
+    example_nl: 'Ik hoop dat het lukt om de kinderen op tijd naar school te brengen.',
+    example_en: 'I hope we can get the children to school on time.',
+  };
+  const review = wordReview({ ...word, word: 'lukt', usage: [use] }, 1, 1, []);
+  assert.equal(review.prompt, `How would you say this in Dutch? “${use.example_en}”`);
+  assert.equal(review.nl, use.example_nl);
+  assert.equal(review.en, use.note);
 });
 test('a weak use takes priority over a use already produced independently', () => {
   const history = [attempt('one', make.chunk, 'independent', 10), attempt('two', move.chunk, 'needs-practice', 20)];
@@ -38,7 +50,7 @@ test('review questions use the answer translation rather than a mismatched gener
   assert.ok(!review.prompt.includes('park') && !review.prompt.includes('snowing'));
   assert.ok(!review.prompt.includes(use.example_nl));
   assert.equal(review.nl, use.example_nl);
-  assert.equal(review.en, use.example_en);
+  assert.equal(review.en, '');
   assert.deepEqual(data, original);
 });
 test('self-graded review is not evidence of independent production', () => {
@@ -113,7 +125,7 @@ test('later review reuses saved changed-context question without immediately sho
     scenario: lessonScenario, moment: learningMoment };
   const data: WordExplanation = { ...word, usage: [practiceUsage], scene };
   assert.equal(wordReview(data, 0, 0, []).kind, 'meaning');
-  assert.equal(wordReview(data, 1, 1, []).kind, 'chunk');
+  assert.equal(wordReview(data, 1, 1, []).kind, 'output');
   const review = wordReview(data, 2, 2, []);
   assert.equal(review.kind, 'context');
   assert.equal(wordReview(data, 2, 2, [], false).kind, 'output', 'quick review keeps its short prompt');

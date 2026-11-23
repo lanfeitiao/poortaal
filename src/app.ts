@@ -1,4 +1,5 @@
 import { gradeExpression, readExpressions, type SavedExpression } from './daily-chat-store';
+import { dailyReviewText } from './daily-chat-feedback';
 import { advanceStreak, migrateLegacyStreak, readStreak, syncStreak, writeStreak } from './streak';
 import { leaveDailyChat, showDailyChat } from './daily-chat-view';
 import {
@@ -451,6 +452,8 @@ function renderReviewSession() {
   }
   const review = currentReviewPrompt;
   const expression = item.kind === 'expression' ? item.card : null;
+  const expressionText = expression && dailyReviewText(expression);
+  const prompt = expressionText?.prompt ?? review?.prompt ?? '';
   const meaningPrompt = review?.kind === 'meaning';
   const total = reviewQueue.length;
   const pct = Math.round((reviewIndex / total) * 100);
@@ -458,9 +461,8 @@ function renderReviewSession() {
     ? `<span class="review-stage-pill">🥀 ${item.overdueDays}d te laat</span>`
     : `<span class="review-stage-pill fresh">${expression ? 'Daily Chat' : '🌿 vandaag'}</span>`;
   const answerNl = expression?.dutch ?? review?.nl ?? '';
-  const answerEn = escapeHtml(expression?.explanation ?? review?.en ?? '');
+  const answerEn = escapeHtml(expressionText?.note ?? review?.en ?? '');
   const sentenceAnswer = Boolean(expression) || review?.kind === 'context' || review?.kind === 'output';
-  const example = review?.kind === 'chunk' ? review.usage?.example_nl : '';
   const safeWord = escapeHtml(item.kind === 'word' ? item.id : '');
   const safeType = escapeHtml(data?.type || '');
   const contextLine = review && 'openingLine' in review ? review.openingLine : null;
@@ -483,15 +485,14 @@ function renderReviewSession() {
           ${pill}
           ${data ? `<div class="review-card-word">${safeWord}</div>` : ''}
           ${safeType ? `<div class="review-card-type">${safeType}</div>` : ''}
-          <div class="review-card-task">${escapeHtml(expression?.situation ?? review?.prompt ?? '')}</div>
+          <div class="review-card-task">${escapeHtml(prompt)}</div>
           ${contextLine ? `<div class="review-context-partner"><span>Other person</span><p>${escapeHtml(contextLine)}</p></div>` : ''}
-          ${contextLine || expression ? '<div class="review-context-question">What would you say in Dutch?</div>' : ''}
+          ${contextLine ? '<div class="review-context-question">What would you say in Dutch?</div>' : ''}
           ${data ? `<button type="button" class="tts-btn review-tts-btn" data-action="play-example-tts" data-text="${safeWord}" aria-label="Woord beluisteren" title="Uitspraak beluisteren">🔊</button>` : ''}
           <div class="review-card-hint" id="reviewCardHint" ${reviewRevealed ? 'hidden' : ''}>${meaningPrompt ? 'tik om te onthullen' : 'probeer eerst zelf · tik voor een voorbeeld'}</div>
           <div class="review-card-answer ${revealedClass}" id="reviewCardAnswer">
             ${sentenceAnswer ? renderReviewExample(answerNl) : `<div class="answer-nl" lang="nl">${escapeHtml(answerNl)}</div>`}
             ${answerEn ? `<div class="answer-en">${answerEn}</div>` : ''}
-            ${example ? `<div class="use-frame">${renderReviewExample(example)}</div>` : ''}
           </div>
         </div>
       </div>
@@ -591,6 +592,7 @@ function gradeAndAdvance(known: boolean) {
   reviewRevealed = false;
   checkpointReviewSession();
   renderReviewSession();
+  window.scrollTo?.(0, 0);
 }
 function renderReviewSummary() {
   const root = document.getElementById('reviewSessionSection');
