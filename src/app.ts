@@ -591,6 +591,7 @@ function gradeAndAdvance(known: boolean) {
   reviewRevealed = false;
   checkpointReviewSession();
   renderReviewSession();
+  window.scrollTo?.(0, 0);
 }
 function renderReviewSummary() {
   const root = document.getElementById('reviewSessionSection');
