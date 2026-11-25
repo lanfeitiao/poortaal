@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { chooseWordUsage, mergeAttempts, needsUsageReview, wordReview, type UsageAttempt } from './word-learning.ts';
+import { chooseWordUsage, mergeAttempts, needsUsageReview, wordReviewContent, type UsageAttempt } from './word-learning.ts';
 import type { WordExplanation } from './word-explanation.ts';
 import { learningMoment, lessonScenario, practiceUsage } from './structured-fixtures.ts';
 
@@ -9,15 +9,19 @@ const move = { ...make, chunk: 'een afspraak verzetten', meaning_en: 'reschedule
 const word: WordExplanation = { word: 'afspraak', type: 'zelfstandig naamwoord', meaning_nl: 'Een afgesproken tijd.', meaning_en: 'appointment', examples: [{ nl: 'Ik heb een afspraak.', en: 'I have an appointment.' }, { nl: 'Mijn afspraak is morgen.', en: 'My appointment is tomorrow.' }], tips: 'Use maken.', fun_fact: null, usage: [make, move] };
 const attempt = (id: string, chunk: string, outcome: UsageAttempt['outcome'], at: number, source: UsageAttempt['source'] = 'conversation'): UsageAttempt => ({ id, word: word.word, chunk, outcome, at, source });
 
-test('words without attached uses keep their original meaning review', () => {
-  assert.equal(wordReview({ ...word, usage: undefined }, 2, 4, []).kind, 'meaning');
-  assert.equal(wordReview(word, 0, 0, []).kind, 'meaning');
+test('words with no saved collocation can review a full sentence', () => {
+  for (const usage of [undefined, []]) {
+    const review = wordReviewContent({ ...word, usage }, 0, []);
+    assert.equal(review.english, word.examples[0].en);
+    assert.equal(review.nl, word.examples[0].nl);
+    assert.equal(review.usage, undefined);
+  }
 });
+
 test('sentence review keeps the selected word usage for grading', () => {
-  const review = wordReview(word, 1, 1, []);
-  assert.equal(review.kind, 'output');
+  const review = wordReviewContent(word, 1, []);
   assert.equal(review.usage?.chunk, move.chunk);
-  assert.ok(review.prompt.includes(move.example_en));
+  assert.ok(review.english.includes(move.example_en));
 });
 test('a saved pattern asks for its concrete example sentence', () => {
   const use = {
@@ -27,15 +31,15 @@ test('a saved pattern asks for its concrete example sentence', () => {
     example_nl: 'Ik hoop dat het lukt om de kinderen op tijd naar school te brengen.',
     example_en: 'I hope we can get the children to school on time.',
   };
-  const review = wordReview({ ...word, word: 'lukt', usage: [use] }, 1, 1, []);
-  assert.equal(review.prompt, `How would you say this in Dutch? “${use.example_en}”`);
+  const review = wordReviewContent({ ...word, word: 'lukt', usage: [use] }, 1, []);
+  assert.equal(review.english, use.example_en);
   assert.equal(review.nl, use.example_nl);
-  assert.equal(review.en, use.note);
+  assert.equal(review.note, use.note);
 });
 test('a weak use takes priority over a use already produced independently', () => {
   const history = [attempt('one', make.chunk, 'independent', 10), attempt('two', move.chunk, 'needs-practice', 20)];
   assert.equal(chooseWordUsage(word, history)?.chunk, move.chunk);
-  assert.ok(wordReview(word, 0, 0, history).prompt.includes(move.example_en));
+  assert.ok(wordReviewContent(word, 0, history).english.includes(move.example_en));
 });
 test('review questions use the answer translation rather than a mismatched generated scenario', () => {
   const use = { ...make, chunk: 'hoewel [onderwerp] ... [werkwoord]',
@@ -44,13 +48,12 @@ test('review questions use the answer translation rather than a mismatched gener
     review_prompt: "You want to say you're going to the park, although it's snowing. How would you say that in Dutch?" };
   const data = { ...word, word: 'hoewel', usage: [use] };
   const original = structuredClone(data);
-  const review = wordReview(data, 2, 2, []);
-  assert.equal(review.kind, 'output');
-  assert.ok(review.prompt.includes(use.example_en));
-  assert.ok(!review.prompt.includes('park') && !review.prompt.includes('snowing'));
-  assert.ok(!review.prompt.includes(use.example_nl));
+  const review = wordReviewContent(data, 2, []);
+  assert.ok(review.english.includes(use.example_en));
+  assert.ok(!review.english.includes('park') && !review.english.includes('snowing'));
+  assert.ok(!review.english.includes(use.example_nl));
   assert.equal(review.nl, use.example_nl);
-  assert.equal(review.en, '');
+  assert.equal(review.note, '');
   assert.deepEqual(data, original);
 });
 test('self-graded review is not evidence of independent production', () => {
@@ -120,33 +123,10 @@ test('usage evidence from another word cannot influence this word', () => {
   assert.equal(needsUsageReview(word, history), false);
 });
 
-test('later review reuses saved changed-context question without immediately showing its answer', () => {
+test('a saved lesson scene still uses the same word and sentence review', () => {
   const scene = { version: 6 as const, generatedAt: 100, sense: word.meaning_en, usage: practiceUsage.chunk,
     scenario: lessonScenario, moment: learningMoment };
   const data: WordExplanation = { ...word, usage: [practiceUsage], scene };
-  assert.equal(wordReview(data, 0, 0, []).kind, 'meaning');
-  assert.equal(wordReview(data, 1, 1, []).kind, 'output');
-  const review = wordReview(data, 2, 2, []);
-  assert.equal(review.kind, 'context');
-  assert.equal(wordReview(data, 2, 2, [], false).kind, 'output', 'quick review keeps its short prompt');
-  assert.equal(review.prompt, learningMoment.transfer.situation);
-  assert.equal(review.nl, learningMoment.transfer.example);
-  assert.equal(review.en, '');
-  assert.ok('openingLine' in review && review.openingLine === learningMoment.transfer.openingLine);
-  assert.ok(!review.prompt.includes(review.nl));
-  assert.ok(!lessonScenario.dialogue.some(turn => turn.line === review.nl));
-});
-test('a word without collocations can use occasional changed-context review', () => {
-  const data: WordExplanation = { ...word, usage: [], scene: { version: 6, generatedAt: 100,
-    sense: word.meaning_en, usage: word.word, scenario: lessonScenario, moment: learningMoment } };
-  assert.equal(wordReview(data, 0, 0, []).kind, 'meaning');
-  assert.equal(wordReview(data, 2, 2, []).kind, 'context');
-  assert.equal(wordReview(data, 2, 3, []).kind, 'meaning');
-});
-test('review never borrows a lesson from a different sense or collocation', () => {
-  const scene = { version: 6 as const, generatedAt: 100, sense: word.meaning_en,
-    usage: practiceUsage.chunk, scenario: lessonScenario, moment: learningMoment };
-  assert.equal(wordReview({ ...word, usage: [move], scene }, 2, 2, []).kind, 'output');
-  assert.equal(wordReview({ ...word, usage: [practiceUsage], meaning_en: 'arrangement', scene }, 2, 2, []).kind, 'output');
-  assert.equal(wordReview({ ...word, usage: [practiceUsage] }, 2, 2, []).kind, 'output');
+  const review = wordReviewContent(data, 3, []);
+  assert.equal(review.nl, practiceUsage.example_nl);
 });

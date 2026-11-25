@@ -57,9 +57,13 @@ test('Daily Chat discards a cue that gives away the Dutch sentence', () => {
 test('Daily Chat shows a translation used as the review cue only once', () => {
   const english = 'Can my daughter come along too?';
   assert.deepEqual(dailyReviewText({ ...card, english, explanation: 'Can my daughter come along too' }), {
-    prompt: `How would you say this in Dutch? “${english}”`, note: '',
+    cue: english, note: '',
   });
   assert.equal(dailyReviewText({ ...card, english }).note, card.explanation);
+});
+
+test('a Daily Chat card awaits an English translation before it has a recall cue', () => {
+  assert.deepEqual(dailyReviewText(card), { cue: undefined, note: card.explanation });
 });
 
 test('unchanged learner wording cannot be presented as an improvement', () => {

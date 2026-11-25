@@ -130,7 +130,6 @@ document.addEventListener('DOMContentLoaded', () => {
   onClick('historyCloseBtn', toggleHistory);
   onClick('googleLoginBtn', signInWithGoogle);
   onClick('authCancelBtn', closeAuthModal);
-  onClick('reviewRevealBtn', revealAnswer);
 
   document.querySelectorAll<HTMLElement>('[data-suggestion]').forEach(element => {
     element.addEventListener('click', () => {

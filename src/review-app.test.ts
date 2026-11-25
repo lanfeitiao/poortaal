@@ -10,9 +10,9 @@ test('Review continues with card ten and then thirteen after two cloud updates',
   const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
   const words = ['een', 'twee', 'drie', 'vier', 'vijf', 'zes', 'zeven', 'acht', 'negen', 'tien',
     'elf', 'twaalf', 'dertien', 'veertien', 'vijftien', 'zestien', 'zeventien', 'achttien', 'negentien', 'twintig'];
-  const history = words.map(word => ({ word, timestamp: 1, wordData: {
+  const history = words.map((word, index) => ({ word, timestamp: 1, wordData: {
     word, type: 'telwoord', meaning_nl: word, meaning_en: 'number',
-    examples: [{ nl: `Ik tel tot ${word}.`, en: 'I am counting.' }], usage: [],
+    examples: [{ nl: `Ik tel tot ${word}.`, en: `I count to ${index + 1}.` }], usage: [],
   } }));
   const rows = history.map(({ word, wordData }) => ({ word, last_seen: 1, reviews: [] as number[], word_data: wordData }));
   const cloudHistory = Promise.withResolvers<{ data: { word: string; timestamp: number; word_data: object }[]; error: null }>();
@@ -68,7 +68,7 @@ test('Review continues with card ten and then thirteen after two cloud updates',
     assert.equal(document.getElementById('reviewHomeSection')!.style.display, 'none');
     assert.equal(document.getElementById('reviewSessionSection')!.style.display, '');
     assert.equal(document.querySelector('.review-progress-text')?.textContent, `${card} / 20`);
-    assert.equal(document.querySelector('.review-card-word')?.textContent, words[card - 1]);
+    assert.equal(document.querySelector('.review-card-cue')?.textContent, `I count to ${card}.`);
   };
   const gradeCards = (first: number, last: number) => {
     for (let card = first; card <= last; card++) {
@@ -116,6 +116,7 @@ test('Review continues with card ten and then thirteen after two cloud updates',
   await new Promise(setImmediate);
   assertCard(13);
   assert.ok(document.getElementById('reviewCardAnswer')!.classList.contains('revealed'));
+  assert.equal(document.querySelector('#reviewCardAnswer .answer-nl')?.textContent, 'Ik tel tot dertien.');
   gradeCards(13, 20);
   assert.ok(document.querySelector('.review-summary-stat')?.textContent?.includes('20 wist je'));
   click('[data-action="end-review"]');
@@ -142,10 +143,10 @@ test('Review plays the complete example sentence and keeps the current card', as
   f.events.dispatchEvent(new Event('hashchange'));
   await f.wait(() => Boolean(f.document.querySelector('[data-action="start-review"]')));
   f.click('[data-action="start-review"]');
+  assert.equal(f.document.querySelector('.review-card-task')?.textContent, 'Say the sentence in Dutch.');
+  assert.equal(f.document.querySelector('.review-card-cue')?.textContent, practiceUsage.example_en);
   const answer = f.document.getElementById('reviewCardAnswer')!;
   assert.ok(!answer.classList.contains('revealed'));
-  assert.equal(f.document.querySelector('.review-card-task')?.textContent,
-    `How would you say this in Dutch? “${practiceUsage.example_en}”`);
   f.click('#reviewFrontCard');
   assert.equal(answer.querySelectorAll('.review-example').length, 1);
   assert.equal(answer.querySelector('.review-example span')?.textContent, practiceUsage.example_nl);

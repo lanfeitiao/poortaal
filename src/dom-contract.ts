@@ -53,14 +53,9 @@ const REQUIRED_ELEMENT_IDS = [
   'microReviewOverlay',
   'reviewTimerBar',
   'reviewTimerText',
-  'reviewWord',
   'reviewPrompt',
-  'reviewType',
   'reviewAnswer',
-  'reviewNl',
-  'reviewEn',
   'reviewActions',
-  'reviewRevealBtn',
 ] as const;
 
 type RequiredElementId = typeof REQUIRED_ELEMENT_IDS[number];

@@ -177,8 +177,6 @@ main { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
 .micro-review-timer { position: absolute; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--blue-400), var(--blue-600)); border-radius: 20px 0 0 0; transition: width 0.1s linear; }
 .micro-review h2 { font-size: 1.2rem; color: var(--blue-700); margin-bottom: 0.25rem; }
 .micro-review .review-timer-text { font-size: 0.8rem; color: var(--gray-400); margin-bottom: 1.5rem; }
-.micro-review .review-word { font-size: 2.2rem; font-weight: 700; color: var(--blue-800); margin-bottom: 0.25rem; }
-.micro-review .review-type { font-size: 0.85rem; color: var(--blue-500); margin-bottom: 1.5rem; }
 .micro-review .review-prompt { color: var(--gray-500); font-size: 0.95rem; margin-bottom: 1rem; }
 .micro-review .review-answer { background: var(--blue-50); border: 2px solid var(--blue-200); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1rem; text-align: left; display: none; }
 .micro-review .review-answer.revealed { display: block; animation: fadeUp 0.25s ease-out; }
@@ -331,25 +329,19 @@ main { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
 .review-card.back-1 { transform: translateY(7px) scale(0.97); opacity: 0.75; z-index: 2; }
 .review-card.front { position: relative; min-height: 320px; transform: rotate(-2deg); z-index: 3; }
 .review-card.front.swipe-anim { transition: transform 0.2s ease-out; }
-.review-stage-pill { display: inline-block; background: #fef9c3; color: #92400e; font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 999px; margin-bottom: 1rem; }
-.review-stage-pill.fresh { background: #ecfdf5; color: #047857; }
-.review-card-word { font-size: 2rem; font-weight: 700; color: var(--gray-900); }
-.review-card-type { font-size: 0.85rem; color: var(--blue-600); margin-top: 0.25rem; }
 .review-card-task { color: var(--gray-700); line-height: 1.6; margin-top: 1rem; overflow-wrap: anywhere; }
-.review-context-partner { width: 100%; box-sizing: border-box; background: var(--blue-50); border: 1px solid var(--blue-100); border-radius: 10px; text-align: left; padding: 0.65rem 0.8rem; margin-top: 0.75rem; overflow-wrap: anywhere; }
-.review-context-partner span { font-size: 0.72rem; font-weight: 600; color: var(--gray-500); }
-.review-context-partner p { color: var(--gray-800); margin: 0.2rem 0 0; line-height: 1.5; }
-.review-context-question { margin-top: 0.85rem; color: var(--gray-700); font-weight: 600; font-size: 0.9rem; }
-.review-tts-btn { margin-top: 0.75rem; }
+.review-card-cue { font-size: 1.15rem; color: var(--gray-700); margin-top: 0.6rem; line-height: 1.5; overflow-wrap: anywhere; }
 .review-card-hint { font-size: 0.8rem; color: var(--gray-400); margin-top: 1rem; }
 .review-card-answer { display: none; width: 100%; margin-top: 1.25rem; }
 .review-card-answer.revealed { display: block; animation: fadeUp 0.25s ease-out; }
 .review-card-answer .answer-nl { font-size: 1rem; color: var(--gray-700); }
 .review-card-answer .answer-en { font-size: 0.85rem; color: var(--gray-500); margin-top: 0.25rem; font-style: italic; }
 .review-example { display: grid; grid-template-columns: minmax(0, 1fr) 44px; margin: 0; overflow-wrap: anywhere; }
+.review-card > .review-example { width: 100%; margin-top: 0.75rem; }
 .review-example .ex-tts-btn { width: 44px; height: 44px; }
 .review-actions { display: flex; gap: 0.6rem; margin: 1rem 0; }
 .review-actions button { flex: 1; padding: 0.85rem; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; font-family: inherit; color: #fff; transition: transform 0.15s, opacity 0.2s; }
+.review-actions .review-btn-close { color: var(--gray-700); }
 .review-actions button:disabled { opacity: 0.4; cursor: not-allowed; }
 .review-actions button:not(:disabled):hover { transform: translateY(-1px); }
 .review-btn-again { background: #eab308; }
@@ -489,11 +481,9 @@ main { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
     <div class="micro-review-timer" id="reviewTimerBar"></div>
     <h2>Snelle herhaling</h2>
     <div class="review-timer-text" id="reviewTimerText">30s</div>
-    <div class="review-word" id="reviewWord"></div>
-    <div class="review-type" id="reviewType"></div>
-    <div class="review-prompt" id="reviewPrompt">Wat betekent dit woord?</div>
-    <div class="review-answer" id="reviewAnswer"><div class="answer-nl" id="reviewNl"></div><div class="answer-en" id="reviewEn"></div></div>
-    <div class="review-actions" id="reviewActions"><button class="review-btn-reveal" id="reviewRevealBtn">Onthullen</button></div>
+    <div class="review-prompt" id="reviewPrompt"></div>
+    <div class="review-answer" id="reviewAnswer"></div>
+    <div class="review-actions" id="reviewActions"></div>
   </div>
 </div>
 <script type="module" src="/src/main.ts"></script>

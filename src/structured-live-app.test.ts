@@ -48,7 +48,7 @@ test('the study page presents a scene and passes its exposure into the spoken ta
   assert.equal(f.document.getElementById('voicePracticePanel')!.style.display, '');
 });
 
-test('history quick review never drops the partner line from a deferred scene task', async t => {
+test('history quick review starts with the English sentence', async t => {
   const f = await liveFixture(t);
   f.storage.set('poortaal_word_stats', JSON.stringify({ afspraak: {
     level: 2, lookups: 2, practices: 1, lastSeen: Date.now(), reviews: [1, 2] } }));
@@ -57,12 +57,16 @@ test('history quick review never drops the partner line from a deferred scene ta
   assert.ok(historyWord);
   historyWord.dataset.review = 'true'; // Simulate the wilting-word history entry.
   historyWord.click();
-  const prompt = f.document.getElementById('reviewPrompt')!.textContent!;
-  assert.ok(prompt.includes('How would you say this in Dutch?'));
-  assert.ok(!prompt.includes('You need an appointment on Friday instead.'));
-  assert.ok(f.document.getElementById('reviewNl')!.textContent!.includes('Ik wil'));
+  const prompt = f.document.getElementById('reviewPrompt')!;
+  const answer = f.document.getElementById('reviewAnswer')!;
   assert.equal(f.document.getElementById('microReviewOverlay')!.classList.contains('open'), true);
+  assert.equal(prompt.querySelector('.review-card-task')?.textContent, 'Say the sentence in Dutch.');
+  assert.ok(prompt.querySelector('.review-card-cue')?.textContent?.trim());
+  assert.ok(!answer.classList.contains('revealed'));
+  assert.equal(f.document.querySelector('[data-action="micro-finish"]'), null);
   f.click('[data-action="micro-reveal"]');
+  assert.ok(answer.classList.contains('revealed'));
+  assert.ok(answer.querySelector('.review-example button')?.getAttribute('data-text')?.includes('Ik wil'));
   f.click('[data-action="micro-close"]');
 });
 
