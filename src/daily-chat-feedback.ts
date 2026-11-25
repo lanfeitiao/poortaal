@@ -48,19 +48,9 @@ export function readDailyFeedback(value: unknown): DailyFeedback | null {
 }
 
 export function dailyReviewText(card: DailyFeedback) {
-  const prompt = 'Say the sentence in Dutch.';
-  if (card.english) {
-    const sameAsPrompt = comparableText(card.explanation) === comparableText(card.english);
-    return { prompt, cue: card.english, note: sameAsPrompt ? '' : card.explanation };
-  }
-  if (card.speaker !== 'partner' && (card.kind === 'correction' || card.kind === 'naturalness')) {
-    const quote = expressionKey(card.quote);
-    const dutch = expressionKey(card.dutch);
-    if (quote && dutch && !` ${quote} `.includes(` ${dutch} `)) {
-      return { prompt, cue: card.quote, original: true, note: card.explanation };
-    }
-  }
-  return { prompt, note: card.explanation, practiceAloud: true };
+  const cue = card.english;
+  const note = cue && comparableText(card.explanation) === comparableText(cue) ? '' : card.explanation;
+  return { cue, note };
 }
 
 export function validateDailyFeedback(value: unknown, turns: ChatTurn[]): DailyFeedback[] {
