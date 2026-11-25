@@ -21,7 +21,7 @@ test('Daily Chat can retry feedback, save individual cards and resume Review', a
   const dutch = 'Mag mijn dochter ook meekomen?';
   const english = 'Can my daughter come along too?';
   const secondDutch = 'Mijn zoon vroeg waar zijn knuffel is.';
-  const oldPrompt = 'Say this sentence aloud.';
+  const chatPrompt = 'Say the sentence in Dutch.';
   let connections = 0, analysis = 0;
   t.mock.method(globalThis, 'fetch', async (url, init) => {
     if (String(url).endsWith('/live-session')) {
@@ -126,7 +126,8 @@ test('Daily Chat can retry feedback, save individual cards and resume Review', a
   f.click('#reviewBtnKnow');
 
   assert.equal(f.document.querySelector('.review-progress-text')?.textContent, '2 / 3');
-  assert.equal(f.document.querySelector('.review-card-task')?.textContent, `How would you say this in Dutch? “${english}”`);
+  assert.equal(f.document.querySelector('.review-card-task')?.textContent, chatPrompt);
+  assert.equal(f.document.querySelector('.review-card-cue [lang="en"]')?.textContent, `“${english}”`);
   assert.ok(!f.document.getElementById('reviewCardAnswer')?.classList.contains('revealed'));
   assert.ok(f.document.getElementById('reviewBtnKnow')?.hasAttribute('disabled'));
   f.click('#reviewFrontCard');
@@ -134,7 +135,7 @@ test('Daily Chat can retry feedback, save individual cards and resume Review', a
   assert.equal(f.document.querySelector('#reviewCardAnswer .answer-en')?.textContent, 'Write meekomen as one word here.');
   f.click('#reviewBtnKnow');
   assert.equal(f.document.querySelector('.review-progress-text')?.textContent, '3 / 3');
-  assert.equal(f.document.querySelector('.review-card-task')?.textContent, oldPrompt);
+  assert.equal(f.document.querySelector('.review-card-task')?.textContent, chatPrompt);
   assert.equal(f.document.querySelector('#reviewFrontCard > .review-example .answer-nl')?.textContent, secondDutch);
   assert.equal(f.document.querySelector('#reviewFrontCard > .review-example button')?.getAttribute('data-text'), secondDutch);
   assert.equal(f.document.getElementById('reviewCardHint')?.textContent, 'tik voor de uitleg');
@@ -161,5 +162,5 @@ test('Daily Chat can retry feedback, save individual cards and resume Review', a
   assert.equal(f.document.querySelector('.review-count-num')?.textContent, '1');
   f.click('[data-action="start-review"]');
   assert.equal(f.document.querySelector('.review-progress-text')?.textContent, '1 / 1');
-  assert.equal(f.document.querySelector('.review-card-task')?.textContent, oldPrompt);
+  assert.equal(f.document.querySelector('.review-card-task')?.textContent, chatPrompt);
 });

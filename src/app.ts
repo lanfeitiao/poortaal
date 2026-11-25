@@ -499,6 +499,9 @@ function renderReviewSession() {
           ${safeType ? `<div class="review-card-type">${safeType}</div>` : ''}
           ${review && !meaningPrompt ? renderReviewMeaning(review) : ''}
           <div class="review-card-task">${escapeHtml(prompt)}</div>
+          ${expressionText?.cue ? `<div class="review-card-cue">
+            ${expressionText.original ? '<span lang="en">Your original wording</span>' : ''}
+            <div lang="${expressionText.original ? 'nl' : 'en'}">“${escapeHtml(expressionText.cue)}”</div></div>` : ''}
           ${practiceAloud ? answer : ''}
           ${data ? `<button type="button" class="tts-btn review-tts-btn" data-action="play-example-tts" data-text="${safeWord}" aria-label="Woord beluisteren" title="Uitspraak beluisteren">🔊</button>` : ''}
           <div class="review-card-hint" id="reviewCardHint" ${revealed ? 'hidden' : ''}>${hint}</div>

@@ -57,22 +57,21 @@ test('Daily Chat discards a cue that gives away the Dutch sentence', () => {
 test('Daily Chat shows a translation used as the review cue only once', () => {
   const english = 'Can my daughter come along too?';
   assert.deepEqual(dailyReviewText({ ...card, english, explanation: 'Can my daughter come along too' }), {
-    prompt: `How would you say this in Dutch? “${english}”`, note: '',
+    prompt: 'Say the sentence in Dutch.', cue: english, note: '',
   });
   assert.equal(dailyReviewText({ ...card, english }).note, card.explanation);
 });
 
-test('older Daily Chat corrections ask the learner to fix their wording', () => {
+test('older Daily Chat corrections use the original wording as their sentence cue', () => {
   for (const [quote, dutch, explanation] of [
     ['Het is tijd voor haar om de bed te gaan.', 'Het is tijd voor haar om naar bed te gaan.', 'Use naar bed gaan.'],
     ['Ze is het niet mee eens.', 'Ze is het er niet mee eens.', 'Use er … mee eens zijn.'],
   ]) {
     assert.deepEqual(dailyReviewText({ ...card, quote, dutch, explanation }), {
-      prompt: `How would you correct this in Dutch? “${quote}”`, note: explanation,
+      prompt: 'Say the sentence in Dutch.', cue: quote, original: true, note: explanation,
     });
   }
-  assert.equal(dailyReviewText({ ...card, kind: 'naturalness' }).prompt,
-    `How would you say this more naturally in Dutch? “${card.quote}”`);
+  assert.equal(dailyReviewText({ ...card, kind: 'naturalness' }).cue, card.quote);
 });
 
 test('older Daily Chat cards without a usable recall cue practise the full sentence aloud', () => {
@@ -82,7 +81,7 @@ test('older Daily Chat cards without a usable recall cue practise the full sente
     useful, { ...card, speaker: 'partner' } as const, { ...card, quote: `Je kunt zeggen: ${card.dutch}` },
   ]) {
     assert.deepEqual(dailyReviewText(saved), {
-      prompt: 'Say this sentence aloud.', note: saved.explanation, practiceAloud: true,
+      prompt: 'Say the sentence in Dutch.', note: saved.explanation, practiceAloud: true,
     });
   }
 });

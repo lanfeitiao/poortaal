@@ -48,20 +48,19 @@ export function readDailyFeedback(value: unknown): DailyFeedback | null {
 }
 
 export function dailyReviewText(card: DailyFeedback) {
+  const prompt = 'Say the sentence in Dutch.';
   if (card.english) {
     const sameAsPrompt = comparableText(card.explanation) === comparableText(card.english);
-    return { prompt: `How would you say this in Dutch? “${card.english}”`, note: sameAsPrompt ? '' : card.explanation };
+    return { prompt, cue: card.english, note: sameAsPrompt ? '' : card.explanation };
   }
   if (card.speaker !== 'partner' && (card.kind === 'correction' || card.kind === 'naturalness')) {
     const quote = expressionKey(card.quote);
     const dutch = expressionKey(card.dutch);
     if (quote && dutch && !` ${quote} `.includes(` ${dutch} `)) {
-      const task = card.kind === 'correction' ? 'How would you correct this in Dutch?'
-        : 'How would you say this more naturally in Dutch?';
-      return { prompt: `${task} “${card.quote}”`, note: card.explanation };
+      return { prompt, cue: card.quote, original: true, note: card.explanation };
     }
   }
-  return { prompt: 'Say this sentence aloud.', note: card.explanation, practiceAloud: true };
+  return { prompt, note: card.explanation, practiceAloud: true };
 }
 
 export function validateDailyFeedback(value: unknown, turns: ChatTurn[]): DailyFeedback[] {
