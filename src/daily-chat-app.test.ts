@@ -52,6 +52,7 @@ test('Daily Chat can retry feedback, save individual cards and resume Review', a
   await f.wait(() => Boolean(f.document.querySelector('[data-action="start-review"]')));
   f.click('[data-action="start-review"]');
   f.click('#reviewFrontCard');
+  f.click('#reviewFrontCard');
   const checkpoint = f.storage.get('poortaal_review_session:guest');
   assert.ok(checkpoint);
   const build = f.document.createElement('meta');
@@ -120,6 +121,7 @@ test('Daily Chat can retry feedback, save individual cards and resume Review', a
   f.click('[data-action="start-review"]');
   assert.equal(f.document.querySelector('.review-progress-text')?.textContent, '1 / 3');
   assert.equal(f.document.querySelector('.review-card-word')?.textContent, 'afspraak');
+  f.click('#reviewFrontCard');
   f.click('#reviewFrontCard');
   f.click('#reviewBtnKnow');
 

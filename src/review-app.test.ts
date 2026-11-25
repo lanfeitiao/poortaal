@@ -74,6 +74,7 @@ test('Review continues with card ten and then thirteen after two cloud updates',
     for (let card = first; card <= last; card++) {
       assertCard(card);
       click('#reviewFrontCard');
+      click('#reviewFrontCard');
       click('#reviewBtnKnow');
     }
   };
@@ -115,7 +116,12 @@ test('Review continues with card ten and then thirteen after two cloud updates',
   pendingAuth.resolve(signedIn);
   await new Promise(setImmediate);
   assertCard(13);
+  assert.equal(document.querySelector('.review-card-task')?.textContent, 'How would you say this in Dutch? “I am counting.”');
+  assert.ok(!document.getElementById('reviewCardAnswer')!.classList.contains('revealed'));
+  assert.ok(document.getElementById('reviewBtnKnow')!.hasAttribute('disabled'));
+  click('#reviewFrontCard');
   assert.ok(document.getElementById('reviewCardAnswer')!.classList.contains('revealed'));
+  assert.equal(document.querySelector('#reviewCardAnswer .answer-nl')?.textContent, 'Ik tel tot dertien.');
   gradeCards(13, 20);
   assert.ok(document.querySelector('.review-summary-stat')?.textContent?.includes('20 wist je'));
   click('[data-action="end-review"]');
@@ -142,8 +148,11 @@ test('Review plays the complete example sentence and keeps the current card', as
   f.events.dispatchEvent(new Event('hashchange'));
   await f.wait(() => Boolean(f.document.querySelector('[data-action="start-review"]')));
   f.click('[data-action="start-review"]');
+  assert.equal(f.document.querySelector('.review-card-task')?.textContent, 'Wat betekent dit woord?');
+  f.click('#reviewFrontCard');
   const answer = f.document.getElementById('reviewCardAnswer')!;
   assert.ok(!answer.classList.contains('revealed'));
+  assert.equal(f.document.querySelector('.review-word-meaning [lang="en"]')?.textContent, 'appointment');
   assert.equal(f.document.querySelector('.review-card-task')?.textContent,
     `How would you say this in Dutch? “${practiceUsage.example_en}”`);
   f.click('#reviewFrontCard');
