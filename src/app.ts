@@ -17,7 +17,7 @@ import { structuredPractice } from './structured-ui';
 import { clearStructuredWord } from './structured-store';
 import { generateLearningScene, readLearningScene, sceneUsage, rememberSceneExposure, recentlyViewedScene } from './learning-scene';
 import { renderLearningScene } from './learning-scene-view';
-import { needsUsageReview, wordReviewContent, WORD_MEANING_PROMPT } from './word-learning';
+import { needsUsageReview, wordReviewContent } from './word-learning';
 import { clearReviewCheckpoint, readReviewCheckpoint, writeReviewCheckpoint } from './review-session';
 import { createWordWriteQueue } from './word-write-queue';
 import { mergeCloudWordStats, saveWordWithVersion, supabaseWordStore } from './word-cloud-save';
@@ -303,7 +303,7 @@ let reviewSessionActive = false;
 let currentWordReview: ReturnType<typeof wordReviewContent> | null = null;
 let practiceGeneration = 0;
 let microReviewInterval: ReturnType<typeof setInterval> | null = null;
-let microReviewPrompt: ReturnType<typeof wordReviewContent> | null = null;
+let microReviewPrompt: (ReturnType<typeof wordReviewContent> & { word: string }) | null = null;
 
 // --- Routing ---
 function navigateTo(hash: string) {
@@ -436,9 +436,9 @@ function renderReviewExample(sentence: string) {
     <button type="button" class="ex-tts-btn" data-action="play-example-tts" data-text="${text}" aria-label="Voorbeeldzin beluisteren" title="Voorbeeldzin beluisteren">🔊</button></div>`;
 }
 
-function renderReviewMeaning(review: ReturnType<typeof wordReviewContent>) {
-  return `<div class="review-word-meaning"><div lang="nl">${escapeHtml(review.meaningNl)}</div>
-    <div lang="en">${escapeHtml(review.meaningEn)}</div></div>`;
+function renderReviewCue(english: string) {
+  return `<div class="review-card-task" lang="en">Say the sentence in Dutch.</div>
+    <div class="review-card-cue" lang="en">${escapeHtml(english)}</div>`;
 }
 
 function renderReviewSession() {
@@ -456,19 +456,14 @@ function renderReviewSession() {
   const review = currentWordReview;
   const expression = item.kind === 'expression' ? item.card : null;
   const expressionText = expression && dailyReviewText(expression);
-  const prompt = expressionText?.prompt ?? review?.prompt ?? '';
+  const english = expressionText?.cue ?? review?.english ?? '';
   const total = reviewQueue.length;
   const pct = Math.round((reviewIndex / total) * 100);
-  const pill = item.kind === 'word' && item.isWilting
-    ? `<span class="review-stage-pill">🥀 ${item.overdueDays}d te laat</span>`
-    : `<span class="review-stage-pill fresh">${expression ? 'Daily Chat' : '🌿 vandaag'}</span>`;
   const answerEn = escapeHtml(expressionText?.note ?? review?.note ?? '');
   const practiceAloud = expressionText?.practiceAloud;
   const answer = renderReviewExample(expression?.dutch ?? review?.nl ?? '');
   const hint = practiceAloud ? 'tik voor de uitleg'
     : 'probeer eerst zelf · tik voor een voorbeeld';
-  const safeWord = escapeHtml(item.kind === 'word' ? item.id : '');
-  const safeType = escapeHtml(data?.type || '');
   const revealed = reviewRevealed;
   const revealedClass = revealed ? 'revealed' : '';
   const actionsDisabled = revealed ? '' : 'disabled';
@@ -486,15 +481,8 @@ function renderReviewSession() {
         ${back2}
         ${back1}
         <div class="review-card front" id="reviewFrontCard" data-action="review-card-tap">
-          ${pill}
-          ${data ? `<div class="review-card-word">${safeWord}</div>` : ''}
-          ${safeType ? `<div class="review-card-type">${safeType}</div>` : ''}
-          <div class="review-card-task">${escapeHtml(prompt)}</div>
-          ${expressionText?.cue ? `<div class="review-card-cue">
-            ${expressionText.original ? '<span lang="en">Your original wording</span>' : ''}
-            <div lang="${expressionText.original ? 'nl' : 'en'}">“${escapeHtml(expressionText.cue)}”</div></div>` : ''}
+          ${renderReviewCue(english)}
           ${practiceAloud ? answer : ''}
-          ${data ? `<button type="button" class="tts-btn review-tts-btn" data-action="play-example-tts" data-text="${safeWord}" aria-label="Woord beluisteren" title="Uitspraak beluisteren">🔊</button>` : ''}
           <div class="review-card-hint" id="reviewCardHint" ${revealed ? 'hidden' : ''}>${hint}</div>
           <div class="review-card-answer ${revealedClass}" id="reviewCardAnswer">
             ${practiceAloud ? '' : answer}
@@ -1064,13 +1052,8 @@ function startMicroReview(word: string) {
   const panel = document.getElementById('historyPanel'); if (panel.classList.contains('open')) toggleHistory();
   const data = getCachedWord(word) || entry.wordData;
   const stats = getWordStats()[word];
-  const review = microReviewPrompt = wordReviewContent(data, stats?.reviews?.length || 0, getWordAttempts(word));
-  document.getElementById('reviewWord').textContent = data.word;
-  document.getElementById('reviewType').textContent = data.type || '';
-  document.getElementById('reviewPrompt').textContent = WORD_MEANING_PROMPT;
-  const meaning = document.getElementById('reviewMeaning');
-  meaning.hidden = true;
-  meaning.innerHTML = renderReviewMeaning(review);
+  const review = microReviewPrompt = { ...wordReviewContent(data, stats?.reviews?.length || 0, getWordAttempts(word)), word };
+  document.getElementById('reviewPrompt').innerHTML = renderReviewCue(review.english);
   const answer = document.getElementById('reviewAnswer');
   answer.classList.remove('revealed');
   answer.innerHTML = renderReviewExample(review.nl)
@@ -1095,13 +1078,6 @@ function startMicroReviewCountdown() {
 }
 function revealAnswer() {
   if (!microReviewPrompt) return;
-  const meaning = document.getElementById('reviewMeaning');
-  if (meaning.hidden) {
-    meaning.hidden = false;
-    document.getElementById('reviewPrompt').textContent = microReviewPrompt.prompt;
-    startMicroReviewCountdown();
-    return;
-  }
   if (microReviewInterval) clearInterval(microReviewInterval);
   microReviewInterval = null;
   document.getElementById('reviewAnswer').classList.add('revealed');
@@ -1109,7 +1085,7 @@ function revealAnswer() {
 }
 function finishReview(knew: boolean) {
   if (!microReviewPrompt || !document.getElementById('reviewAnswer').classList.contains('revealed')) return;
-  const word = document.getElementById('reviewWord').textContent!.toLowerCase();
+  const { word } = microReviewPrompt;
   updateWordStats(word, knew ? 'review' : 'review_again');
   if (microReviewPrompt?.usage) recordWordAttempt({ id: crypto.randomUUID(), at: Date.now(), word,
     chunk: microReviewPrompt.usage.chunk, outcome: knew ? 'self-reviewed' : 'needs-practice', source: 'review' });
