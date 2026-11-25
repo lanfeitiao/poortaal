@@ -17,7 +17,7 @@ import { structuredPractice } from './structured-ui';
 import { clearStructuredWord } from './structured-store';
 import { generateLearningScene, readLearningScene, sceneUsage, rememberSceneExposure, recentlyViewedScene } from './learning-scene';
 import { renderLearningScene } from './learning-scene-view';
-import { needsUsageReview, wordReview } from './word-learning';
+import { needsUsageReview, wordReview, wordReviewContent, WORD_MEANING_PROMPT } from './word-learning';
 import { clearReviewCheckpoint, readReviewCheckpoint, writeReviewCheckpoint } from './review-session';
 import { createWordWriteQueue } from './word-write-queue';
 import { mergeCloudWordStats, saveWordWithVersion, supabaseWordStore } from './word-cloud-save';
@@ -298,9 +298,9 @@ let reviewOwnerReady = false;
 let reviewQueue: ReviewItem[] = [];
 let reviewIndex = 0;
 let reviewResults = { know: 0, again: 0 };
-let reviewRevealed = false;
+let reviewStep: 'prompt' | 'sentence' | 'answer' = 'prompt';
 let reviewSessionActive = false;
-let currentReviewPrompt: ReturnType<typeof wordReview> | null = null;
+let currentWordReview: ReturnType<typeof wordReviewContent> | null = null;
 let practiceGeneration = 0;
 let microReviewTimer: ReturnType<typeof setTimeout> | null = null;
 let microReviewInterval: ReturnType<typeof setInterval> | null = null;
@@ -361,12 +361,14 @@ function renderReviewHome() {
 
 function checkpointReviewSession() {
   if (!reviewSessionActive) return;
+  const wordMeaningRevealed = reviewQueue[reviewIndex]?.kind === 'word' && reviewStep !== 'prompt';
   writeReviewCheckpoint(learningOwner(), {
     cards: reviewQueue.map(({ kind, id }) => ({ kind, id })),
     index: reviewIndex,
     know: reviewResults.know,
     again: reviewResults.again,
-    revealed: reviewRevealed,
+    revealed: reviewStep === 'answer',
+    ...(wordMeaningRevealed ? { wordMeaningRevealed: true } : {}),
   });
 }
 function restoreReviewSession(): boolean {
@@ -402,9 +404,14 @@ function restoreReviewSession(): boolean {
   reviewResults = { know, again: Math.min(saved.again, reviewIndex - know) };
   const resumed = queue[reviewIndex];
   const previous = saved.cards[saved.index];
-  reviewRevealed = saved.revealed && !!resumed && resumed.kind === previous?.kind && resumed.id === previous.id;
+  reviewStep = 'prompt';
+  if (resumed && resumed.kind === previous?.kind && resumed.id === previous.id) {
+    const word = resumed.kind === 'word';
+    if (saved.revealed && (!word || saved.wordMeaningRevealed)) reviewStep = 'answer';
+    else if (word && (saved.revealed || saved.wordMeaningRevealed)) reviewStep = 'sentence';
+  }
   reviewSessionActive = true;
-  currentReviewPrompt = null;
+  currentWordReview = null;
   document.getElementById('reviewHomeSection')!.style.display = 'none';
   document.getElementById('reviewSessionSection')!.style.display = '';
   checkpointReviewSession();
@@ -422,9 +429,9 @@ function startReviewSession() {
   reviewQueue = due;
   reviewIndex = 0;
   reviewResults = { know: 0, again: 0 };
-  reviewRevealed = false;
+  reviewStep = 'prompt';
   reviewSessionActive = true;
-  currentReviewPrompt = null;
+  currentWordReview = null;
   checkpointReviewSession();
   document.getElementById('reviewHomeSection').style.display = 'none';
   document.getElementById('reviewSessionSection').style.display = '';
@@ -437,6 +444,11 @@ function renderReviewExample(sentence: string) {
     <button type="button" class="ex-tts-btn" data-action="play-example-tts" data-text="${text}" aria-label="Voorbeeldzin beluisteren" title="Voorbeeldzin beluisteren">🔊</button></div>`;
 }
 
+function renderReviewMeaning(review: ReturnType<typeof wordReviewContent>) {
+  return `<div class="review-word-meaning"><div lang="nl">${escapeHtml(review.meaningNl)}</div>
+    <div lang="en">${escapeHtml(review.meaningEn)}</div></div>`;
+}
+
 function renderReviewSession() {
   const root = document.getElementById('reviewSessionSection');
   if (!root) return;
@@ -447,31 +459,28 @@ function renderReviewSession() {
   const item = reviewQueue[reviewIndex];
   const data = item.kind === 'word' ? getCachedWord(item.id) || item.entry.wordData! : null;
   if (item.kind === 'word' && data) {
-    if (data.usage === undefined) void loadWordUsage(data);
-    currentReviewPrompt ||= wordReview(data, item.level, item.stats.reviews?.length || 0, getWordAttempts(item.id));
+    currentWordReview ||= wordReviewContent(data, item.stats.reviews?.length || 0, getWordAttempts(item.id));
   }
-  const review = currentReviewPrompt;
+  const review = currentWordReview;
   const expression = item.kind === 'expression' ? item.card : null;
   const expressionText = expression && dailyReviewText(expression);
-  const prompt = expressionText?.prompt ?? review?.prompt ?? '';
-  const meaningPrompt = review?.kind === 'meaning';
+  const meaningPrompt = review && reviewStep === 'prompt';
+  const prompt = expressionText?.prompt ?? (meaningPrompt ? WORD_MEANING_PROMPT : review?.prompt ?? '');
   const total = reviewQueue.length;
   const pct = Math.round((reviewIndex / total) * 100);
   const pill = item.kind === 'word' && item.isWilting
     ? `<span class="review-stage-pill">🥀 ${item.overdueDays}d te laat</span>`
     : `<span class="review-stage-pill fresh">${expression ? 'Daily Chat' : '🌿 vandaag'}</span>`;
-  const answerNl = expression?.dutch ?? review?.nl ?? '';
-  const answerEn = escapeHtml(expressionText?.note ?? review?.en ?? '');
-  const sentenceAnswer = Boolean(expression) || review?.kind === 'context' || review?.kind === 'output';
+  const answerEn = escapeHtml(expressionText?.note ?? review?.note ?? '');
   const practiceAloud = expressionText?.practiceAloud;
-  const answer = sentenceAnswer ? renderReviewExample(answerNl) : `<div class="answer-nl" lang="nl">${escapeHtml(answerNl)}</div>`;
+  const answer = renderReviewExample(expression?.dutch ?? review?.nl ?? '');
   const hint = practiceAloud ? 'tik voor de uitleg'
-    : meaningPrompt ? 'tik om te onthullen' : 'probeer eerst zelf · tik voor een voorbeeld';
+    : meaningPrompt ? 'tik voor de betekenis' : 'probeer eerst zelf · tik voor een voorbeeld';
   const safeWord = escapeHtml(item.kind === 'word' ? item.id : '');
   const safeType = escapeHtml(data?.type || '');
-  const contextLine = review && 'openingLine' in review ? review.openingLine : null;
-  const revealedClass = reviewRevealed ? 'revealed' : '';
-  const actionsDisabled = reviewRevealed ? '' : 'disabled';
+  const revealed = reviewStep === 'answer';
+  const revealedClass = revealed ? 'revealed' : '';
+  const actionsDisabled = revealed ? '' : 'disabled';
   const back2 = reviewIndex + 2 < total ? '<div class="review-card back-2"></div>' : '';
   const back1 = reviewIndex + 1 < total ? '<div class="review-card back-1"></div>' : '';
   root.innerHTML = `
@@ -489,12 +498,11 @@ function renderReviewSession() {
           ${pill}
           ${data ? `<div class="review-card-word">${safeWord}</div>` : ''}
           ${safeType ? `<div class="review-card-type">${safeType}</div>` : ''}
+          ${review && !meaningPrompt ? renderReviewMeaning(review) : ''}
           <div class="review-card-task">${escapeHtml(prompt)}</div>
           ${practiceAloud ? answer : ''}
-          ${contextLine ? `<div class="review-context-partner"><span>Other person</span><p>${escapeHtml(contextLine)}</p></div>` : ''}
-          ${contextLine ? '<div class="review-context-question">What would you say in Dutch?</div>' : ''}
           ${data ? `<button type="button" class="tts-btn review-tts-btn" data-action="play-example-tts" data-text="${safeWord}" aria-label="Woord beluisteren" title="Uitspraak beluisteren">🔊</button>` : ''}
-          <div class="review-card-hint" id="reviewCardHint" ${reviewRevealed ? 'hidden' : ''}>${hint}</div>
+          <div class="review-card-hint" id="reviewCardHint" ${revealed ? 'hidden' : ''}>${hint}</div>
           <div class="review-card-answer ${revealedClass}" id="reviewCardAnswer">
             ${practiceAloud ? '' : answer}
             ${answerEn ? `<div class="answer-en">${answerEn}</div>` : ''}
@@ -503,7 +511,7 @@ function renderReviewSession() {
       </div>
       <div class="review-actions">
         <button class="review-btn-again" id="reviewBtnAgain" data-action="grade-review" data-known="false" ${actionsDisabled}>Opnieuw</button>
-        <button class="review-btn-know" id="reviewBtnKnow" data-action="grade-review" data-known="true" ${actionsDisabled}>${meaningPrompt ? 'Wist ik!' : 'Dat lukte!'}</button>
+        <button class="review-btn-know" id="reviewBtnKnow" data-action="grade-review" data-known="true" ${actionsDisabled}>Dat lukte!</button>
       </div>
     </div>
   `;
@@ -520,7 +528,7 @@ function attachReviewCardSwipe() {
     setTimeout(() => card.classList.remove('swipe-anim'), 200);
   };
   card.addEventListener('pointerdown', e => {
-    if (!reviewRevealed || (e.target as Element | null)?.closest('button')) return;
+    if (reviewStep !== 'answer' || (e.target as Element | null)?.closest('button')) return;
     startX = e.clientX;
     startY = e.clientY;
     dx = 0;
@@ -545,7 +553,7 @@ function attachReviewCardSwipe() {
   const commitOrReset = (event: PointerEvent) => {
     if (!dragging) return;
     dragging = false;
-    if (event.type === 'pointercancel' || !reviewRevealed || Math.abs(dx) <= 80) {
+    if (event.type === 'pointercancel' || reviewStep !== 'answer' || Math.abs(dx) <= 80) {
       reset();
       return;
     }
@@ -563,8 +571,14 @@ function attachReviewCardSwipe() {
 }
 
 function onReviewCardTap() {
-  if (!reviewSessionActive || reviewRevealed) return;
-  reviewRevealed = true;
+  if (!reviewSessionActive || reviewStep === 'answer') return;
+  if (currentWordReview && reviewStep === 'prompt') {
+    reviewStep = 'sentence';
+    checkpointReviewSession();
+    renderReviewSession();
+    return;
+  }
+  reviewStep = 'answer';
   checkpointReviewSession();
   const answer = document.getElementById('reviewCardAnswer');
   const hint = document.getElementById('reviewCardHint');
@@ -576,7 +590,7 @@ function onReviewCardTap() {
   if (know) (know as HTMLButtonElement).disabled = false;
 }
 function gradeAndAdvance(known: boolean) {
-  if (!reviewSessionActive || !reviewRevealed) return;
+  if (!reviewSessionActive || reviewStep !== 'answer') return;
   const item = reviewQueue[reviewIndex];
   if (!item) return;
   if (item.kind === 'expression') {
@@ -585,16 +599,16 @@ function gradeAndAdvance(known: boolean) {
   } else {
     const word = item.id;
     updateWordStats(word, known ? 'review' : 'review_again');
-    if (currentReviewPrompt?.usage) recordWordAttempt({ id: crypto.randomUUID(), at: Date.now(), word,
-      chunk: currentReviewPrompt.usage.chunk, outcome: known ? 'self-reviewed' : 'needs-practice', source: 'review' });
+    if (currentWordReview?.usage) recordWordAttempt({ id: crypto.randomUUID(), at: Date.now(), word,
+      chunk: currentWordReview.usage.chunk, outcome: known ? 'self-reviewed' : 'needs-practice', source: 'review' });
   }
   if (known) reviewResults.know++;
   else reviewResults.again++;
   updateReviewBadge();
   if (item.kind === 'word') renderHistory();
   reviewIndex++;
-  currentReviewPrompt = null;
-  reviewRevealed = false;
+  currentWordReview = null;
+  reviewStep = 'prompt';
   checkpointReviewSession();
   renderReviewSession();
   window.scrollTo?.(0, 0);
@@ -619,7 +633,7 @@ function renderReviewSummary() {
 }
 function endReviewSessionToHome() {
   clearReviewCheckpoint(learningOwner());
-  reviewSessionActive = false; reviewQueue = []; reviewIndex = 0; reviewResults = { know: 0, again: 0 }; reviewRevealed = false; currentReviewPrompt = null; renderReviewHome();
+  reviewSessionActive = false; reviewQueue = []; reviewIndex = 0; reviewResults = { know: 0, again: 0 }; reviewStep = 'prompt'; currentWordReview = null; renderReviewHome();
 }
 function exitReviewSession() {
   if (!reviewSessionActive) return;
@@ -630,8 +644,8 @@ function exitReviewSession() {
 }
 function resetReviewSessionIfActive() {
   if (!reviewSessionActive) return;
-  reviewSessionActive = false; reviewQueue = []; reviewIndex = 0; reviewResults = { know: 0, again: 0 }; reviewRevealed = false;
-  currentReviewPrompt = null;
+  reviewSessionActive = false; reviewQueue = []; reviewIndex = 0; reviewResults = { know: 0, again: 0 }; reviewStep = 'prompt';
+  currentWordReview = null;
   const session = document.getElementById('reviewSessionSection');
   const home = document.getElementById('reviewHomeSection');
   if (session) session.style.display = 'none';
@@ -715,8 +729,8 @@ function onReviewKeydown(e: KeyboardEvent) {
   if ((revealKey || e.key === 'Enter') && focused?.closest('#reviewFrontCard button')) return;
   if (revealKey) {
     e.preventDefault();
-    onReviewCardTap();
-  } else if (reviewRevealed && ['Enter', 'ArrowRight', 'ArrowLeft'].includes(e.key)) {
+    if (!e.repeat) onReviewCardTap();
+  } else if (reviewStep === 'answer' && ['Enter', 'ArrowRight', 'ArrowLeft'].includes(e.key)) {
     e.preventDefault();
     gradeAndAdvance(e.key !== 'ArrowLeft');
   }
