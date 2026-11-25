@@ -67,6 +67,18 @@ export function needsUsageReview(data: Pick<WordExplanation, 'word' | 'usage'>, 
   return (data.usage || []).some(use => usageReviewDue(data.word, use.chunk, attempts, now));
 }
 
+export const WORD_MEANING_PROMPT = 'Wat betekent dit woord?';
+
+export function wordReviewContent(data: WordExplanation, reviews: number, attempts: UsageAttempt[]) {
+  const usage = chooseWordUsage(data, attempts, reviews);
+  const example = usage ? { nl: usage.example_nl, en: usage.example_en } : data.examples[0];
+  return {
+    meaningNl: data.meaning_nl, meaningEn: data.meaning_en,
+    prompt: `How would you say this in Dutch? “${example.en}”`,
+    nl: example.nl, note: usage?.note ?? '', usage,
+  };
+}
+
 export function wordReview(data: WordExplanation, level: number, reviews: number, attempts: UsageAttempt[], allowContext = true) {
   const use = chooseWordUsage(data, attempts, reviews);
   const last = use && usageHistory(data.word, use.chunk, attempts).filter(a => a.outcome !== 'self-reviewed').at(-1);

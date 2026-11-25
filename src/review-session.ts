@@ -6,6 +6,7 @@ export type ReviewCheckpoint = {
   know: number;
   again: number;
   revealed: boolean;
+  wordMeaningRevealed?: true;
 };
 
 const key = (owner: string) => `poortaal_review_session:${owner}`;
@@ -33,7 +34,9 @@ export function readReviewCheckpoint(
       || typeof s.again !== 'number' || !Number.isSafeInteger(s.again) || s.again < 0
       || s.know + s.again > s.index
       || typeof s.revealed !== 'boolean') return null;
-    return { cards, index: s.index, know: s.know, again: s.again, revealed: s.revealed };
+    const wordMeaningRevealed = s.wordMeaningRevealed === true && cards[s.index]?.kind === 'word';
+    return { cards, index: s.index, know: s.know, again: s.again, revealed: s.revealed,
+      ...(wordMeaningRevealed ? { wordMeaningRevealed: true } : {}) };
   } catch { return null; }
 }
 

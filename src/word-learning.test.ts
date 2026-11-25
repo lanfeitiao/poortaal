@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { chooseWordUsage, mergeAttempts, needsUsageReview, wordReview, type UsageAttempt } from './word-learning.ts';
+import { chooseWordUsage, mergeAttempts, needsUsageReview, wordReview, wordReviewContent, type UsageAttempt } from './word-learning.ts';
 import type { WordExplanation } from './word-explanation.ts';
 import { learningMoment, lessonScenario, practiceUsage } from './structured-fixtures.ts';
 
@@ -8,6 +8,17 @@ const make = { chunk: 'een afspraak maken', meaning_en: 'make an appointment', f
 const move = { ...make, chunk: 'een afspraak verzetten', meaning_en: 'reschedule an appointment', frame: 'Kan ik mijn afspraak verzetten naar [tijd]?', example_nl: 'Kan ik mijn afspraak verzetten naar donderdag?', review_prompt: 'Move your Wednesday appointment to Thursday.' };
 const word: WordExplanation = { word: 'afspraak', type: 'zelfstandig naamwoord', meaning_nl: 'Een afgesproken tijd.', meaning_en: 'appointment', examples: [{ nl: 'Ik heb een afspraak.', en: 'I have an appointment.' }, { nl: 'Mijn afspraak is morgen.', en: 'My appointment is tomorrow.' }], tips: 'Use maken.', fun_fact: null, usage: [make, move] };
 const attempt = (id: string, chunk: string, outcome: UsageAttempt['outcome'], at: number, source: UsageAttempt['source'] = 'conversation'): UsageAttempt => ({ id, word: word.word, chunk, outcome, at, source });
+
+test('words with no saved collocation can review meaning and a full sentence', () => {
+  for (const usage of [undefined, []]) {
+    const review = wordReviewContent({ ...word, usage }, 0, []);
+    assert.equal(review.meaningNl, word.meaning_nl);
+    assert.equal(review.meaningEn, word.meaning_en);
+    assert.equal(review.prompt, `How would you say this in Dutch? “${word.examples[0].en}”`);
+    assert.equal(review.nl, word.examples[0].nl);
+    assert.equal(review.usage, undefined);
+  }
+});
 
 test('words without attached uses keep their original meaning review', () => {
   assert.equal(wordReview({ ...word, usage: undefined }, 2, 4, []).kind, 'meaning');

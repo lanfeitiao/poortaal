@@ -25,6 +25,9 @@ test('review checkpoint survives reload at card four of seven and is scoped to i
   writeReviewCheckpoint('learner', { cards, index: 4, know: 3, again: 1, revealed: true }, storage);
   assert.equal(readReviewCheckpoint('learner', storage)?.index, 4);
   assert.equal(readReviewCheckpoint('learner', storage)?.revealed, true);
+  writeReviewCheckpoint('learner', { cards, index: 4, know: 3, again: 1, revealed: false, wordMeaningRevealed: true }, storage);
+  assert.equal(readReviewCheckpoint('learner', storage)?.wordMeaningRevealed, true);
+  assert.equal(readReviewCheckpoint('learner', storage)?.revealed, false);
   clearReviewCheckpoint('learner', storage);
   assert.equal(readReviewCheckpoint('learner', storage), null);
 });
