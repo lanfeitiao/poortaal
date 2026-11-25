@@ -179,6 +179,7 @@ main { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
 .micro-review .review-timer-text { font-size: 0.8rem; color: var(--gray-400); margin-bottom: 1.5rem; }
 .micro-review .review-word { font-size: 2.2rem; font-weight: 700; color: var(--blue-800); margin-bottom: 0.25rem; }
 .micro-review .review-type { font-size: 0.85rem; color: var(--blue-500); margin-bottom: 1.5rem; }
+.micro-review .review-word-meaning { margin: 0 0 0.75rem; }
 .micro-review .review-prompt { color: var(--gray-500); font-size: 0.95rem; margin-bottom: 1rem; }
 .micro-review .review-answer { background: var(--blue-50); border: 2px solid var(--blue-200); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1rem; text-align: left; display: none; }
 .micro-review .review-answer.revealed { display: block; animation: fadeUp 0.25s ease-out; }
@@ -489,9 +490,10 @@ main { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
     <div class="review-timer-text" id="reviewTimerText">30s</div>
     <div class="review-word" id="reviewWord"></div>
     <div class="review-type" id="reviewType"></div>
-    <div class="review-prompt" id="reviewPrompt">Wat betekent dit woord?</div>
-    <div class="review-answer" id="reviewAnswer"><div class="answer-nl" id="reviewNl"></div><div class="answer-en" id="reviewEn"></div></div>
-    <div class="review-actions" id="reviewActions"><button class="review-btn-reveal" id="reviewRevealBtn">Onthullen</button></div>
+    <div id="reviewMeaning" hidden></div>
+    <div class="review-prompt" id="reviewPrompt"></div>
+    <div class="review-answer" id="reviewAnswer"></div>
+    <div class="review-actions" id="reviewActions"></div>
   </div>
 </div>
 <script type="module" src="/src/main.ts"></script>

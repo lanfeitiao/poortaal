@@ -17,7 +17,7 @@ import { structuredPractice } from './structured-ui';
 import { clearStructuredWord } from './structured-store';
 import { generateLearningScene, readLearningScene, sceneUsage, rememberSceneExposure, recentlyViewedScene } from './learning-scene';
 import { renderLearningScene } from './learning-scene-view';
-import { needsUsageReview, wordReview, wordReviewContent, WORD_MEANING_PROMPT } from './word-learning';
+import { needsUsageReview, wordReviewContent, WORD_MEANING_PROMPT } from './word-learning';
 import { clearReviewCheckpoint, readReviewCheckpoint, writeReviewCheckpoint } from './review-session';
 import { createWordWriteQueue } from './word-write-queue';
 import { mergeCloudWordStats, saveWordWithVersion, supabaseWordStore } from './word-cloud-save';
@@ -302,9 +302,8 @@ let reviewStep: 'prompt' | 'sentence' | 'answer' = 'prompt';
 let reviewSessionActive = false;
 let currentWordReview: ReturnType<typeof wordReviewContent> | null = null;
 let practiceGeneration = 0;
-let microReviewTimer: ReturnType<typeof setTimeout> | null = null;
 let microReviewInterval: ReturnType<typeof setInterval> | null = null;
-let microReviewPrompt: ReturnType<typeof wordReview> | null = null;
+let microReviewPrompt: ReturnType<typeof wordReviewContent> | null = null;
 
 // --- Routing ---
 function navigateTo(hash: string) {
@@ -722,7 +721,7 @@ document.addEventListener('DOMContentLoaded', () => {
   handleRoute(); window.addEventListener('keydown', onReviewKeydown);
 });
 function onReviewKeydown(e: KeyboardEvent) {
-  if (!reviewSessionActive || reviewIndex >= reviewQueue.length) return;
+  if (microReviewPrompt || !reviewSessionActive || reviewIndex >= reviewQueue.length) return;
   const focused = document.activeElement;
   if (focused?.matches('input, textarea')) return;
   const revealKey = e.key === ' ' || e.code === 'Space';
@@ -1077,23 +1076,51 @@ function startMicroReview(word: string) {
   const panel = document.getElementById('historyPanel'); if (panel.classList.contains('open')) toggleHistory();
   const data = getCachedWord(word) || entry.wordData;
   const stats = getWordStats()[word];
-  const review = microReviewPrompt = wordReview(data, stats?.level || 0, stats?.reviews.length || 0, getWordAttempts(word), false);
-  if (data.usage === undefined) void loadWordUsage(data);
+  const review = microReviewPrompt = wordReviewContent(data, stats?.reviews?.length || 0, getWordAttempts(word));
   document.getElementById('reviewWord').textContent = data.word;
   document.getElementById('reviewType').textContent = data.type || '';
-  document.getElementById('reviewPrompt')!.textContent = review.prompt;
-  document.getElementById('reviewNl').textContent = review.nl || '';
-  document.getElementById('reviewEn').textContent = review.en || '';
-  document.getElementById('reviewAnswer').classList.remove('revealed');
+  document.getElementById('reviewPrompt').textContent = WORD_MEANING_PROMPT;
+  const meaning = document.getElementById('reviewMeaning');
+  meaning.hidden = true;
+  meaning.innerHTML = renderReviewMeaning(review);
+  const answer = document.getElementById('reviewAnswer');
+  answer.classList.remove('revealed');
+  answer.innerHTML = renderReviewExample(review.nl)
+    + (review.note ? `<div class="answer-en">${escapeHtml(review.note)}</div>` : '');
   document.getElementById('reviewActions').innerHTML = '<button class="review-btn-reveal" data-action="micro-reveal">Onthullen</button>';
   document.getElementById('microReviewOverlay').classList.add('open');
-  let remaining = 30; const bar = document.getElementById('reviewTimerBar'); const text = document.getElementById('reviewTimerText');
-  bar.style.width = '100%'; text.textContent = '30s'; if (microReviewInterval) clearInterval(microReviewInterval);
-  microReviewInterval = setInterval(() => { remaining -= 0.1; if (remaining <= 0) { remaining = 0; clearInterval(microReviewInterval!); revealAnswer(); } bar.style.width = ((remaining / 30) * 100) + '%'; text.textContent = Math.ceil(remaining) + 's'; }, 100);
+  startMicroReviewCountdown();
 }
-function revealAnswer() { if (microReviewInterval) { clearInterval(microReviewInterval); microReviewInterval = null; } document.getElementById('reviewAnswer').classList.add('revealed'); document.getElementById('reviewActions').innerHTML = '<button class="review-btn-know" data-action="micro-finish" data-known="true">Wist ik!</button><button class="review-btn-again" data-action="micro-finish" data-known="false">Opnieuw</button><button class="review-btn-close" data-action="micro-close">Sluiten</button>'; }
+function startMicroReviewCountdown() {
+  if (microReviewInterval) clearInterval(microReviewInterval);
+  const bar = document.getElementById('reviewTimerBar');
+  const text = document.getElementById('reviewTimerText');
+  let ticks = 300;
+  bar.style.width = '100%';
+  text.textContent = '30s';
+  microReviewInterval = setInterval(() => {
+    ticks--;
+    bar.style.width = `${ticks / 3}%`;
+    text.textContent = `${Math.ceil(ticks / 10)}s`;
+    if (ticks === 0) revealAnswer();
+  }, 100);
+}
+function revealAnswer() {
+  if (!microReviewPrompt) return;
+  const meaning = document.getElementById('reviewMeaning');
+  if (meaning.hidden) {
+    meaning.hidden = false;
+    document.getElementById('reviewPrompt').textContent = microReviewPrompt.prompt;
+    startMicroReviewCountdown();
+    return;
+  }
+  if (microReviewInterval) clearInterval(microReviewInterval);
+  microReviewInterval = null;
+  document.getElementById('reviewAnswer').classList.add('revealed');
+  document.getElementById('reviewActions').innerHTML = '<button class="review-btn-know" data-action="micro-finish" data-known="true">Dat lukte!</button><button class="review-btn-again" data-action="micro-finish" data-known="false">Opnieuw</button><button class="review-btn-close" data-action="micro-close">Sluiten</button>';
+}
 function finishReview(knew: boolean) {
-  if (!microReviewPrompt || !document.getElementById('microReviewOverlay').classList.contains('open')) return;
+  if (!microReviewPrompt || !document.getElementById('reviewAnswer').classList.contains('revealed')) return;
   const word = document.getElementById('reviewWord').textContent!.toLowerCase();
   updateWordStats(word, knew ? 'review' : 'review_again');
   if (microReviewPrompt?.usage) recordWordAttempt({ id: crypto.randomUUID(), at: Date.now(), word,

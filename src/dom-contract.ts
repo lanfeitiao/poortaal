@@ -54,13 +54,11 @@ const REQUIRED_ELEMENT_IDS = [
   'reviewTimerBar',
   'reviewTimerText',
   'reviewWord',
+  'reviewMeaning',
   'reviewPrompt',
   'reviewType',
   'reviewAnswer',
-  'reviewNl',
-  'reviewEn',
   'reviewActions',
-  'reviewRevealBtn',
 ] as const;
 
 type RequiredElementId = typeof REQUIRED_ELEMENT_IDS[number];
