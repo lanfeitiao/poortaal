@@ -1,4 +1,4 @@
-import { gradeExpression, readExpressions, type SavedExpression } from './daily-chat-store';
+import { ensureExpressionEnglish, gradeExpression, readExpressions, type SavedExpression } from './daily-chat-store';
 import { dailyReviewText } from './daily-chat-feedback';
 import { advanceStreak, migrateLegacyStreak, readStreak, syncStreak, writeStreak } from './streak';
 import { leaveDailyChat, showDailyChat } from './daily-chat-view';
@@ -460,10 +460,9 @@ function renderReviewSession() {
   const total = reviewQueue.length;
   const pct = Math.round((reviewIndex / total) * 100);
   const answerEn = escapeHtml(expressionText?.note ?? review?.note ?? '');
-  const practiceAloud = expressionText?.practiceAloud;
+  const needsTranslation = item.kind === 'expression' && !english;
+  if (needsTranslation) reviewRevealed = false;
   const answer = renderReviewExample(expression?.dutch ?? review?.nl ?? '');
-  const hint = practiceAloud ? 'tik voor de uitleg'
-    : 'probeer eerst zelf · tik voor een voorbeeld';
   const revealed = reviewRevealed;
   const revealedClass = revealed ? 'revealed' : '';
   const actionsDisabled = revealed ? '' : 'disabled';
@@ -481,11 +480,12 @@ function renderReviewSession() {
         ${back2}
         ${back1}
         <div class="review-card front" id="reviewFrontCard" data-action="review-card-tap">
-          ${renderReviewCue(english)}
-          ${practiceAloud ? answer : ''}
-          <div class="review-card-hint" id="reviewCardHint" ${revealed ? 'hidden' : ''}>${hint}</div>
+          ${needsTranslation ? `<div class="review-card-cue" lang="en" role="status">Preparing the English translation…</div>
+            <div class="review-actions"><button type="button" class="review-btn-reveal" data-review-translate hidden>Retry</button>
+              <button type="button" class="review-btn-close" data-review-later>Later</button></div>` : renderReviewCue(english)}
+          <div class="review-card-hint" id="reviewCardHint" ${revealed || needsTranslation ? 'hidden' : ''}>probeer eerst zelf · tik voor een voorbeeld</div>
           <div class="review-card-answer ${revealedClass}" id="reviewCardAnswer">
-            ${practiceAloud ? '' : answer}
+            ${answer}
             ${answerEn ? `<div class="answer-en">${answerEn}</div>` : ''}
           </div>
         </div>
@@ -497,6 +497,33 @@ function renderReviewSession() {
     </div>
   `;
   attachReviewCardSwipe();
+  if (needsTranslation) prepareReviewTranslation(item, root);
+}
+
+function prepareReviewTranslation(item: SavedExpression & { kind: 'expression' }, root: HTMLElement) {
+  const owner = learningOwner();
+  const status = root.querySelector<HTMLElement>('[role="status"]')!;
+  const retry = root.querySelector<HTMLButtonElement>('[data-review-translate]')!;
+  const later = root.querySelector<HTMLButtonElement>('[data-review-later]')!;
+  const current = () => status.isConnected && reviewSessionActive
+    && reviewQueue[reviewIndex] === item && learningOwner() === owner;
+  const translate = async () => {
+    retry.hidden = true;
+    status.textContent = 'Preparing the English translation…';
+    try {
+      const english = await ensureExpressionEnglish(owner, item, API_BASE);
+      if (!current()) return;
+      item.card = { ...item.card, english };
+      renderReviewSession();
+    } catch {
+      if (!current()) return;
+      status.textContent = 'Could not load the English translation.';
+      retry.hidden = false;
+    }
+  };
+  retry.addEventListener('click', event => { event.stopPropagation(); if (current()) void translate(); });
+  later.addEventListener('click', event => { event.stopPropagation(); if (current()) advanceReviewCard(); });
+  void translate();
 }
 
 function attachReviewCardSwipe() {
@@ -553,6 +580,8 @@ function attachReviewCardSwipe() {
 
 function onReviewCardTap() {
   if (!reviewSessionActive || reviewRevealed) return;
+  const item = reviewQueue[reviewIndex];
+  if (!item || (item.kind === 'expression' && !item.card.english)) return;
   reviewRevealed = true;
   checkpointReviewSession();
   const answer = document.getElementById('reviewCardAnswer');
@@ -581,6 +610,10 @@ function gradeAndAdvance(known: boolean) {
   else reviewResults.again++;
   updateReviewBadge();
   if (item.kind === 'word') renderHistory();
+  advanceReviewCard();
+}
+
+function advanceReviewCard() {
   reviewIndex++;
   currentWordReview = null;
   reviewRevealed = false;
