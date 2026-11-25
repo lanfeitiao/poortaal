@@ -53,10 +53,7 @@ const REQUIRED_ELEMENT_IDS = [
   'microReviewOverlay',
   'reviewTimerBar',
   'reviewTimerText',
-  'reviewWord',
-  'reviewMeaning',
   'reviewPrompt',
-  'reviewType',
   'reviewAnswer',
   'reviewActions',
 ] as const;
