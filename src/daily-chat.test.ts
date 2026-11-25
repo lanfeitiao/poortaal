@@ -62,6 +62,31 @@ test('Daily Chat shows a translation used as the review cue only once', () => {
   assert.equal(dailyReviewText({ ...card, english }).note, card.explanation);
 });
 
+test('older Daily Chat corrections ask the learner to fix their wording', () => {
+  for (const [quote, dutch, explanation] of [
+    ['Het is tijd voor haar om de bed te gaan.', 'Het is tijd voor haar om naar bed te gaan.', 'Use naar bed gaan.'],
+    ['Ze is het niet mee eens.', 'Ze is het er niet mee eens.', 'Use er … mee eens zijn.'],
+  ]) {
+    assert.deepEqual(dailyReviewText({ ...card, quote, dutch, explanation }), {
+      prompt: `How would you correct this in Dutch? “${quote}”`, note: explanation,
+    });
+  }
+  assert.equal(dailyReviewText({ ...card, kind: 'naturalness' }).prompt,
+    `How would you say this more naturally in Dutch? “${card.quote}”`);
+});
+
+test('older Daily Chat cards without a usable recall cue practise the full sentence aloud', () => {
+  const dutch = 'Ik voel me niet goed en wil niet opstaan.';
+  const useful: DailyFeedback = { ...card, kind: 'useful', quote: dutch, dutch, explanation: 'I don’t feel well and don’t want to get up.' };
+  for (const saved of [
+    useful, { ...card, speaker: 'partner' } as const, { ...card, quote: `Je kunt zeggen: ${card.dutch}` },
+  ]) {
+    assert.deepEqual(dailyReviewText(saved), {
+      prompt: 'Say this sentence aloud.', note: saved.explanation, practiceAloud: true,
+    });
+  }
+});
+
 test('unchanged learner wording cannot be presented as an improvement', () => {
   const quote = 'Ik vind dat fijn.';
   const unchanged = { ...card, quote, dutch: quote };

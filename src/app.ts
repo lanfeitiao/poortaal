@@ -463,6 +463,10 @@ function renderReviewSession() {
   const answerNl = expression?.dutch ?? review?.nl ?? '';
   const answerEn = escapeHtml(expressionText?.note ?? review?.en ?? '');
   const sentenceAnswer = Boolean(expression) || review?.kind === 'context' || review?.kind === 'output';
+  const practiceAloud = expressionText?.practiceAloud;
+  const answer = sentenceAnswer ? renderReviewExample(answerNl) : `<div class="answer-nl" lang="nl">${escapeHtml(answerNl)}</div>`;
+  const hint = practiceAloud ? 'tik voor de uitleg'
+    : meaningPrompt ? 'tik om te onthullen' : 'probeer eerst zelf · tik voor een voorbeeld';
   const safeWord = escapeHtml(item.kind === 'word' ? item.id : '');
   const safeType = escapeHtml(data?.type || '');
   const contextLine = review && 'openingLine' in review ? review.openingLine : null;
@@ -486,12 +490,13 @@ function renderReviewSession() {
           ${data ? `<div class="review-card-word">${safeWord}</div>` : ''}
           ${safeType ? `<div class="review-card-type">${safeType}</div>` : ''}
           <div class="review-card-task">${escapeHtml(prompt)}</div>
+          ${practiceAloud ? answer : ''}
           ${contextLine ? `<div class="review-context-partner"><span>Other person</span><p>${escapeHtml(contextLine)}</p></div>` : ''}
           ${contextLine ? '<div class="review-context-question">What would you say in Dutch?</div>' : ''}
           ${data ? `<button type="button" class="tts-btn review-tts-btn" data-action="play-example-tts" data-text="${safeWord}" aria-label="Woord beluisteren" title="Uitspraak beluisteren">🔊</button>` : ''}
-          <div class="review-card-hint" id="reviewCardHint" ${reviewRevealed ? 'hidden' : ''}>${meaningPrompt ? 'tik om te onthullen' : 'probeer eerst zelf · tik voor een voorbeeld'}</div>
+          <div class="review-card-hint" id="reviewCardHint" ${reviewRevealed ? 'hidden' : ''}>${hint}</div>
           <div class="review-card-answer ${revealedClass}" id="reviewCardAnswer">
-            ${sentenceAnswer ? renderReviewExample(answerNl) : `<div class="answer-nl" lang="nl">${escapeHtml(answerNl)}</div>`}
+            ${practiceAloud ? '' : answer}
             ${answerEn ? `<div class="answer-en">${answerEn}</div>` : ''}
           </div>
         </div>
