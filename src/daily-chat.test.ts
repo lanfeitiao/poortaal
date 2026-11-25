@@ -57,33 +57,13 @@ test('Daily Chat discards a cue that gives away the Dutch sentence', () => {
 test('Daily Chat shows a translation used as the review cue only once', () => {
   const english = 'Can my daughter come along too?';
   assert.deepEqual(dailyReviewText({ ...card, english, explanation: 'Can my daughter come along too' }), {
-    prompt: 'Say the sentence in Dutch.', cue: english, note: '',
+    cue: english, note: '',
   });
   assert.equal(dailyReviewText({ ...card, english }).note, card.explanation);
 });
 
-test('older Daily Chat corrections use the original wording as their sentence cue', () => {
-  for (const [quote, dutch, explanation] of [
-    ['Het is tijd voor haar om de bed te gaan.', 'Het is tijd voor haar om naar bed te gaan.', 'Use naar bed gaan.'],
-    ['Ze is het niet mee eens.', 'Ze is het er niet mee eens.', 'Use er … mee eens zijn.'],
-  ]) {
-    assert.deepEqual(dailyReviewText({ ...card, quote, dutch, explanation }), {
-      prompt: 'Say the sentence in Dutch.', cue: quote, original: true, note: explanation,
-    });
-  }
-  assert.equal(dailyReviewText({ ...card, kind: 'naturalness' }).cue, card.quote);
-});
-
-test('older Daily Chat cards without a usable recall cue practise the full sentence aloud', () => {
-  const dutch = 'Ik voel me niet goed en wil niet opstaan.';
-  const useful: DailyFeedback = { ...card, kind: 'useful', quote: dutch, dutch, explanation: 'I don’t feel well and don’t want to get up.' };
-  for (const saved of [
-    useful, { ...card, speaker: 'partner' } as const, { ...card, quote: `Je kunt zeggen: ${card.dutch}` },
-  ]) {
-    assert.deepEqual(dailyReviewText(saved), {
-      prompt: 'Say the sentence in Dutch.', note: saved.explanation, practiceAloud: true,
-    });
-  }
+test('a Daily Chat card awaits an English translation before it has a recall cue', () => {
+  assert.deepEqual(dailyReviewText(card), { cue: undefined, note: card.explanation });
 });
 
 test('unchanged learner wording cannot be presented as an improvement', () => {
