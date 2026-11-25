@@ -37,7 +37,7 @@ type WordStatsMap = Record<string, WordStats>;
 type PlantStageKey = 'strong' | 'growing' | 'sprout' | 'seed' | 'wilting';
 type PlantStage = { emoji: string; label: string; key: PlantStageKey; hint: string };
 type HistoryEntry = { word: string; timestamp: number; wordData?: WordExplanation };
-type WordReviewItem = { kind: 'word'; id: string; entry: HistoryEntry; stats: Partial<WordStats>; level: number; isDue: boolean; isWilting: boolean; overdueDays: number };
+type WordReviewItem = { kind: 'word'; id: string; entry: HistoryEntry; stats: Partial<WordStats>; isDue: boolean; isWilting: boolean; overdueDays: number };
 type ReviewItem = WordReviewItem | (SavedExpression & { kind: 'expression' });
 type DailyWord = { word: string; category: string; teaser: string };
 type CloudWord = { word: string; lookups?: number; practices?: number; reviews?: number[]; level?: number; last_seen?: number; word_data?: unknown };
@@ -387,7 +387,7 @@ function restoreReviewSession(): boolean {
       const wordData = entry && (getCachedWord(id) || entry.wordData);
       const current: Partial<WordStats> = stats[id] || {};
       if (entry && wordData) item = {
-        kind, id, entry: { ...entry, wordData }, stats: current, level: current.level || 0,
+        kind, id, entry: { ...entry, wordData }, stats: current,
         isDue: false, isWilting: false, overdueDays: 0,
       };
     }
@@ -765,7 +765,7 @@ function getDueWords(): WordReviewItem[] {
     const dueDay = startOfDay((s.lastSeen || 0) + getNextInterval(level) * 86400000);
     const data = getCachedWord(entry.word) || entry.wordData!;
     const usageDue = needsUsageReview(data, getWordAttempts(entry.word));
-    return { kind: 'word' as const, id: entry.word, entry, stats: s, level, isDue: usageDue || (dueDay <= today && level < 4),
+    return { kind: 'word' as const, id: entry.word, entry, stats: s, isDue: usageDue || (dueDay <= today && level < 4),
       isWilting: dueDay < today && level < 4, overdueDays: Math.max(0, Math.round((today - dueDay) / 86400000)) };
   }).filter(x => x.isDue).sort((a, b) => b.overdueDays - a.overdueDays);
 }

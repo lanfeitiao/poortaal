@@ -1,5 +1,4 @@
 import { usageKey, type WordUsage } from './word-usage.ts';
-import { readLearningScene } from './learning-scene.ts';
 import type { WordExplanation } from './word-explanation.ts';
 
 export type UsageOutcome = 'independent' | 'supported' | 'needs-practice' | 'self-reviewed';
@@ -76,30 +75,5 @@ export function wordReviewContent(data: WordExplanation, reviews: number, attemp
     meaningNl: data.meaning_nl, meaningEn: data.meaning_en,
     prompt: `How would you say this in Dutch? “${example.en}”`,
     nl: example.nl, note: usage?.note ?? '', usage,
-  };
-}
-
-export function wordReview(data: WordExplanation, level: number, reviews: number, attempts: UsageAttempt[], allowContext = true) {
-  const use = chooseWordUsage(data, attempts, reviews);
-  const last = use && usageHistory(data.word, use.chunk, attempts).filter(a => a.outcome !== 'self-reviewed').at(-1);
-  const pending = last && ['needs-practice', 'supported'].includes(last.outcome);
-  // Only reuse an already validated scene for the same sense and selected use.
-  // It was taught previously, but the changed context stays hidden until review.
-  const lesson = allowContext ? readLearningScene(data.scene, data) : undefined;
-  const recalled = lesson && (!use || lesson.usage === usageKey(use.chunk))
-    ? lesson.moment.transfer : undefined;
-  const meaningDue = !pending && (level === 0 || reviews % 3 === 0);
-  if (recalled && !meaningDue && (!use || pending || level !== 1)) {
-    return {
-      kind: 'context' as const, prompt: recalled.situation, openingLine: recalled.openingLine,
-      nl: recalled.example, en: '', ...(use ? { usage: use } : {}),
-    };
-  }
-  if (!use || meaningDue) {
-    return { kind: 'meaning' as const, prompt: 'Wat betekent dit woord?', nl: data.meaning_nl, en: data.meaning_en };
-  }
-  return {
-    kind: 'output' as const, usage: use, prompt: `How would you say this in Dutch? “${use.example_en}”`,
-    nl: use.example_nl, en: use.note ?? '',
   };
 }
