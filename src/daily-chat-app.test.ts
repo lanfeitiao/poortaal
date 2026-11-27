@@ -157,7 +157,8 @@ test('Daily Chat can retry feedback, save individual cards and resume Review', a
   f.click('#reviewBtnAgain');
 
   assert.deepEqual([...f.document.querySelectorAll('.review-summary-stat')].map(stat => stat.textContent),
-    ['🌳 2 wist je', '🥀 1 opnieuw']);
+    ['🌳 2 wist je', '🥀 1 keer ‘Opnieuw’ gekozen']);
+  assert.equal(f.document.getElementById('reviewSummaryRemaining')?.textContent, 'Vandaag niets meer te herhalen');
   const expressions = JSON.parse(f.storage.get('poortaal_daily_chat_review:guest')!);
   assert.equal(expressions[0].level, 1);
   assert.equal(expressions[1].level, 0);

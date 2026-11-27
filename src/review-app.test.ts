@@ -124,6 +124,49 @@ test('Review continues with card ten and then thirteen after two cloud updates',
   await new Promise(setImmediate);
 });
 
+test('Review shows the completed batch and keeps the remaining count in sync with the badge', async t => {
+  const f = await liveFixture(t);
+  let now = new Date(2026, 9, 20, 12).getTime();
+  t.mock.method(Date, 'now', () => now);
+  const dueTimes = [...Array(24).fill(0), ...Array(7).fill(now + 60_000), now + 120_000];
+  const expressions = dueTimes.map((dueAt, index) => {
+    const dutch = `Ik heb ${index + 1} boeken.`;
+    return {
+      id: `sentence-${index}`, level: 0, dueAt,
+      card: { kind: 'useful', dutch, quote: dutch, english: `I have ${index + 1} books.`, explanation: 'Counting books.' },
+    };
+  });
+  f.storage.set('poortaal_daily_chat_review:guest', JSON.stringify(expressions));
+  (f.events.location as { hash: string }).hash = '#review';
+  f.events.dispatchEvent(new Event('hashchange'));
+  await f.wait(() => Boolean(f.document.querySelector('[data-action="start-review"]')));
+  const text = (selector: string) => f.document.querySelector(selector)?.textContent;
+  f.click('[data-action="start-review"]');
+  assert.equal(text('.review-progress-text'), '1 / 25');
+  now += 60_000;
+  for (let index = 0; index < 25; index++) {
+    f.click('#reviewFrontCard');
+    f.click(index < 5 ? '#reviewBtnKnow' : '#reviewBtnAgain');
+  }
+  assert.equal(text('.review-summary-total'), '25 kaarten beoordeeld');
+  assert.deepEqual([...f.document.querySelectorAll('.review-summary-stat')].map(stat => stat.textContent),
+    ['🌳 5 wist je', '🥀 20 keer ‘Opnieuw’ gekozen']);
+  assert.equal(text('#reviewSummaryRemaining'), 'Vandaag nog 7 kaarten te herhalen');
+  assert.equal(text('#navReviewBadge'), '7');
+
+  now += 60_000;
+  (f.events.location as { hash: string }).hash = '#review?daily-chat';
+  f.events.dispatchEvent(new Event('hashchange'));
+  assert.equal(text('#reviewSummaryRemaining'), 'Vandaag nog 8 kaarten te herhalen');
+  assert.equal(text('#navReviewBadge'), '8');
+  assert.equal(text('.review-summary-total'), '25 kaarten beoordeeld');
+  f.click('[data-action="end-review"]');
+  assert.equal(text('.review-count-num'), '8');
+  assert.equal(text('#navReviewBadge'), '8');
+  f.click('[data-action="start-review"]');
+  assert.equal(text('.review-progress-text'), '1 / 8');
+});
+
 test('Review plays the complete example sentence and keeps the current card', async t => {
   const f = await liveFixture(t);
   const speech: Record<string, string>[] = [];
