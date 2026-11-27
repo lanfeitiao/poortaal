@@ -328,6 +328,7 @@ function renderReviewHome() {
   session.style.display = 'none';
 
   const due = getDueReviewItems();
+  updateReviewBadge(due.length);
   if (due.length === 0) {
     home.innerHTML = `
       <div class="review-empty">
@@ -621,23 +622,31 @@ function advanceReviewCard() {
   renderReviewSession();
   window.scrollTo?.(0, 0);
 }
+
+function reviewCardCount(count: number): string {
+  return `${count} ${count === 1 ? 'kaart' : 'kaarten'}`;
+}
+
 function renderReviewSummary() {
   const root = document.getElementById('reviewSessionSection');
   if (!root) return;
   const know = reviewResults.know;
   const again = reviewResults.again;
+  const reviewed = know + again;
   const lines: string[] = [];
   if (know > 0) lines.push(`<div class="review-summary-stat">🌳 ${know} wist je</div>`);
-  if (again > 0) lines.push(`<div class="review-summary-stat">🥀 ${again} opnieuw</div>`);
-  if (lines.length === 0) lines.push('<div class="review-summary-stat">Geen kaarten beoordeeld</div>');
+  if (again > 0) lines.push(`<div class="review-summary-stat">🥀 ${again} keer ‘Opnieuw’ gekozen</div>`);
   root.innerHTML = `
     <div class="review-summary">
       <div class="review-summary-emoji">🌳</div>
       <div class="review-summary-title">Klaar!</div>
+      <div class="review-summary-total">${reviewed ? `${reviewCardCount(reviewed)} beoordeeld` : 'Geen kaarten beoordeeld'}</div>
       ${lines.join('')}
+      <p class="review-summary-remaining" id="reviewSummaryRemaining" role="status"></p>
       <button class="review-summary-btn" data-action="end-review">Naar Herhalen</button>
     </div>
   `;
+  updateReviewBadge();
 }
 function endReviewSessionToHome() {
   clearReviewCheckpoint(learningOwner());
@@ -684,7 +693,7 @@ function handleRoute() {
   } else resetReviewSessionIfActive();
 }
 window.addEventListener('hashchange', handleRoute);
-window.addEventListener('poortaal:expression-saved', updateReviewBadge);
+window.addEventListener('poortaal:expression-saved', () => updateReviewBadge());
 window.addEventListener('pagehide', () => leaveDailyChat());
 window.addEventListener('pageshow', () => {
   if (window.location.hash.split('?')[0] === '#daily-chat') showDailyChat(API_BASE);
@@ -792,12 +801,16 @@ function getDueReviewItems(): ReviewItem[] {
   }
   return queue.concat(expressions.slice(words.length));
 }
-function updateReviewBadge() {
+function updateReviewBadge(count = getDueReviewItems().length) {
   const badge = document.getElementById('navReviewBadge');
   if (!badge) return;
-  const count = getDueReviewItems().length;
   badge.hidden = count === 0;
   badge.textContent = String(count);
+  const remaining = document.getElementById('reviewSummaryRemaining');
+  if (remaining) {
+    const message = count > 0 ? `Vandaag nog ${reviewCardCount(count)} te herhalen` : 'Vandaag niets meer te herhalen';
+    if (remaining.textContent !== message) remaining.textContent = message;
+  }
 }
 function renderHistory() {
   const list = document.getElementById('historyList'); const summaryEl = document.getElementById('historySummary'); if (searchHistory.length === 0) { list.innerHTML = '<div class="history-empty">Nog geen woorden opgezocht</div>'; summaryEl.innerHTML = ''; return; }
